@@ -55,9 +55,10 @@ The production-ready extension will be located in the `dist/` directory.
 
 ## Manual Installation
 
-If you have downloaded a pre-built release ZIP (e.g., `peppool-wallet-v0.1.0-alpha.1.zip`):
+If you want to use the pre-built extension:
 
-1. **Extract the ZIP** file to a folder on your computer.
+1. Download the latest ZIP file from the [Releases](https://github.com/mvdnbrk/peppool-wallet/releases/latest) page.
+2. **Extract the ZIP** file to a folder on your computer.
 2. Open **Chrome** and navigate to `chrome://extensions/`.
 3. Enable **"Developer mode"** using the toggle in the top right corner.
 4. Click the **"Load unpacked"** button.

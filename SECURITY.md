@@ -1,8 +1,8 @@
-# Security Policy
+# Security policy
 
 Security is a top priority for Peppool Wallet — The Pepecoin wallet for everyone.
 
-## Supported Versions
+## Supported versions
 
 Currently, only the latest version of Peppool Wallet is supported for security updates.
 
@@ -11,7 +11,7 @@ Currently, only the latest version of Peppool Wallet is supported for security u
 | 0.1.x   | :white_check_mark: |
 | < 0.1   | :x:                |
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
 If you discover a security vulnerability, please do **not** open a public issue. Instead, please report it via one of the following methods:
 
@@ -28,5 +28,4 @@ Please include a detailed description of the vulnerability and steps to reproduc
 
 ---
 
-[Privacy Policy](PRIVACY.md)
-
+[Privacy policy](PRIVACY.md)

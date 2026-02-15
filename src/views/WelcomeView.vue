@@ -121,6 +121,7 @@ async function handleUnlock() {
       <button 
         @click="router.push('/reset-wallet')"
         class="text-xs text-slate-500 hover:text-white transition-colors cursor-pointer underline hover:no-underline"
+        tabindex="-1"
       >
         Forgot your password?
       </button>

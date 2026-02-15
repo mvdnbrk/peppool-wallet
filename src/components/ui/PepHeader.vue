@@ -30,7 +30,7 @@ function handleBack() {
     class="flex items-center z-20"
     :class="absolute ? 'absolute top-6 left-6' : 'mb-8'"
   >
-    <button @click="handleBack" class="text-slate-400 hover:text-white mr-4 cursor-pointer">
+    <button @click="handleBack" class="text-slate-400 hover:text-white mr-4 cursor-pointer" tabindex="-1">
       <PepIcon name="back" />
     </button>
     <h2 class="text-xl font-bold text-offwhite">{{ title }}</h2>

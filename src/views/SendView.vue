@@ -273,7 +273,7 @@ onMounted(async () => {
             <div class="text-sm font-bold uppercase tracking-wider flex items-center space-x-2">
               <span class="text-slate-500">Available:</span>
               <span class="text-slate-300">{{ displayBalance }}</span>
-              <button @click="setMax" class="text-pep-green-light hover:text-pep-green cursor-pointer">MAX</button>
+              <button @click="setMax" class="text-pep-green-light hover:text-pep-green cursor-pointer" tabindex="-1">MAX</button>
             </div>
           </div>
 
@@ -288,7 +288,7 @@ onMounted(async () => {
               placeholder="0.00"
               class="block min-w-0 grow bg-transparent py-1.5 pl-1.5 pr-2 text-base text-white placeholder:text-gray-500 focus:outline-none sm:text-sm font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <button type="button" @click="toggleMode" class="shrink-0 mr-2 p-1 rounded text-slate-500 hover:text-pep-green-light transition-colors cursor-pointer" title="Switch currency">
+            <button type="button" @click="toggleMode" class="shrink-0 mr-2 p-1 rounded text-slate-500 hover:text-pep-green-light transition-colors cursor-pointer" title="Switch currency" tabindex="-1">
               <PepIcon name="swap" size="16" />
             </button>
           </div>

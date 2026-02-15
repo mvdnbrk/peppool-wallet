@@ -37,13 +37,14 @@ function handleReset() {
       </div>
 
       <div class="pt-6">
-        <button 
+        <PepButton 
           @click="handleReset"
           :disabled="!confirmedBackup"
-          class="w-full rounded-md bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-red-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="danger"
+          class="w-full"
         >
           Reset Wallet
-        </button>
+        </PepButton>
       </div>
     </div>
   </div>

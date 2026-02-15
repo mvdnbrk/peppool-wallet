@@ -13,18 +13,18 @@ defineEmits(['update:modelValue']);
 <template>
   <div class="flex gap-3">
     <div class="flex h-6 shrink-0 items-center">
-      <div class="group grid size-4 grid-cols-1">
+      <div class="group grid size-5 grid-cols-1">
         <input
           :id="id"
           type="checkbox"
           :checked="modelValue"
           @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
-          class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-pep-green checked:bg-pep-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pep-green disabled:border-gray-300 disabled:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:checked:border-pep-green-light dark:checked:bg-pep-green-light dark:focus-visible:outline-pep-green-light dark:disabled:border-white/5 dark:disabled:bg-white/10 forced-colors:appearance-auto cursor-pointer"
+          class="col-start-1 row-start-1 appearance-none rounded-md border border-white/40 bg-white/5 checked:border-pep-green checked:bg-pep-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pep-green hover:border-pep-green-light transition-all cursor-pointer"
         />
-        <div class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center flex items-center justify-center">
+        <div class="pointer-events-none col-start-1 row-start-1 size-4 self-center justify-self-center flex items-center justify-center">
           <PepIcon 
             name="check" 
-            size="14" 
+            size="16" 
             class="text-white transition-opacity" 
             :class="modelValue ? 'opacity-100' : 'opacity-0'" 
           />

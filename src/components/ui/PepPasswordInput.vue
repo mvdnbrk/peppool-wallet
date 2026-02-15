@@ -15,7 +15,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   autofocus: false,
   inputClass: '',
-  disabled: false
+  disabled: false,
+  placeholder: 'Enter your password'
 });
 defineEmits(['update:modelValue']);
 

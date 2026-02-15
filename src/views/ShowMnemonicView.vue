@@ -47,7 +47,7 @@ async function handleReveal() {
           v-model="password"
           id="reveal-password"
           label="Password"
-          placeholder="Wallet password"
+          placeholder="Enter your password"
           :error="error"
           @keyup.enter="handleReveal"
         />

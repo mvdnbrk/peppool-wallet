@@ -3,7 +3,7 @@ import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { fetchUtxos, broadcastTx, fetchTxHex, validateAddress, fetchRecommendedFees } from '../utils/api';
-import { createSignedTx, isValidAddress } from '../utils/crypto';
+import { createSignedTx, isValidAddress, type UTXO } from '../utils/crypto';
 import { decrypt as decryptMnemonic } from '../utils/encryption';
 import { useForm } from '../utils/form';
 import { SendTransaction } from '../models/SendTransaction';
@@ -187,7 +187,7 @@ async function handleSend() {
     }
 
     const { selectedUtxos } = tx.value.selectUtxos(isMax.value);
-    const usedUtxosWithHex: any[] = [];
+    const usedUtxosWithHex: UTXO[] = [];
 
     for (const utxo of selectedUtxos) {
       const rawHex = await fetchTxHex(utxo.txid);

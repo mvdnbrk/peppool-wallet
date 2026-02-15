@@ -189,26 +189,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     async function createWallet(password: string) {
         const mnemonic = generateMnemonic();
-        const wallet = deriveWallet(mnemonic);
-        const encrypted = await encrypt(mnemonic, password);
-
-        encryptedMnemonic.value = encrypted;
-        plaintextMnemonic.value = mnemonic;
-
-        if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-            await chrome.storage.session.set({ mnemonic });
-        }
-
-        address.value = wallet.address;
-        isUnlocked.value = true;
-        localStorage.setItem('peppool_vault', encrypted);
-        localStorage.setItem('peppool_address', wallet.address);
-
-        failedAttempts.value = 0;
-        lockoutUntil.value = 0;
-        localStorage.removeItem('peppool_failed_attempts');
-        localStorage.removeItem('peppool_lockout_until');
-        await refreshBalance();
+        await importWallet(mnemonic, password);
     }
 
     async function importWallet(mnemonic: string, password: string) {
@@ -299,7 +280,7 @@ export const useWalletStore = defineStore('wallet', () => {
         }
         if (lockTimer) clearTimeout(lockTimer);
         lockTimer = null;
-        
+
         clearForms();
         await clearAutoLockAlarm();
     }

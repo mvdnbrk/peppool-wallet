@@ -360,7 +360,7 @@ onMounted(async () => {
     <div v-if="ui.step === 3" class="flex-1 flex flex-col pt-12 items-center text-center">
       <div class="flex-1 space-y-8 w-full">
         <PepIcon name="checkmark-circle" size="80" class="text-pep-green mx-auto" />
-        <div class="space-y-2"><h3 class="text-xl font-bold text-white">Transaction Sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
+        <div class="space-y-2"><h3 class="text-xl font-bold text-white">Transaction sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
         
         <PepInputGroup label="Transaction ID" id="sent-txid" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left">
           <div class="flex items-center gap-2">

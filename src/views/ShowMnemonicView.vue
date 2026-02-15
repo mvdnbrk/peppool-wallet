@@ -34,7 +34,7 @@ async function handleReveal() {
 
 <template>
   <div class="flex flex-col h-full p-6 justify-center relative">
-    <PepHeader title="Secret Phrase" />
+    <PepHeader title="Secret phrase" />
 
     <!-- Step 1: Verify Password -->
     <div v-if="step === 1" class="space-y-8 mt-12">

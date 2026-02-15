@@ -33,8 +33,8 @@ const router = useRouter();
             commandfor="receive-address"
             class="w-full"
           >
-            <span class="in-data-copied:hidden">Copy Address</span>
-            <span class="not-in-data-copied:hidden">Address Copied!</span>
+            <span class="in-data-copied:hidden">Copy address</span>
+            <span class="not-in-data-copied:hidden">Address copied!</span>
           </PepButton>
         </div>
       </div>

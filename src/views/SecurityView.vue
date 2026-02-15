@@ -14,7 +14,7 @@ const router = useRouter();
           @click="router.push('/change-password')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Change Password</span>
+          <span class="text-sm font-semibold text-white">Change password</span>
           <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
         </button>
 
@@ -22,7 +22,7 @@ const router = useRouter();
           @click="router.push('/show-mnemonic')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Show Secret Phrase</span>
+          <span class="text-sm font-semibold text-white">Show secret phrase</span>
           <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
         </button>
       </div>

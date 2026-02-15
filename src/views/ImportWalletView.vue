@@ -49,11 +49,11 @@ async function handleImport() {
 
 <template>
   <div class="flex flex-col min-h-full p-6 relative">
-    <PepHeader title="Import Wallet" :absolute="false" />
+    <PepHeader title="Import wallet" :absolute="false" />
 
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1 overflow-y-auto pr-2">
-        <PepInputGroup label="Secret Phrase (12 or 24 words)" id="mnemonic">
+        <PepInputGroup label="Secret phrase (12 or 24 words)" id="mnemonic">
           <textarea 
             v-model="form.mnemonic"
             id="mnemonic"
@@ -67,7 +67,7 @@ async function handleImport() {
           v-model="form.password"
           id="new-password"
           type="password"
-          label="New Password"
+          label="New password"
           placeholder="Min. 8 characters"
         />
 
@@ -75,7 +75,7 @@ async function handleImport() {
           v-model="form.confirmPassword"
           id="confirm-password"
           type="password"
-          label="Confirm Password"
+          label="Confirm password"
           placeholder="Repeat password"
           :error="form.errors.general"
         />
@@ -83,7 +83,7 @@ async function handleImport() {
 
       <div class="pt-6">
         <PepButton @click="handleImport" :loading="form.isProcessing" :disabled="form.hasError()" class="w-full">
-          Import Wallet
+          Import wallet
         </PepButton>
       </div>
     </div>

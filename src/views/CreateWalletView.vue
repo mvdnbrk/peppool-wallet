@@ -55,7 +55,7 @@ async function handleCreate() {
 <template>
   <div class="flex flex-col min-h-full p-6 relative">
     <PepHeader 
-      title="Create Wallet" 
+      title="Create wallet" 
       :onBack="step === 2 ? () => step = 1 : undefined" 
       :absolute="false"
     />
@@ -73,7 +73,7 @@ async function handleCreate() {
             v-model="form.password"
             id="new-password"
             type="password"
-            label="New Password"
+            label="New password"
             placeholder="Min. 8 characters"
           />
 
@@ -81,7 +81,7 @@ async function handleCreate() {
             v-model="form.confirmPassword"
             id="confirm-password"
             type="password"
-            label="Confirm Password"
+            label="Confirm password"
             placeholder="Repeat password"
             :error="form.errors.general"
           />
@@ -99,7 +99,7 @@ async function handleCreate() {
     <div v-if="step === 2" class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1">
         <div class="text-slate-400 text-sm space-y-2">
-          <p class="font-bold text-white">Write down your Secret Phrase</p>
+          <p class="font-bold text-white">Write down your secret phrase</p>
           <p>This phrase is the ONLY way to recover your wallet if you lose your device or password.</p>
         </div>
 
@@ -118,7 +118,7 @@ async function handleCreate() {
 
       <div class="pt-6">
         <PepButton @click="handleCreate" :loading="form.isProcessing" :disabled="!confirmedSeed" class="w-full">
-          Create Wallet
+          Create wallet
         </PepButton>
       </div>
     </div>

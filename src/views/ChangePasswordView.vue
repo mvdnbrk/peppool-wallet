@@ -65,7 +65,7 @@ async function handleChangePassword() {
 
 <template>
   <div class="flex flex-col min-h-full p-6 relative">
-    <PepHeader title="Change Password" :absolute="false" />
+    <PepHeader title="Change password" :absolute="false" />
 
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1">
@@ -81,7 +81,7 @@ async function handleChangePassword() {
             v-model="newPassword"
             id="new-password"
             type="password"
-            label="New Password"
+            label="New password"
             placeholder="Min. 8 characters"
           />
 
@@ -89,7 +89,7 @@ async function handleChangePassword() {
             v-model="confirmPassword"
             id="confirm-password"
             type="password"
-            label="Confirm New Password"
+            label="Confirm new password"
             placeholder="Repeat new password"
             :error="error"
           />

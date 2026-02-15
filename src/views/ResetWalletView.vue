@@ -15,7 +15,7 @@ function handleReset() {
 
 <template>
   <div class="flex flex-col min-h-full p-6 relative">
-    <PepHeader title="Reset Wallet" :absolute="false" />
+    <PepHeader title="Reset wallet" :absolute="false" />
 
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-8 flex-1">

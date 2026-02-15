@@ -128,11 +128,11 @@ async function handleUnlock() {
 
     <div v-else class="w-full space-y-4">
       <PepButton @click="router.push('/create')" class="w-full">
-        Create New Wallet
+        Create new wallet
       </PepButton>
       
       <PepButton @click="router.push('/import')" variant="secondary" class="w-full">
-        Import Secret Phrase
+        Import secret phrase
       </PepButton>
     </div>
   </div>

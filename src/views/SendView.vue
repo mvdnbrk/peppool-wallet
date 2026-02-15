@@ -178,7 +178,7 @@ async function handleSend() {
       }
       try {
         mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, form.password);
-        walletStore.plaintextMnemonic = mnemonic;
+        walletStore.cacheMnemonic(mnemonic);
       } catch (e) {
         form.setError('general', 'Incorrect password');
         form.isProcessing = false;
@@ -326,7 +326,7 @@ onMounted(async () => {
             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sending</span>
             <span class="text-xl font-bold text-white">{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span>
           </div>
-          
+
           <div class="flex flex-col space-y-0.5">
             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">To</span>
             <span class="text-xs font-mono break-all text-slate-300 leading-relaxed">{{ form.recipient }}</span>
@@ -361,7 +361,7 @@ onMounted(async () => {
       <div class="flex-1 space-y-8 w-full">
         <PepIcon name="checkmark-circle" size="80" class="text-pep-green mx-auto" />
         <div class="space-y-2"><h3 class="text-xl font-bold text-white">Transaction sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
-        
+
         <PepInputGroup label="Transaction ID" id="sent-txid" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left">
           <div class="flex items-center gap-2">
             <div class="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 overflow-hidden flex items-center h-[38px] text-left">
@@ -372,13 +372,13 @@ onMounted(async () => {
                 <span class="whitespace-nowrap">{{ txidEnd }}</span>
               </span>
             </div>
-            
+
             <span class="inline-flex">
               <el-copyable id="sent-txid" class="hidden">{{ ui.txid }}</el-copyable>
-              <button 
-                type="button" 
-                command="--copy" 
-                commandfor="sent-txid" 
+              <button
+                type="button"
+                command="--copy"
+                commandfor="sent-txid"
                 class="group inline-flex items-center justify-center w-[38px] h-[38px] rounded-lg bg-slate-800 border border-slate-700 text-offwhite hover:text-white copied:text-pep-green-light copied:hover:text-pep-green-light transition-colors cursor-pointer shrink-0"
               >
                 <PepIcon name="copy" class="w-5 h-5 copied:hidden" />

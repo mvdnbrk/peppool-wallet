@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, readonly } from 'vue';
 import { generateMnemonic, deriveWallet } from '../utils/crypto';
 import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
 import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } from '../utils/api';
@@ -315,10 +315,18 @@ export const useWalletStore = defineStore('wallet', () => {
         clearAutoLockAlarm();
     }
 
+    /**
+     * Cache a decrypted mnemonic in memory (e.g. after password confirmation
+     * during a send). Avoids exposing plaintextMnemonic as a writable ref.
+     */
+    function cacheMnemonic(mnemonic: string) {
+        plaintextMnemonic.value = mnemonic;
+    }
+
     return {
         address,
         encryptedMnemonic,
-        plaintextMnemonic,
+        plaintextMnemonic: readonly(plaintextMnemonic),
         isUnlocked,
         isCreated,
         isMnemonicLoaded,
@@ -345,6 +353,7 @@ export const useWalletStore = defineStore('wallet', () => {
         stopPolling,
         unlock,
         lock,
-        resetWallet
+        resetWallet,
+        cacheMnemonic
     };
 });

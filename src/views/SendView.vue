@@ -35,13 +35,13 @@ const currentPrice = computed(() => walletStore.prices[walletStore.selectedCurre
 
 const isInsufficientFunds = computed(() => {
   if (ui.isLoadingRequirements || tx.value.amountPep <= 0) return false;
-  const needed = Math.floor(tx.value.amountPep * RIBBITS_PER_PEP) + tx.value.estimatedFeeRibbits;
+  const needed = tx.value.amountRibbits + tx.value.estimatedFeeRibbits;
   return tx.value.balanceRibbits < needed;
 });
 
 const isMax = computed(() => {
-  if (tx.value.amountPep <= 0) return false;
-  return Math.abs(tx.value.amountPep - tx.value.calculateMaxPep()) < 0.0000001;
+  if (tx.value.amountRibbits <= 0) return false;
+  return tx.value.amountRibbits >= tx.value.maxRibbits;
 });
 
 // Strip whitespace from recipient as the user types (addresses never contain spaces)
@@ -194,7 +194,7 @@ async function handleSend() {
       usedUtxosWithHex.push({ ...utxo, rawHex });
     }
 
-    const amountRibbits = Math.floor(tx.value.amountPep * RIBBITS_PER_PEP);
+    const amountRibbits = tx.value.amountRibbits;
     const signedHex = await createSignedTx(mnemonic, form.recipient, amountRibbits, usedUtxosWithHex, tx.value.estimatedFeeRibbits);
     const result = await broadcastTx(signedHex);
     ui.txid = result.txid;

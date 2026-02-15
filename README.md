@@ -1,28 +1,44 @@
 # Peppool Wallet
 
-The Pepecoin wallet for everyone.
+<p align="center"><a href="https://peppool.space" target="_blank"><img src="https://cdn.peppool.space/opengraph/default-card-large.png" width="800" height="418" alt="peppool.space"></p>
 
-## Tech Stack
+The Pepecoin wallet for everyone. This is the source of the Peppool Wallet browser extension.
 
-- **Framework:** Vue 3 (Composition API)
-- **Styling:** Tailwind CSS 4
-- **Build Tool:** Vite + CRXJS (Native Manifest V3 support)
-- **State Management:** Pinia
-- **Testing:** Vitest + Vue Test Utils
-- **Blockchain:** bitcoinjs-lib (Custom PEP parameters)
+## Project status: Alpha (in development)
 
-## Getting Started
+This project is currently in an early alpha phase and under active development. Features may change frequently, and breaking changes can occur without notice. Expect rapid iterations, incomplete features, and occasional instability while we build out the best Pepecoin wallet experience.
+
+## Development Stack
+
+- [Vue.js][link-vue] (Composition API)
+- [Tailwind CSS][link-tailwind]
+- [Vite][link-vite] + [CRXJS][link-crxjs]
+- [Pinia][link-pinia]
+- [bitcoinjs-lib][link-bitcoinjs]
+
+## Manual Installation
+
+If you want to use the pre-built extension:
+
+1. Download the latest ZIP file from the [Releases][link-releases] page.
+2. **Extract the ZIP** file to a folder on your computer.
+3. Open **Chrome** and navigate to `chrome://extensions/`.
+4. Enable **"Developer mode"** using the toggle in the top right corner.
+5. Click the **"Load unpacked"** button.
+6. Select the **extracted folder** (the one containing `manifest.json`).
+
+## Development Setup
 
 ### Prerequisites
 
-- Node.js (v18 or higher recommended)
-- npm or yarn
+- Node.js 22+
+- npm
 
-### Setup
+### Getting Started
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/mvdnbrk/peppool-wallet.git
    cd peppool-wallet
    ```
 
@@ -31,72 +47,51 @@ The Pepecoin wallet for everyone.
    npm install
    ```
 
-3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory based on `.env.example`:
+3. **Configure environment:**
    ```bash
    cp .env.example .env
    ```
-   Modify `VITE_MAINNET_API` if you wish to point to a custom Electrs/Pepecoin API.
+   Update `VITE_MAINNET_API` if you wish to point to a custom Electrs/Pepecoin API.
 
-### Development
+4. **Run for development:**
+   ```bash
+   npm run dev
+   ```
 
-Run the development server with Hot Module Replacement (HMR):
-```bash
-npm run dev
-```
+5. **Build for production:**
+   ```bash
+   npm run build
+   ```
 
-### Building for Production
+6. **Run tests:**
+   ```bash
+   npm test
+   ```
 
-To build the extension for production:
-```bash
-npm run build
-```
-The production-ready extension will be located in the `dist/` directory.
+## Support the project
 
-## Manual Installation
+If you find this project useful and want to support its development:
 
-If you want to use the pre-built extension:
+- GitHub Sponsors: [link][link-sponsors]
+- thanks.dev: [link][link-thanks]
+- Pepecoin: [sponsor][link-sponsor-page]
 
-1. Download the latest ZIP file from the [Releases](https://github.com/mvdnbrk/peppool-wallet/releases/latest) page.
-2. **Extract the ZIP** file to a folder on your computer.
-2. Open **Chrome** and navigate to `chrome://extensions/`.
-3. Enable **"Developer mode"** using the toggle in the top right corner.
-4. Click the **"Load unpacked"** button.
-5. Select the **extracted folder** (the one containing `manifest.json`).
+## Security & Privacy
 
-## Development (Loading from Source)
+Please review our [Security Policy](SECURITY.md) and [Privacy Policy](PRIVACY.md).
 
-1. Open Chrome and navigate to `chrome://extensions/`.
-2. Enable **"Developer mode"** in the top right corner.
-3. Click **"Load unpacked"**.
-4. Select the `dist/` directory in this project folder.
+## Credits
 
-### Running Tests
+- [Mark van den Broek](https://github.com/mvdnbrk)
+- [All Contributors](https://github.com/mvdnbrk/peppool-wallet/contributors)
 
-Execute the unit and integration test suite:
-```bash
-npm test
-```
-
-### Formatting and Linting
-
-```bash
-# Type checking
-npx tsc --noEmit
-```
-
-## Contributing
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`).
-2. Commit your changes (`git commit -m 'feat: add some amazing feature'`).
-3. Push to the branch (`git push origin feature/amazing-feature`).
-4. Open a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
----
-
-[Security Policy](SECURITY.md) | [Privacy Policy](PRIVACY.md)
-
+[link-vue]: https://vuejs.org
+[link-tailwind]: https://tailwindcss.com
+[link-vite]: https://vitejs.dev
+[link-crxjs]: https://crxjs.dev/
+[link-pinia]: https://pinia.vuejs.org
+[link-bitcoinjs]: https://github.com/bitcoinjs/bitcoinjs-lib
+[link-releases]: https://github.com/mvdnbrk/peppool-wallet/releases/latest
+[link-sponsors]: https://github.com/sponsors/mvdnbrk
+[link-thanks]: https://thanks.dev/u/gh/mvdnbrk
+[link-sponsor-page]: https://peppool.space/sponsor

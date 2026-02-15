@@ -28,4 +28,5 @@ Please include a detailed description of the vulnerability and steps to reproduc
 
 ---
 
-[peppool.space](https://peppool.space) | [Privacy Policy](PRIVACY.md)
+[Privacy Policy](PRIVACY.md)
+

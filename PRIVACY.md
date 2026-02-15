@@ -40,4 +40,5 @@ If you have any questions about this Privacy Policy, please contact us:
 
 ---
 
-[peppool.space](https://peppool.space) | [Security Policy](SECURITY.md)
+[Security Policy](SECURITY.md)
+

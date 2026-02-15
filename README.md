@@ -95,3 +95,8 @@ npx tsc --noEmit
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+---
+
+[Security Policy](SECURITY.md) | [Privacy Policy](PRIVACY.md)
+

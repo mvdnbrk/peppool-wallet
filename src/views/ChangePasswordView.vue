@@ -1,64 +1,63 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { decrypt, encrypt } from '../utils/encryption';
+import { MIN_PASSWORD_LENGTH } from '../utils/constants';
+import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
 
 const router = useRouter();
 const walletStore = useWalletStore();
 
-const oldPassword = ref('');
-const newPassword = ref('');
-const confirmPassword = ref('');
-const error = ref('');
-const successMsg = ref('');
-const isLoading = ref(false);
+const form = useForm({
+  oldPassword: '',
+  password: '', // Logic helper expects 'password' and 'confirmPassword'
+  confirmPassword: ''
+});
+
+const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
+
+const state = reactive({
+  successMsg: '',
+  isLoading: false
+});
 
 // Require the wallet to be unlocked to change password
 onMounted(() => {
   if (!walletStore.isUnlocked) router.replace('/dashboard');
 });
 
-// Clear passwords from memory on unmount
-onUnmounted(() => {
-  oldPassword.value = '';
-  newPassword.value = '';
-  confirmPassword.value = '';
-});
-
-watch([oldPassword, newPassword, confirmPassword], () => {
-  error.value = '';
-});
-
 async function handleChangePassword() {
-  error.value = '';
-  successMsg.value = '';
+  state.successMsg = '';
 
-  if (newPassword.value.length < 8) {
-    error.value = 'New password must be at least 8 characters';
+  const errors = validatePasswordMatch(form.password, form.confirmPassword);
+  
+  if (errors.password) {
+    form.setError('password', errors.password.replace('Password', 'New password'));
     return;
   }
-  if (newPassword.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match';
+  
+  if (errors.confirmPassword) {
+    form.setError('confirmPassword', errors.confirmPassword);
     return;
   }
 
-  isLoading.value = true;
+  state.isLoading = true;
   try {
-    const mnemonic = await decrypt(walletStore.encryptedMnemonic!, oldPassword.value);
-    const newEncrypted = await encrypt(mnemonic, newPassword.value);
+    const mnemonic = await decrypt(walletStore.encryptedMnemonic!, form.oldPassword);
+    const newEncrypted = await encrypt(mnemonic, form.password);
 
     walletStore.encryptedMnemonic = newEncrypted;
     localStorage.setItem('peppool_vault', newEncrypted);
 
-    successMsg.value = 'Password updated successfully!';
+    state.successMsg = 'Password updated successfully!';
     setTimeout(() => {
       router.push('/settings');
     }, 2000);
   } catch (e) {
-    error.value = 'Incorrect current password';
+    form.setError('oldPassword', 'Incorrect current password');
   } finally {
-    isLoading.value = false;
+    state.isLoading = false;
   }
 }
 </script>
@@ -70,39 +69,43 @@ async function handleChangePassword() {
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1">
         <PepPasswordInput
-          v-model="oldPassword"
+          v-model="form.oldPassword"
           id="old-password"
-          label="Current Password"
+          label="Current password"
           placeholder="Enter current password"
+          :error="form.errors.oldPassword"
         />
 
         <div class="space-y-4">
           <PepInput
-            v-model="newPassword"
+            v-model="form.password"
             id="new-password"
             type="password"
             label="New password"
-            placeholder="Min. 8 characters"
+            :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
+            :error="form.errors.password"
+            @blur="onBlurPassword"
           />
 
           <PepInput
-            v-model="confirmPassword"
+            v-model="form.confirmPassword"
             id="confirm-password"
             type="password"
             label="Confirm new password"
             placeholder="Repeat new password"
-            :error="error"
+            :error="form.errors.confirmPassword"
+            @blur="onBlurConfirmPassword"
           />
         </div>
 
-        <p v-if="successMsg" class="text-sm text-pep-green-light font-bold text-center animate-pulse">
-          {{ successMsg }}
+        <p v-if="state.successMsg" class="text-sm text-pep-green-light font-bold text-center animate-pulse">
+          {{ state.successMsg }}
         </p>
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleChangePassword" :disabled="isLoading || !oldPassword || !newPassword || !confirmPassword || !!error" class="w-full">
-          {{ isLoading ? 'Updating...' : 'Update Password' }}
+        <PepButton @click="handleChangePassword" :disabled="state.isLoading || !form.oldPassword || !form.password || !form.confirmPassword || form.hasError()" class="w-full">
+          {{ state.isLoading ? 'Updating...' : 'Update password' }}
         </PepButton>
       </div>
     </div>

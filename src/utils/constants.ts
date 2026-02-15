@@ -4,6 +4,7 @@ export const API_TIMEOUT_MS = 15_000;
 // 1,000 ribbits/byte = 0.01 PEP per KB (Network recommendation)
 export const RECOMMENDED_FEE_RATE = 1000;
 export const MIN_SEND_PEP = 0.01;
+export const MIN_PASSWORD_LENGTH = 8;
 
 /**
  * Format a fiat value with enough precision to be meaningful.

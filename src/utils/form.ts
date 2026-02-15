@@ -1,4 +1,5 @@
 import { reactive, watch } from 'vue';
+import { MIN_PASSWORD_LENGTH } from './constants';
 
 interface FormOptions {
     persistKey?: string;
@@ -66,4 +67,39 @@ export function useForm<T extends object>(initialData: T, options: FormOptions =
     }
 
     return form;
+}
+
+/**
+ * Validates that a password meets the minimum length and matches the confirmation.
+ * Returns an object with error messages if validation fails.
+ */
+export function validatePasswordMatch(password: string, confirmPassword: string) {
+    const errors: { password?: string; confirmPassword?: string } = {};
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+        errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
+    } else if (password !== confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+    }
+
+    return errors;
+}
+
+/**
+ * Provides standardized onBlur handlers for password fields.
+ * Can be used with any form object that implements setError.
+ */
+export function usePasswordBlur(form: { password: string; confirmPassword: string; setError: (f: string, m: string) => void }) {
+    return {
+        onBlurPassword() {
+            if (form.password && form.password.length < MIN_PASSWORD_LENGTH) {
+                form.setError('password', `Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+            }
+        },
+        onBlurConfirmPassword() {
+            if (form.confirmPassword && form.password !== form.confirmPassword) {
+                form.setError('confirmPassword', 'Passwords do not match');
+            }
+        }
+    };
 }

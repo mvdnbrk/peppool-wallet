@@ -2,7 +2,8 @@
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { validateMnemonic } from '../utils/crypto';
-import { useForm } from '../utils/form';
+import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
+import { MIN_PASSWORD_LENGTH } from '../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -12,6 +13,8 @@ const form = useForm({
   password: '',
   confirmPassword: ''
 });
+
+const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 async function handleImport() {
   const normalizedMnemonic = form.mnemonic
@@ -24,13 +27,15 @@ async function handleImport() {
     return;
   }
   
-  if (form.password.length < 8) {
-    form.setError('general', 'Password must be at least 8 characters');
+  const errors = validatePasswordMatch(form.password, form.confirmPassword);
+  
+  if (errors.password) {
+    form.setError('password', errors.password);
     return;
   }
   
-  if (form.password !== form.confirmPassword) {
-    form.setError('general', 'Passwords do not match');
+  if (errors.confirmPassword) {
+    form.setError('confirmPassword', errors.confirmPassword);
     return;
   }
 
@@ -68,7 +73,9 @@ async function handleImport() {
           id="new-password"
           type="password"
           label="New password"
-          placeholder="Min. 8 characters"
+          :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
+          :error="form.errors.password"
+          @blur="onBlurPassword"
         />
 
         <PepInput
@@ -77,12 +84,13 @@ async function handleImport() {
           type="password"
           label="Confirm password"
           placeholder="Repeat password"
-          :error="form.errors.general"
+          :error="form.errors.confirmPassword"
+          @blur="onBlurConfirmPassword"
         />
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleImport" :loading="form.isProcessing" :disabled="form.hasError()" class="w-full">
+        <PepButton @click="handleImport" :loading="form.isProcessing" :disabled="!form.mnemonic || !form.password || !form.confirmPassword || form.hasError()" class="w-full">
           Import wallet
         </PepButton>
       </div>

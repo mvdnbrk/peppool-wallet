@@ -1,5 +1,6 @@
 import { API_TIMEOUT_MS } from './constants';
-import type { RawTransaction } from '../models/Transaction';
+import { RawTransactionSchema, type RawTransaction } from '../models/Transaction';
+import * as v from 'valibot';
 
 const API_BASE = import.meta.env.VITE_MAINNET_API || 'https://peppool.space/api';
 
@@ -116,7 +117,8 @@ export interface ApiUtxo {
 }
 
 export async function fetchTransactions(address: string): Promise<RawTransaction[]> {
-    return await request<RawTransaction[]>(`/address/${address}/txs`);
+    const data = await request<unknown[]>(`/address/${address}/txs`);
+    return data.map(tx => v.parse(RawTransactionSchema, tx));
 }
 
 export async function fetchUtxos(address: string): Promise<ApiUtxo[]> {
@@ -124,7 +126,8 @@ export async function fetchUtxos(address: string): Promise<ApiUtxo[]> {
 }
 
 export async function fetchTransaction(txid: string): Promise<RawTransaction> {
-    return await request<RawTransaction>(`/tx/${txid}`);
+    const data = await request<unknown>(`/tx/${txid}`);
+    return v.parse(RawTransactionSchema, data);
 }
 
 export async function fetchTxHex(txid: string): Promise<string> {

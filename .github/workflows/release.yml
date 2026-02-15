@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build
+        run: npm run build
+
+      - name: Create ZIP
+        run: zip -r peppool-wallet-${{ github.ref_name }}.zip dist
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: peppool-wallet-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: true # Mark as alpha/beta
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

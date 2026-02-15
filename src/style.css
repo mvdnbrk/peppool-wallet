@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-ubuntu: "Ubuntu", sans-serif;
+  --font-arial: Arial, Helvetica, sans-serif;
+  
+  --color-pep-green-light: #269B4D;
+  --color-pep-green: #208241;
+  --color-pep-green-dark: #16532A;
+  --color-pep-tan: #C07A4E;
+  --color-pep-dark: #212121;
+  --color-offwhite: #EDEDED;
+}
+
+@variant copied (&:where([data-copied], [data-copied] *));
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.logo-text {
+  font-family: "Ubuntu", sans-serif;
+}

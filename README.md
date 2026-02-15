@@ -53,7 +53,17 @@ npm run build
 ```
 The production-ready extension will be located in the `dist/` directory.
 
-### Loading the Extension in Chrome
+## Manual Installation
+
+If you have downloaded a pre-built release ZIP (e.g., `peppool-wallet-v0.1.0-alpha.1.zip`):
+
+1. **Extract the ZIP** file to a folder on your computer.
+2. Open **Chrome** and navigate to `chrome://extensions/`.
+3. Enable **"Developer mode"** using the toggle in the top right corner.
+4. Click the **"Load unpacked"** button.
+5. Select the **extracted folder** (the one containing `manifest.json`).
+
+## Development (Loading from Source)
 
 1. Open Chrome and navigate to `chrome://extensions/`.
 2. Enable **"Developer mode"** in the top right corner.

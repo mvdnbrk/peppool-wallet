@@ -1,6 +1,6 @@
 # Peppool Wallet
 
-The premier browser extension wallet for the Pepecoin (PEP) Layer 1 network.
+The Pepecoin wallet for everyone.
 
 ## Tech Stack
 

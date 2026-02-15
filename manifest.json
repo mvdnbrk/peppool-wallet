@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Peppool Wallet",
     "version": "0.1.0-alpha.1",
-    "description": "The premier browser extension wallet for the Pepecoin (PEP) Layer 1 network.",
+    "description": "The Pepecoin wallet for everyone.",
     "homepage_url": "https://peppool.space",
     "background": {
         "service_worker": "src/background.ts",

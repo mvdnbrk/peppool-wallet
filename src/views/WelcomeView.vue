@@ -91,7 +91,7 @@ async function handleUnlock() {
     <div class="space-y-4 flex flex-col items-center">
       <img src="../assets/logo.svg" class="w-24 h-24 mx-auto" alt="Peppool Logo" />
       <PepWordmark size="xl" />
-      <p class="text-slate-400 text-sm">The premier PEP Layer 1 wallet</p>
+      <p class="text-slate-400 text-sm">The Pepecoin wallet for everyone</p>
     </div>
 
     <div v-if="walletStore.isCreated" class="w-full space-y-4">

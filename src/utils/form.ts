@@ -86,6 +86,24 @@ export function validatePasswordMatch(password: string, confirmPassword: string)
 }
 
 /**
+ * Provides standardized handlers for mnemonic (secret phrase) inputs.
+ */
+export function useMnemonicField(form: { mnemonic: string; setError: (f: string, m: string) => void }, validateFn: (m: string) => boolean) {
+    return {
+        sanitizeMnemonic() {
+            form.mnemonic = form.mnemonic.replace(/,/g, ' ').replace(/\s+/g, ' ');
+        },
+        onBlurMnemonic() {
+            const cleaned = form.mnemonic.trim().toLowerCase();
+            form.mnemonic = cleaned;
+            if (cleaned && !validateFn(cleaned)) {
+                form.setError('mnemonic', 'Invalid secret phrase');
+            }
+        }
+    };
+}
+
+/**
  * Provides standardized onBlur handlers for password fields.
  * Can be used with any form object that implements setError.
  */

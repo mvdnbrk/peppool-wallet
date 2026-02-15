@@ -3,6 +3,7 @@ interface Props {
   label?: string;
   id?: string;
   labelClass?: string;
+  error?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -11,7 +12,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div>
+  <div class="relative">
     <label 
       v-if="label" 
       :for="id" 
@@ -21,5 +22,11 @@ withDefaults(defineProps<Props>(), {
     <div :class="{ 'mt-2': label }">
       <slot />
     </div>
+    <p 
+      v-if="error"
+      class="mt-2 text-sm font-medium text-red-400 animate-in fade-in slide-in-from-top-1 duration-200"
+    >
+      {{ error }}
+    </p>
   </div>
 </template>

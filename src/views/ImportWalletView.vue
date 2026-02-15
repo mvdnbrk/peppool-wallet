@@ -29,14 +29,14 @@ async function handleImport() {
     form.setError('mnemonic', 'Invalid secret phrase');
     return;
   }
-  
+
   const errors = validatePasswordMatch(form.password, form.confirmPassword);
-  
+
   if (errors.password) {
     form.setError('password', errors.password);
     return;
   }
-  
+
   if (errors.confirmPassword) {
     form.setError('confirmPassword', errors.confirmPassword);
     return;
@@ -48,7 +48,7 @@ async function handleImport() {
     router.push('/dashboard');
   } catch (e) {
     form.setError('general', 'Failed to import wallet');
-    console.error(e);
+    console.error('Failed to import wallet:', (e as Error).message);
   } finally {
     form.isProcessing = false;
   }
@@ -61,12 +61,12 @@ async function handleImport() {
 
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1 overflow-y-auto pr-2">
-        <PepInputGroup 
-          label="Secret phrase (12 or 24 words)" 
+        <PepInputGroup
+          label="Secret phrase (12 or 24 words)"
           id="mnemonic"
           :error="form.errors.mnemonic"
         >
-          <textarea 
+          <textarea
             v-model="form.mnemonic"
             id="mnemonic"
             rows="3"

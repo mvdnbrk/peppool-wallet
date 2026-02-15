@@ -22,17 +22,17 @@ const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 function handleNextToSeed() {
   const errors = validatePasswordMatch(form.password, form.confirmPassword);
-  
+
   if (errors.password) {
     form.setError('password', errors.password);
     return;
   }
-  
+
   if (errors.confirmPassword) {
     form.setError('confirmPassword', errors.confirmPassword);
     return;
   }
-  
+
   mnemonic.value = generateMnemonic();
   form.clearError();
   step.value = 2;
@@ -50,7 +50,7 @@ async function handleCreate() {
     router.push('/dashboard');
   } catch (e) {
     form.setError('general', 'Failed to create wallet');
-    console.error(e);
+    console.error('Failed to create wallet:', (e as Error).message);
   } finally {
     form.isProcessing = false;
   }
@@ -59,9 +59,9 @@ async function handleCreate() {
 
 <template>
   <div class="flex flex-col min-h-full p-6 relative">
-    <PepHeader 
-      title="Create wallet" 
-      :onBack="step === 2 ? () => step = 1 : undefined" 
+    <PepHeader
+      title="Create wallet"
+      :onBack="step === 2 ? () => step = 1 : undefined"
       :absolute="false"
     />
 

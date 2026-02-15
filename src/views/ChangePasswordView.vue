@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
-import { decrypt, encrypt } from '../utils/encryption';
+import { encrypt } from '../utils/encryption';
 import { MIN_PASSWORD_LENGTH } from '../utils/constants';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
 
@@ -17,47 +17,90 @@ const form = useForm({
 
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
-const state = reactive({
-  successMsg: '',
-  isLoading: false
+const successMsg = ref('');
+const now = ref(Date.now());
+let ticker: ReturnType<typeof setInterval> | null = null;
+
+const isLockedOut = computed(() => {
+  if (walletStore.lockoutUntil === 0) return false;
+  return walletStore.lockoutUntil > now.value;
+});
+
+const secondsRemaining = computed(() => {
+  if (!isLockedOut.value) return 0;
+  return Math.max(0, Math.ceil((walletStore.lockoutUntil - now.value) / 1000));
+});
+
+const oldPasswordError = computed(() => {
+  if (isLockedOut.value) {
+    return `Too many failed attempts. Locked for ${secondsRemaining.value}s.`;
+  }
+  return form.errors.oldPassword;
 });
 
 // Require the wallet to be unlocked to change password
 onMounted(() => {
-  if (!walletStore.isUnlocked) router.replace('/dashboard');
+  if (!walletStore.isUnlocked) {
+    router.replace('/');
+    return;
+  }
+  ticker = setInterval(() => { now.value = Date.now(); }, 1000);
+});
+
+onUnmounted(() => {
+  if (ticker) clearInterval(ticker);
 });
 
 async function handleChangePassword() {
-  state.successMsg = '';
+  if (isLockedOut.value) return;
+  successMsg.value = '';
 
   const errors = validatePasswordMatch(form.password, form.confirmPassword);
-  
+
   if (errors.password) {
     form.setError('password', errors.password.replace('Password', 'New password'));
     return;
   }
-  
+
   if (errors.confirmPassword) {
     form.setError('confirmPassword', errors.confirmPassword);
     return;
   }
 
-  state.isLoading = true;
+  form.isProcessing = true;
   try {
-    const mnemonic = await decrypt(walletStore.encryptedMnemonic!, form.oldPassword);
-    const newEncrypted = await encrypt(mnemonic, form.password);
+    // Verify old password via unlock() — inherits escalating lockout
+    const success = await walletStore.unlock(form.oldPassword);
+    if (!success) {
+      if (!isLockedOut.value) {
+        form.setError('oldPassword', 'Incorrect current password');
+      }
+      form.isProcessing = false;
+      return;
+    }
 
+    // Re-encrypt with new password
+    const mnemonic = walletStore.plaintextMnemonic;
+    if (!mnemonic) {
+      form.setError('general', 'Could not access wallet data. Please try again.');
+      form.isProcessing = false;
+      return;
+    }
+
+    const newEncrypted = await encrypt(mnemonic, form.password);
     walletStore.encryptedMnemonic = newEncrypted;
     localStorage.setItem('peppool_vault', newEncrypted);
 
-    state.successMsg = 'Password updated successfully!';
+    successMsg.value = 'Password updated successfully!';
     setTimeout(() => {
       router.push('/settings');
     }, 2000);
   } catch (e) {
-    form.setError('oldPassword', 'Incorrect current password');
+    if (!isLockedOut.value) {
+      form.setError('oldPassword', 'Incorrect current password');
+    }
   } finally {
-    state.isLoading = false;
+    form.isProcessing = false;
   }
 }
 </script>
@@ -73,7 +116,8 @@ async function handleChangePassword() {
           id="old-password"
           label="Current password"
           placeholder="Enter current password"
-          :error="form.errors.oldPassword"
+          :error="oldPasswordError"
+          :disabled="isLockedOut"
         />
 
         <div class="space-y-4">
@@ -84,6 +128,7 @@ async function handleChangePassword() {
             label="New password"
             :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
             :error="form.errors.password"
+            :disabled="isLockedOut"
             @blur="onBlurPassword"
           />
 
@@ -94,18 +139,19 @@ async function handleChangePassword() {
             label="Confirm new password"
             placeholder="Repeat new password"
             :error="form.errors.confirmPassword"
+            :disabled="isLockedOut"
             @blur="onBlurConfirmPassword"
           />
         </div>
 
-        <p v-if="state.successMsg" class="text-sm text-pep-green-light font-bold text-center animate-pulse">
-          {{ state.successMsg }}
+        <p v-if="successMsg" class="text-sm text-pep-green-light font-bold text-center animate-pulse">
+          {{ successMsg }}
         </p>
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleChangePassword" :disabled="state.isLoading || !form.oldPassword || !form.password || !form.confirmPassword || form.hasError()" class="w-full">
-          {{ state.isLoading ? 'Updating...' : 'Update password' }}
+        <PepButton @click="handleChangePassword" :disabled="isLockedOut || form.isProcessing || !form.oldPassword || !form.password || !form.confirmPassword || form.hasError()" class="w-full">
+          {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
         </PepButton>
       </div>
     </div>

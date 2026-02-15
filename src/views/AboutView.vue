@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import pkg from '../../package.json';
 </script>
 
 <template>
@@ -9,7 +10,7 @@
       <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
         <div class="flex justify-between text-sm">
           <span class="text-slate-400">Version</span>
-          <span class="text-offwhite font-mono">0.1.0-alpha.1</span>
+          <span class="text-offwhite font-bold">{{ pkg.version }}</span>
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-slate-400">Network</span>

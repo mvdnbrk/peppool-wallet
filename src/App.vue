@@ -21,7 +21,7 @@ const showHeader = computed(() => {
       <div class="px-4 relative z-10 py-1 border-b border-slate-800">
         <div class="flex justify-between items-center">
           <div @click="router.push('/dashboard')" class="flex items-center cursor-pointer group">
-            <img src="./assets/logo.svg" class="w-8 h-8 mr-2 group-hover:scale-105 transition-transform" alt="Logo" />
+            <img src="/src/assets/logo.svg" class="w-8 h-8 mr-2 group-hover:scale-105 transition-transform" alt="Logo" />
             <PepWordmark size="sm" />
           </div>
 

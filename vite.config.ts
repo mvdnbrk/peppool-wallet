@@ -8,7 +8,7 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 import manifest from './manifest.json'
 
 export default defineConfig({
-    base: '/',
+    base: './',
     test: {
         globals: true,
         environment: 'jsdom',

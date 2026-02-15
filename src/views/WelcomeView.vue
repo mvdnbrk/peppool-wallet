@@ -89,7 +89,7 @@ async function handleUnlock() {
 <template>
   <div class="flex flex-col items-center justify-center min-h-full space-y-8 p-6 text-center">
     <div class="space-y-4 flex flex-col items-center">
-      <img src="../assets/logo.svg" class="w-24 h-24 mx-auto" alt="Peppool Logo" />
+      <img src="/src/assets/logo.svg" class="w-24 h-24 mx-auto" alt="Peppool Logo" />
       <PepWordmark size="xl" />
       <p class="text-slate-400 text-sm">The Pepecoin wallet for everyone</p>
     </div>

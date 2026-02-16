@@ -10,6 +10,7 @@ import ShowMnemonicView from '../views/ShowMnemonicView.vue';
 import SettingsView from '../views/SettingsView.vue';
 import ChangePasswordView from '../views/ChangePasswordView.vue';
 import ForgotPasswordView from '../views/ForgotPasswordView.vue';
+import ResetWalletView from '../views/ResetWalletView.vue';
 import TransactionDetailView from '../views/TransactionDetailView.vue';
 import CurrencyView from '../views/CurrencyView.vue';
 import AutoLockView from '../views/AutoLockView.vue';
@@ -28,6 +29,7 @@ const routes = [
     { path: '/settings', component: SettingsView },
     { path: '/change-password', component: ChangePasswordView },
     { path: '/forgot-password', component: ForgotPasswordView },
+    { path: '/reset-wallet', component: ResetWalletView },
     { path: '/tx/:txid', component: TransactionDetailView, meta: { persist: true } },
     { path: '/settings/preferences', component: PreferencesView },
     { path: '/settings/security', component: SecurityView },

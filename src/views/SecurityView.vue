@@ -26,6 +26,16 @@ const router = useRouter();
           <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
         </button>
       </div>
+
+      <div class="pt-6">
+        <PepButton 
+          @click="router.push('/reset-wallet')"
+          variant="secondary"
+          class="w-full !text-red-400"
+        >
+          Reset wallet
+        </PepButton>
+      </div>
     </div>
   </div>
 </template>

@@ -1,6 +1,6 @@
 # Peppool Wallet
 
-<p align="center"><a href="https://peppool.space" target="_blank"><img src="https://cdn.peppool.space/opengraph/default-card-large.png" width="800" height="418" alt="peppool.space"></p>
+<p align="center"><a href="https://peppool.space" target="_blank"><img src="https://cdn.peppool.space/opengraph/peppool-wallet.png" width="800" height="418" alt="Peppool wallet"></p>
 
 The Pepecoin wallet for everyone. This is the source of the Peppool Wallet browser extension.
 

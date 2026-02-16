@@ -79,7 +79,7 @@ describe('API Utils', () => {
 
         const txs = await fetchTransactions('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
         expect(txs).toHaveLength(1);
-        expect(txs[0].txid).toBe('abc123');
+        expect(txs[0]!.txid).toBe('abc123');
     });
 
     it('should throw an error when API call fails', async () => {

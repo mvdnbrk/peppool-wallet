@@ -4,14 +4,23 @@ import type { RecommendedFees } from '../utils/api';
 import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '../utils/constants';
 import { estimateTxSize } from '../utils/crypto';
 
-function createTx(utxoValues: number[] = [], fees: RecommendedFees | null = null): SendTransaction {
+function createTx(utxoValues: number[] = [], fees: Partial<RecommendedFees> | null = null): SendTransaction {
     const tx = new SendTransaction('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
     tx.utxos = utxoValues.map((value, i) => ({
         txid: `${'0'.repeat(63)}${i}`,
         vout: 0,
         value
     }));
-    tx.fees = fees;
+    if (fees) {
+        tx.fees = {
+            fastestFee: 1,
+            halfHourFee: 1,
+            hourFee: 1,
+            economyFee: 1,
+            minimumFee: 1,
+            ...fees
+        };
+    }
     return tx;
 }
 

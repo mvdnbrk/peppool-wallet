@@ -51,12 +51,12 @@ describe('Wallet Store', () => {
 
     it('should import a wallet with a mnemonic', async () => {
         const store = useWalletStore();
-        const mnemonic = 'limb best sauce pizza loop install daughter toss worth wedding asset neck';
+        const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
         await store.importWallet(mnemonic, 'newpassword');
 
         expect(store.isCreated).toBe(true);
         expect(store.isUnlocked).toBe(true);
-        expect(store.address).toBe('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
+        expect(store.address).toBe('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
     });
 
     it('should perform a full wallet reset', async () => {
@@ -83,7 +83,7 @@ describe('Wallet Store', () => {
 
     it('should calculate fiat balance correctly', async () => {
         const store = useWalletStore();
-        store.address = 'PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M';
+        store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
         await store.refreshBalance();
 
         store.setCurrency('USD');

@@ -17,7 +17,7 @@ describe('API Utils', () => {
 
     it('should fetch and calculate balance correctly from Esplora structure', async () => {
         const data = {
-            address: 'PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M',
+            address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
             chain_stats: {
                 funded_txo_sum: RIBBITS_PER_PEP,
                 spent_txo_sum: RIBBITS_PER_PEP * 0.2,
@@ -30,7 +30,7 @@ describe('API Utils', () => {
 
         (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(data));
 
-        const balanceRibbits = await fetchAddressInfo('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
+        const balanceRibbits = await fetchAddressInfo('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
         expect(balanceRibbits).toBe(RIBBITS_PER_PEP * 1.3);
     });
 
@@ -59,7 +59,7 @@ describe('API Utils', () => {
     it('should validate an address correctly', async () => {
         (vi.mocked(fetch) as any).mockResolvedValue(mockResponse({ isvalid: true }));
 
-        const result = await validateAddress('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
+        const result = await validateAddress('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
         expect(result.isvalid).toBe(true);
     });
 
@@ -77,7 +77,7 @@ describe('API Utils', () => {
         }];
         (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockTxs));
 
-        const txs = await fetchTransactions('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
+        const txs = await fetchTransactions('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
         expect(txs).toHaveLength(1);
         expect(txs[0]!.txid).toBe('abc123');
     });

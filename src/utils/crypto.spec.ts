@@ -3,7 +3,7 @@ import { generateMnemonic, validateMnemonic, deriveWallet, createSignedTx, type 
 import { RIBBITS_PER_PEP } from './constants';
 
 describe('Crypto Utils', () => {
-  const mnemonic = 'limb best sauce pizza loop install daughter toss worth wedding asset neck';
+  const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
   
   it('should generate a valid 12-word mnemonic', () => {
     const m = generateMnemonic();
@@ -14,7 +14,7 @@ describe('Crypto Utils', () => {
   it('should derive a Pepecoin address starting with P', () => {
     const wallet = deriveWallet(mnemonic);
     expect(wallet.address.startsWith('P')).toBe(true);
-    expect(wallet.address).toBe('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
+    expect(wallet.address).toBe('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
   });
 
   it('should derive consistent addresses for the same mnemonic', () => {
@@ -27,14 +27,14 @@ describe('Crypto Utils', () => {
   });
 
   it('should validate the provided address', () => {
-    const validAddress = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+    const validAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
     expect(isValidAddress(validAddress)).toBe(true);
-    expect(isValidAddress('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M')).toBe(true); // Derived address
+    expect(isValidAddress('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh')).toBe(true); // Derived address
     expect(isValidAddress('PinvalidAddressHere')).toBe(false);
   });
 
   it('should handle different mnemonic separators', () => {
-    const messy = 'limb, best  sauce\npizza\rloop\tinstall daughter toss worth wedding asset neck';
+    const messy = 'suffer, dish  east\nmiss\rseat\tgreat brother hello motion mountain celery plunge';
     const normalized = messy.replace(/[,\s\n\r\t]+/g, ' ').trim().toLowerCase();
     expect(validateMnemonic(normalized)).toBe(true);
     expect(normalized.split(' ').length).toBe(12);
@@ -46,7 +46,7 @@ describe('Crypto Utils', () => {
   });
 
   describe('Transaction Signing', () => {
-    const toAddress = 'PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M';
+    const toAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
     // Use a more valid minimal transaction hex
     const validDummyHex = '010000000100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff0100000000000000000000000000000000';
     const txid1 = '0'.repeat(64);

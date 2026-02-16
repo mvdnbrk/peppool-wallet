@@ -5,7 +5,7 @@ import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '../utils/constants';
 import { estimateTxSize } from '../utils/crypto';
 
 function createTx(utxoValues: number[] = [], fees: Partial<RecommendedFees> | null = null): SendTransaction {
-    const tx = new SendTransaction('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
+    const tx = new SendTransaction('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
     tx.utxos = utxoValues.map((value, i) => ({
         txid: `${'0'.repeat(63)}${i}`,
         vout: 0,
@@ -68,7 +68,7 @@ describe('SendTransaction', () => {
         it('should use RECOMMENDED_FEE_RATE as fallback when no API fees', () => {
             const tx = createTx([RIBBITS_PER_PEP * 10]);
             tx.amountPep = 1;
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
 
             const fee = tx.estimatedFeeRibbits;
             // With no API fees, should use RECOMMENDED_FEE_RATE
@@ -81,7 +81,7 @@ describe('SendTransaction', () => {
             const highFee = RECOMMENDED_FEE_RATE * 2;
             const tx = createTx([RIBBITS_PER_PEP * 10], { fastestFee: highFee });
             tx.amountPep = 1;
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
 
             const expectedSize = estimateTxSize(1, 2);
             expect(tx.estimatedFeeRibbits).toBe(Math.ceil(expectedSize * highFee));
@@ -91,7 +91,7 @@ describe('SendTransaction', () => {
             const lowFee = 100; // Way below RECOMMENDED_FEE_RATE
             const tx = createTx([RIBBITS_PER_PEP * 10], { fastestFee: lowFee });
             tx.amountPep = 1;
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
 
             const expectedSize = estimateTxSize(1, 2);
             // Should use RECOMMENDED_FEE_RATE, not the low API fee
@@ -102,7 +102,7 @@ describe('SendTransaction', () => {
             const tx = createTx([RIBBITS_PER_PEP * 2]);
             // Set amount to max
             tx.amountPep = tx.calculateMaxPep();
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
 
             // Max sends use 1 output (no change)
             const expectedSize = estimateTxSize(1, 1);
@@ -195,27 +195,27 @@ describe('SendTransaction', () => {
         it('should be invalid with zero amount', () => {
             const tx = createTx([RIBBITS_PER_PEP * 10]);
             tx.amountPep = 0;
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
             expect(tx.isValid).toBe(false);
         });
 
         it('should be invalid when amount + fee exceeds balance', () => {
             const tx = createTx([RIBBITS_PER_PEP]);
             tx.amountPep = 1; // Exactly balance, no room for fee
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
             expect(tx.isValid).toBe(false);
         });
 
         it('should be valid when balance covers amount + fee', () => {
             const tx = createTx([RIBBITS_PER_PEP * 10]);
             tx.amountPep = 1;
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
             expect(tx.isValid).toBe(true);
         });
 
         it('should be valid at max amount', () => {
             const tx = createTx([RIBBITS_PER_PEP * 5]);
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
             tx.amountPep = tx.calculateMaxPep();
             expect(tx.isValid).toBe(true);
         });
@@ -224,7 +224,7 @@ describe('SendTransaction', () => {
     describe('integer safety', () => {
         it('isMax detection should work with integer comparison, not float epsilon', () => {
             const tx = createTx([RIBBITS_PER_PEP * 2]);
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
 
             const maxPep = tx.calculateMaxPep();
             tx.amountPep = maxPep;
@@ -240,7 +240,7 @@ describe('SendTransaction', () => {
         it('should not have floating point errors affect isValid at boundary', () => {
             // Regression: with float comparison, 0.1 + 0.2 !== 0.3 could cause issues
             const tx = createTx([RIBBITS_PER_PEP * 10]);
-            tx.recipient = 'PbvihBLgz6cFJnhYscevB4n3o85faXPG7D';
+            tx.recipient = 'PmockRecipientAddress1234567890123';
             tx.amountPep = 0.1 + 0.2; // Classic float issue
             // Should still be valid since 0.3 PEP is well within 10 PEP balance
             expect(tx.isValid).toBe(true);

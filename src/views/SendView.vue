@@ -197,7 +197,8 @@ async function handleSend() {
     const amountRibbits = tx.value.amountRibbits;
     const signedHex = await createSignedTx(mnemonic, form.recipient, amountRibbits, usedUtxosWithHex, tx.value.estimatedFeeRibbits);
     const result = await broadcastTx(signedHex);
-    ui.txid = result.txid;
+    // Ensure we get the raw string if the API returns an object
+    ui.txid = typeof result === 'string' ? result : result.txid;
 
     await walletStore.refreshBalance(true);
     const elapsed = Date.now() - startTime;
@@ -359,7 +360,7 @@ onMounted(async () => {
     <!-- Step 3 -->
     <div v-if="ui.step === 3" class="flex-1 flex flex-col pt-12 items-center text-center">
       <div class="flex-1 space-y-8 w-full">
-        <PepIcon name="checkmark-circle" size="80" class="text-pep-green mx-auto" />
+        <PepIcon name="checkmark-circle" size="80" class="text-pep-green-light mx-auto" />
         <div class="space-y-2"><h3 class="text-xl font-bold text-white">Transaction sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
 
         <PepInputGroup label="Transaction ID" id="sent-txid" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left">

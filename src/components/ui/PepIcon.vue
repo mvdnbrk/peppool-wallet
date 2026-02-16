@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 
 interface Props {
-  name: 'back' | 'chevron-right' | 'settings' | 'refresh' | 'copy' | 'check' | 'eye' | 'eye-slash' | 'error' | 'clear' | 'swap' | 'checkmark-circle';
+  name: 'back' | 'chevron-right' | 'settings' | 'refresh' | 'copy' | 'check' | 'eye' | 'eye-slash' | 'error' | 'clear' | 'swap' | 'checkmark-circle' | 'external-link';
   size?: number | string;
   class?: string;
 }
@@ -23,7 +23,8 @@ const icons = {
   'eye-slash': 'M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88',
   'clear': 'M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z',
   'swap': 'M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5',
-  'checkmark-circle': 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm4.3 7.61-4.57 6a1 1 0 0 1-.79.39 1 1 0 0 1-.79-.38l-2.44-3.11a1 1 0 0 1 1.58-1.23l1.63 2.08 3.78-5a1 1 0 1 1 1.6 1.22z'
+  'checkmark-circle': 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm4.3 7.61-4.57 6a1 1 0 0 1-.79.39 1 1 0 0 1-.79-.38l-2.44-3.11a1 1 0 0 1 1.58-1.23l1.63 2.08 3.78-5a1 1 0 1 1 1.6 1.22z',
+  'external-link': 'M13.7786 8.62136L6.30886 8.64017L6.31458 6.37172L17.6569 6.34314L17.6283 17.6854L15.3598 17.6911L15.3786 10.2214L7.14315 18.4569L5.54315 16.8569L13.7786 8.62136Z'
 };
 
 const viewBox = computed(() => {
@@ -31,7 +32,7 @@ const viewBox = computed(() => {
   if (props.name === 'check') return '0 0 512 512';
   if (props.name === 'copy') return '0 0 448 512';
   if (props.name === 'error') return '0 0 16 16';
-  if (props.name === 'eye' || props.name === 'eye-slash' || props.name === 'clear' || props.name === 'swap' || props.name === 'checkmark-circle') return '0 0 24 24';
+  if (props.name === 'eye' || props.name === 'eye-slash' || props.name === 'clear' || props.name === 'swap' || props.name === 'checkmark-circle' || props.name === 'external-link') return '0 0 24 24';
   return '0 0 256 256';
 });
 </script>

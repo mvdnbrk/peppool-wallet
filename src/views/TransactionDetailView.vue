@@ -62,7 +62,7 @@ function openExplorer() {
         </div>
 
         <div class="space-y-4 text-left">
-          <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 space-y-2">
+          <PepCard class="p-3 space-y-2">
             <div class="flex justify-between items-baseline">
               <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Status</span>
               <span class="text-xs font-bold uppercase tracking-wider" :class="txModel.isConfirmed ? 'text-pep-green-light' : 'text-yellow-500'">
@@ -81,7 +81,7 @@ function openExplorer() {
               <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Network Fee</span>
               <span class="text-xs text-offwhite font-semibold">{{ txModel.fee }} PEP</span>
             </div>
-          </div>
+          </PepCard>
 
           <PepInputGroup label="Transaction ID" id="txid-value" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1">
             <div class="flex items-center gap-2">

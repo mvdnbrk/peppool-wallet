@@ -28,22 +28,15 @@ function selectDuration(val: number) {
         <p class="text-[10px] text-slate-500 leading-tight">Select the desired duration before the extension locks.</p>
       </div>
       
-      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <button 
+      <PepList>
+        <PepListItem 
           v-for="opt in options" 
           :key="opt.val"
+          :label="opt.label"
+          :selected="walletStore.lockDuration === opt.val"
           @click="selectDuration(opt.val)"
-          class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 last:border-0 text-left cursor-pointer group"
-        >
-          <span class="text-sm font-semibold text-offwhite">{{ opt.label }}</span>
-          <div 
-            v-if="walletStore.lockDuration === opt.val"
-            class="w-5 h-5 rounded-full bg-pep-green flex items-center justify-center text-offwhite text-[10px]"
-          >
-            ✓
-          </div>
-        </button>
-      </div>
+        />
+      </PepList>
     </div>
   </div>
 </template>

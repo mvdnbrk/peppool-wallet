@@ -13,6 +13,9 @@ import PepMnemonicGrid from './components/ui/PepMnemonicGrid.vue'
 import PepCheckbox from './components/ui/PepCheckbox.vue'
 import PepIcon from './components/ui/PepIcon.vue'
 import PepFooter from './components/ui/PepFooter.vue'
+import PepList from './components/ui/PepList.vue'
+import PepListItem from './components/ui/PepListItem.vue'
+import PepCard from './components/ui/PepCard.vue'
 import PepInputGroup from './components/ui/PepInputGroup.vue'
 import PepSpinner from './components/ui/PepSpinner.vue'
 import * as constants from './utils/constants'
@@ -33,6 +36,9 @@ app.component('PepMnemonicGrid', PepMnemonicGrid)
 app.component('PepCheckbox', PepCheckbox)
 app.component('PepIcon', PepIcon)
 app.component('PepFooter', PepFooter)
+app.component('PepList', PepList)
+app.component('PepListItem', PepListItem)
+app.component('PepCard', PepCard)
 app.component('PepInputGroup', PepInputGroup)
 app.component('PepSpinner', PepSpinner)
 app.mount('#app')

@@ -25,24 +25,15 @@ function selectExplorer(id: ExplorerId) {
     <div class="mt-16 flex-1 space-y-2">
       <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-4">Select Explorer</p>
       
-      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <button 
+      <PepList>
+        <PepListItem 
           v-for="opt in options" 
           :key="opt.id"
+          :label="opt.name"
+          :selected="walletStore.selectedExplorer === opt.id"
           @click="selectExplorer(opt.id)"
-          class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 last:border-0 text-left cursor-pointer group"
-        >
-          <div class="flex flex-col">
-            <span class="text-sm font-semibold text-offwhite tracking-wide">{{ opt.name }}</span>
-          </div>
-          <PepIcon 
-            v-if="walletStore.selectedExplorer === opt.id"
-            name="checkmark-circle"
-            size="18"
-            class="text-pep-green"
-          />
-        </button>
-      </div>
+        />
+      </PepList>
     </div>
   </div>
 </template>

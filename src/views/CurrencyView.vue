@@ -23,22 +23,15 @@ function selectCurrency(code: 'USD' | 'EUR') {
     <div class="mt-16 flex-1 space-y-2">
       <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-4">Select Currency</p>
       
-      <div class="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-        <button 
+      <PepList>
+        <PepListItem 
           v-for="opt in options" 
           :key="opt.code"
+          :label="opt.label"
+          :selected="walletStore.selectedCurrency === opt.code"
           @click="selectCurrency(opt.code)"
-          class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 last:border-0 text-left cursor-pointer group"
-        >
-          <span class="text-sm font-semibold text-offwhite tracking-wide">{{ opt.label }}</span>
-          <PepIcon 
-            v-if="walletStore.selectedCurrency === opt.code"
-            name="checkmark-circle"
-            size="18"
-            class="text-pep-green"
-          />
-        </button>
-      </div>
+        />
+      </PepList>
     </div>
   </div>
 </template>

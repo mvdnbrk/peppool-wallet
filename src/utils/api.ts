@@ -150,7 +150,7 @@ export async function fetchTxHex(txid: string): Promise<string> {
     }
 }
 
-export async function broadcastTx(txHex: string): Promise<{ txid: string }> {
+export async function broadcastTx(txHex: string): Promise<string> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
@@ -170,8 +170,7 @@ export async function broadcastTx(txHex: string): Promise<{ txid: string }> {
             throw new Error(text || `Broadcast failed (${response.status})`);
         }
 
-        const txid = await response.text();
-        return { txid };
+        return await response.text();
     } catch (e: any) {
         clearTimeout(id);
         throw e;

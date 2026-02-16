@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchAddressInfo, fetchPepPrice, validateAddress, fetchTransactions, fetchRecommendedFees } from './api';
+import { fetchAddressInfo, fetchPepPrice, validateAddress, fetchTransactions, fetchRecommendedFees, broadcastTx } from './api';
 import { RIBBITS_PER_PEP } from './constants';
 
 describe('API Utils', () => {
@@ -80,6 +80,18 @@ describe('API Utils', () => {
         const txs = await fetchTransactions('PumNFmkevCTG6RTEc7W2piGTbQHMg2im2M');
         expect(txs).toHaveLength(1);
         expect(txs[0]!.txid).toBe('abc123');
+    });
+
+    it('should broadcast a transaction and return the raw txid string', async () => {
+        const mockTxid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
+        (vi.mocked(fetch) as any).mockResolvedValue({
+            ok: true,
+            text: () => Promise.resolve(mockTxid),
+            headers: { get: () => 'text/plain' }
+        });
+
+        const result = await broadcastTx('deadbeef');
+        expect(result).toBe(mockTxid);
     });
 
     it('should throw an error when API call fails', async () => {

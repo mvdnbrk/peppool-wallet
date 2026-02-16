@@ -197,8 +197,7 @@ async function handleSend() {
     const amountRibbits = tx.value.amountRibbits;
     const signedHex = await createSignedTx(mnemonic, form.recipient, amountRibbits, usedUtxosWithHex, tx.value.estimatedFeeRibbits);
     const result = await broadcastTx(signedHex);
-    // Ensure we get the raw string if the API returns an object
-    ui.txid = typeof result === 'string' ? result : result.txid;
+    ui.txid = result;
 
     await walletStore.refreshBalance(true);
     const elapsed = Date.now() - startTime;

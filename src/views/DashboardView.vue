@@ -29,7 +29,7 @@ function openDetail(txid: string) {
     <div class="bg-slate-800 rounded-2xl p-6 text-center space-y-2 border border-slate-700 relative group mb-4">
       <p class="text-slate-400 text-sm font-bold uppercase tracking-wider">Total Balance</p>
       <div class="flex items-baseline justify-center space-x-2">
-        <span class="text-4xl font-bold text-white">{{ parseFloat(walletStore.balance.toFixed(8)) }}</span>
+        <span class="text-4xl font-bold text-offwhite">{{ parseFloat(walletStore.balance.toFixed(8)) }}</span>
         <span class="text-pep-green-light font-bold">PEP</span>
       </div>
       <p class="text-slate-500 text-sm font-bold">{{ walletStore.currencySymbol }}{{ formatFiat(walletStore.balanceFiat) }} {{ walletStore.selectedCurrency }}</p>
@@ -64,7 +64,7 @@ function openDetail(txid: string) {
             <div>
               <p
                 class="text-sm font-bold leading-tight"
-                :class="tx.isOutgoing ? 'text-white' : 'text-pep-green-light'"
+                :class="tx.isOutgoing ? 'text-offwhite' : 'text-pep-green-light'"
               >
                 {{ tx.isOutgoing ? 'Sent' : 'Received' }}
               </p>
@@ -74,7 +74,7 @@ function openDetail(txid: string) {
             </div>
           </div>
           <div class="text-right">
-            <p class="text-sm font-bold leading-tight text-white">
+            <p class="text-sm font-bold leading-tight text-offwhite">
               {{ tx.formattedAmount }} PEP
             </p>
             <p class="text-[10px] text-slate-500">

@@ -30,7 +30,7 @@ function selectCurrency(code: 'USD' | 'EUR') {
           @click="selectCurrency(opt.code)"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 last:border-0 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white tracking-wide">{{ opt.label }}</span>
+          <span class="text-sm font-semibold text-offwhite tracking-wide">{{ opt.label }}</span>
           <PepIcon 
             v-if="walletStore.selectedCurrency === opt.code"
             name="checkmark-circle"

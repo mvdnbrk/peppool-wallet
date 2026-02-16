@@ -41,7 +41,7 @@ defineExpose({
         :disabled="disabled"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         :placeholder="disabled ? '' : placeholder"
-        class="col-start-1 row-start-1 block w-full rounded-md bg-white/5 py-1.5 pl-3 pr-10 text-base text-white outline-1 -outline-offset-1 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 sm:text-sm outline-white/10 focus:outline-pep-green disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="col-start-1 row-start-1 block w-full rounded-md bg-white/5 py-1.5 pl-3 pr-10 text-base text-offwhite outline-1 -outline-offset-1 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 sm:text-sm outline-white/10 focus:outline-pep-green disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         :class="[
           { 'text-red-400 outline-red-500/50 placeholder:text-red-400/70 focus:outline-red-400': error && !disabled },
           inputClass

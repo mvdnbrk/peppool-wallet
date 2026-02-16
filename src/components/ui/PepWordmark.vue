@@ -10,7 +10,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <h1 
-    class="italic tracking-wide text-white flex items-baseline"
+    class="italic tracking-wide text-offwhite flex items-baseline"
     :class="{
       'text-xl': size === 'sm',
       'text-2xl': size === 'md',

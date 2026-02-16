@@ -33,7 +33,7 @@ function selectExplorer(id: ExplorerId) {
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 last:border-0 text-left cursor-pointer group"
         >
           <div class="flex flex-col">
-            <span class="text-sm font-semibold text-white tracking-wide">{{ opt.name }}</span>
+            <span class="text-sm font-semibold text-offwhite tracking-wide">{{ opt.name }}</span>
           </div>
           <PepIcon 
             v-if="walletStore.selectedExplorer === opt.id"

@@ -44,7 +44,7 @@ function handleClear() {
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         @blur="$emit('blur', $event)"
         :placeholder="placeholder"
-        class="block min-w-0 grow bg-transparent py-1.5 text-base text-white placeholder:text-gray-500 focus:outline-none sm:text-sm"
+        class="block min-w-0 grow bg-transparent py-1.5 text-base text-offwhite placeholder:text-gray-500 focus:outline-none sm:text-sm"
         :class="[
           error ? 'text-red-400 placeholder:text-red-400/70' : '',
           $slots.prefix ? 'pl-1' : 'pl-3',

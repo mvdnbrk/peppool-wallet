@@ -21,7 +21,7 @@ function handleLock() {
           @click="router.push('/settings/preferences')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Preferences</span>
+          <span class="text-sm font-semibold text-offwhite">Preferences</span>
           <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
         </button>
 
@@ -29,7 +29,7 @@ function handleLock() {
           @click="router.push('/settings/security')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Security</span>
+          <span class="text-sm font-semibold text-offwhite">Security</span>
           <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
         </button>
 
@@ -37,7 +37,7 @@ function handleLock() {
           @click="router.push('/settings/about')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">About</span>
+          <span class="text-sm font-semibold text-offwhite">About</span>
           <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
         </button>
       </div>

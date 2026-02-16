@@ -35,10 +35,10 @@ function selectDuration(val: number) {
           @click="selectDuration(opt.val)"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 last:border-0 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">{{ opt.label }}</span>
+          <span class="text-sm font-semibold text-offwhite">{{ opt.label }}</span>
           <div 
             v-if="walletStore.lockDuration === opt.val"
-            class="w-5 h-5 rounded-full bg-pep-green flex items-center justify-center text-white text-[10px]"
+            class="w-5 h-5 rounded-full bg-pep-green flex items-center justify-center text-offwhite text-[10px]"
           >
             ✓
           </div>

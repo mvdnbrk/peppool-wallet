@@ -107,7 +107,7 @@ async function handleCreate() {
     <div v-if="step === 2" class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1">
         <div class="text-slate-400 text-sm space-y-2">
-          <p class="font-bold text-white">Write down your secret phrase</p>
+          <p class="font-bold text-offwhite">Write down your secret phrase</p>
           <p>This phrase is the ONLY way to recover your wallet if you lose your device or password.</p>
         </div>
 

@@ -13,8 +13,8 @@ import pkg from '../../package.json';
           target="_blank" 
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer"
         >
-          <span class="text-sm font-semibold text-white">Peppool.space</span>
-          <PepIcon name="external-link" class="text-white" size="18" />
+          <span class="text-sm font-semibold text-offwhite">Peppool.space</span>
+          <PepIcon name="external-link" class="text-offwhite" size="18" />
         </a>
 
         <a 
@@ -22,8 +22,8 @@ import pkg from '../../package.json';
           target="_blank" 
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer"
         >
-          <span class="text-sm font-semibold text-white">Privacy policy</span>
-          <PepIcon name="external-link" class="text-white" size="18" />
+          <span class="text-sm font-semibold text-offwhite">Privacy policy</span>
+          <PepIcon name="external-link" class="text-offwhite" size="18" />
         </a>
 
         <a 
@@ -31,15 +31,15 @@ import pkg from '../../package.json';
           target="_blank" 
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors text-left cursor-pointer"
         >
-          <span class="text-sm font-semibold text-white">Source code</span>
-          <PepIcon name="external-link" class="text-white" size="18" />
+          <span class="text-sm font-semibold text-offwhite">Source code</span>
+          <PepIcon name="external-link" class="text-offwhite" size="18" />
         </a>
       </div>
 
       <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
         <div class="flex justify-between text-sm">
           <span class="text-slate-400 font-semibold">Version</span>
-          <span class="text-white font-bold">{{ pkg.version }}</span>
+          <span class="text-offwhite font-bold">{{ pkg.version }}</span>
         </div>
         <div class="flex justify-between text-sm pt-1">
           <span class="text-slate-400 font-semibold">Network</span>

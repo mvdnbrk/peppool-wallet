@@ -55,7 +55,7 @@ function openExplorer() {
           </p>
           <h3 
             class="text-4xl font-bold"
-            :class="txModel.isOutgoing ? 'text-white' : 'text-pep-green-light'"
+            :class="txModel.isOutgoing ? 'text-offwhite' : 'text-pep-green-light'"
           >
             {{ txModel.formattedAmount }} PEP
           </h3>

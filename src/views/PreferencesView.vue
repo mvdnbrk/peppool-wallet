@@ -22,7 +22,7 @@ function getDurationLabel(val: number) {
           @click="router.push('/settings/currency')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Currency</span>
+          <span class="text-sm font-semibold text-offwhite">Currency</span>
           <div class="flex items-center space-x-2">
             <span class="text-sm font-medium text-offwhite uppercase">{{ walletStore.selectedCurrency }}</span>
             <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
@@ -33,7 +33,7 @@ function getDurationLabel(val: number) {
           @click="router.push('/settings/explorer')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors border-b border-slate-700/50 text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Preferred explorer</span>
+          <span class="text-sm font-semibold text-offwhite">Preferred explorer</span>
           <div class="flex items-center space-x-2">
             <span class="text-sm font-medium text-offwhite">{{ EXPLORERS[walletStore.selectedExplorer].name }}</span>
             <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />
@@ -44,7 +44,7 @@ function getDurationLabel(val: number) {
           @click="router.push('/settings/auto-lock')"
           class="w-full flex items-center justify-between p-4 hover:bg-slate-800 transition-colors text-left cursor-pointer group"
         >
-          <span class="text-sm font-semibold text-white">Auto-Lock</span>
+          <span class="text-sm font-semibold text-offwhite">Auto-Lock</span>
           <div class="flex items-center space-x-2">
             <span class="text-sm font-medium text-offwhite">{{ getDurationLabel(walletStore.lockDuration) }}</span>
             <PepIcon name="chevron-right" class="text-slate-600 group-hover:text-slate-400 transition-colors" size="16" />

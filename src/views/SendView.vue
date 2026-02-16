@@ -269,7 +269,7 @@ onMounted(async () => {
 
         <div class="space-y-1">
           <div class="flex justify-between items-end px-1">
-            <label for="amount" class="block text-sm font-medium text-white">Amount</label>
+            <label for="amount" class="block text-sm font-medium text-offwhite">Amount</label>
             <div class="text-sm font-bold uppercase tracking-wider flex items-center space-x-2">
               <span class="text-slate-500">Available:</span>
               <span class="text-slate-300">{{ displayBalance }}</span>
@@ -286,7 +286,7 @@ onMounted(async () => {
               type="number"
               v-model="form.inputAmount"
               placeholder="0.00"
-              class="block min-w-0 grow bg-transparent py-1.5 pl-1.5 pr-2 text-base text-white placeholder:text-gray-500 focus:outline-none sm:text-sm font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              class="block min-w-0 grow bg-transparent py-1.5 pl-1.5 pr-2 text-base text-offwhite placeholder:text-gray-500 focus:outline-none sm:text-sm font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button type="button" @click="toggleMode" class="shrink-0 mr-2 p-1 rounded text-slate-500 hover:text-pep-green-light transition-colors cursor-pointer" title="Switch currency" tabindex="-1">
               <PepIcon name="swap" size="16" />
@@ -324,7 +324,7 @@ onMounted(async () => {
         <div class="bg-slate-800 rounded-2xl p-4 space-y-4 border border-slate-700 text-left">
           <div class="flex flex-col space-y-0.5">
             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sending</span>
-            <span class="text-xl font-bold text-white">{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span>
+            <span class="text-xl font-bold text-offwhite">{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span>
           </div>
 
           <div class="flex flex-col space-y-0.5">
@@ -360,7 +360,7 @@ onMounted(async () => {
     <div v-if="ui.step === 3" class="flex-1 flex flex-col pt-12 items-center text-center">
       <div class="flex-1 space-y-8 w-full">
         <PepIcon name="checkmark-circle" size="80" class="text-pep-green-light mx-auto" />
-        <div class="space-y-2"><h3 class="text-xl font-bold text-white">Transaction sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
+        <div class="space-y-2"><h3 class="text-xl font-bold text-offwhite">Transaction sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
 
         <PepInputGroup label="Transaction ID" id="sent-txid" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left">
           <div class="flex items-center gap-2">

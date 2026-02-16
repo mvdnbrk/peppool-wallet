@@ -25,14 +25,14 @@ defineEmits(['update:modelValue']);
           <PepIcon 
             name="check" 
             size="16" 
-            class="text-white transition-opacity" 
+            class="text-offwhite transition-opacity" 
             :class="modelValue ? 'opacity-100' : 'opacity-0'" 
           />
         </div>
       </div>
     </div>
     <div class="text-sm/6">
-      <label :for="id" class="font-medium text-white cursor-pointer">{{ label }}</label>
+      <label :for="id" class="font-medium text-offwhite cursor-pointer">{{ label }}</label>
       <p v-if="description" class="text-xs text-slate-500">{{ description }}</p>
     </div>
   </div>

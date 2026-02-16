@@ -71,7 +71,7 @@ async function handleImport() {
             id="mnemonic"
             rows="3"
             placeholder="word1 word2 ..."
-            class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-pep-green sm:text-sm"
+            class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-offwhite outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-pep-green sm:text-sm"
             :class="{ 'outline-red-500/50 focus:outline-red-400': form.errors.mnemonic }"
             @blur="onBlurMnemonic"
           ></textarea>

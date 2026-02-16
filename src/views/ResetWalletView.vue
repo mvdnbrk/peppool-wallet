@@ -20,7 +20,7 @@ function handleReset() {
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-8 flex-1">
         <div class="space-y-4 text-slate-400 text-sm">
-          <p class="text-white font-bold">This will completely wipe your wallet data from this browser.</p>
+          <p class="text-offwhite font-bold">This will completely wipe your wallet data from this browser.</p>
           <div class="bg-red-900/10 border border-red-900/20 p-3 rounded-lg text-red-400 font-semibold">
             <p>Ensure you have your secret phrase backed up. Without it, you will lose access to your funds permanently.</p>
           </div>

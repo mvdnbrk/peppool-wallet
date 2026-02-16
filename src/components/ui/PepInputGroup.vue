@@ -7,7 +7,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  labelClass: 'text-sm font-medium text-white'
+  labelClass: 'text-sm font-medium text-offwhite'
 });
 </script>
 

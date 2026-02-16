@@ -9,7 +9,7 @@ import SendView from '../views/SendView.vue';
 import ShowMnemonicView from '../views/ShowMnemonicView.vue';
 import SettingsView from '../views/SettingsView.vue';
 import ChangePasswordView from '../views/ChangePasswordView.vue';
-import ResetWalletView from '../views/ResetWalletView.vue';
+import ForgotPasswordView from '../views/ForgotPasswordView.vue';
 import TransactionDetailView from '../views/TransactionDetailView.vue';
 import CurrencyView from '../views/CurrencyView.vue';
 import AutoLockView from '../views/AutoLockView.vue';
@@ -27,7 +27,7 @@ const routes = [
     { path: '/show-mnemonic', component: ShowMnemonicView },
     { path: '/settings', component: SettingsView },
     { path: '/change-password', component: ChangePasswordView },
-    { path: '/reset-wallet', component: ResetWalletView, meta: { persist: true } },
+    { path: '/forgot-password', component: ForgotPasswordView },
     { path: '/tx/:txid', component: TransactionDetailView, meta: { persist: true } },
     { path: '/settings/preferences', component: PreferencesView },
     { path: '/settings/security', component: SecurityView },
@@ -58,7 +58,7 @@ router.beforeEach(async (to, _from, next) => {
     }
 
     // Public routes that don't require an unlocked wallet
-    const publicRoutes = ['/', '/create', '/import', '/reset-wallet'];
+    const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
     const isPublicRoute = publicRoutes.includes(to.path);
 
     if (!walletStore.isUnlocked && !isPublicRoute) {

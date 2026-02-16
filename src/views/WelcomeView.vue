@@ -119,7 +119,7 @@ async function handleUnlock() {
       </PepButton>
 
       <button 
-        @click="router.push('/reset-wallet')"
+        @click="router.push('/forgot-password')"
         class="text-xs text-slate-500 hover:text-white transition-colors cursor-pointer underline hover:no-underline"
         tabindex="-1"
       >

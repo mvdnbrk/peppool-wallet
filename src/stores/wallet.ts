@@ -5,6 +5,7 @@ import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
 import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } from '../utils/api';
 import { Transaction } from '../models/Transaction';
 import { RIBBITS_PER_PEP } from '../utils/constants';
+import { EXPLORERS, type ExplorerId, pepeExplorer } from '../utils/explorer';
 
 // ── Background worker messaging ────────────────────────────────────────────
 async function setAutoLockAlarm(delayMinutes: number) {
@@ -54,6 +55,7 @@ export const useWalletStore = defineStore('wallet', () => {
     });
 
     const selectedCurrency = ref<'USD' | 'EUR'>((localStorage.getItem('peppool_currency') as 'USD' | 'EUR') || 'USD');
+    const selectedExplorer = ref<ExplorerId>((localStorage.getItem('peppool_explorer') as ExplorerId) || 'peppool');
     const lockDuration = ref<number>(parseInt(localStorage.getItem('peppool_lock_duration') || '15'));
 
     const failedAttempts = ref<number>(Number(localStorage.getItem('peppool_failed_attempts')) || 0);
@@ -76,6 +78,19 @@ export const useWalletStore = defineStore('wallet', () => {
     function setCurrency(currency: 'USD' | 'EUR') {
         selectedCurrency.value = currency;
         localStorage.setItem('peppool_currency', currency);
+    }
+
+    function setExplorer(explorer: ExplorerId) {
+        selectedExplorer.value = explorer;
+        localStorage.setItem('peppool_explorer', explorer);
+    }
+
+    function openExplorerTx(txid: string) {
+        pepeExplorer.openTx(selectedExplorer.value, txid);
+    }
+
+    function openExplorerAddress(address: string) {
+        pepeExplorer.openAddress(selectedExplorer.value, address);
     }
 
     function setLockDuration(minutes: number) {
@@ -337,11 +352,16 @@ export const useWalletStore = defineStore('wallet', () => {
         balance,
         balanceFiat,
         selectedCurrency,
+        selectedExplorer,
+        EXPLORERS,
         currencySymbol,
         lockDuration,
         prices,
         transactions,
         setCurrency,
+        setExplorer,
+        openExplorerTx,
+        openExplorerAddress,
         setLockDuration,
         checkSession,
         createWallet,

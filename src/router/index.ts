@@ -13,6 +13,7 @@ import ForgotPasswordView from '../views/ForgotPasswordView.vue';
 import ResetWalletView from '../views/ResetWalletView.vue';
 import TransactionDetailView from '../views/TransactionDetailView.vue';
 import CurrencyView from '../views/CurrencyView.vue';
+import PreferredExplorerView from '../views/PreferredExplorerView.vue';
 import AutoLockView from '../views/AutoLockView.vue';
 import PreferencesView from '../views/PreferencesView.vue';
 import SecurityView from '../views/SecurityView.vue';
@@ -35,6 +36,7 @@ const routes = [
     { path: '/settings/security', component: SecurityView },
     { path: '/settings/about', component: AboutView },
     { path: '/settings/currency', component: CurrencyView },
+    { path: '/settings/explorer', component: PreferredExplorerView },
     { path: '/settings/auto-lock', component: AutoLockView },
 ];
 

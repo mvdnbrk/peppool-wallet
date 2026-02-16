@@ -81,6 +81,29 @@ describe('Wallet Store', () => {
         expect(localStorage.getItem('peppool_currency')).toBe('EUR');
     });
 
+    it('should handle explorer changes correctly', () => {
+        const store = useWalletStore();
+        expect(store.selectedExplorer).toBe('peppool');
+
+        store.setExplorer('pepeblocks');
+        expect(store.selectedExplorer).toBe('pepeblocks');
+        expect(localStorage.getItem('peppool_explorer')).toBe('pepeblocks');
+    });
+
+    it('should open explorer links through actions', () => {
+        const store = useWalletStore();
+        const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+        store.openExplorerTx('tx123');
+        expect(openSpy).toHaveBeenCalledWith('https://peppool.space/tx/tx123', '_blank');
+
+        store.setExplorer('pepeblocks');
+        store.openExplorerAddress('addr123');
+        expect(openSpy).toHaveBeenCalledWith('https://pepeblocks.com/address/addr123', '_blank');
+
+        openSpy.mockRestore();
+    });
+
     it('should calculate fiat balance correctly', async () => {
         const store = useWalletStore();
         store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';

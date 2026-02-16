@@ -30,7 +30,7 @@ onMounted(async () => {
 });
 
 function openExplorer() {
-  window.open(`https://peppool.space/tx/${txid}`, '_blank');
+  walletStore.openExplorerTx(txid);
 }
 </script>
 

@@ -218,7 +218,7 @@ function handleCancel() {
 }
 
 function openExplorer() {
-  window.open(`https://peppool.space/tx/${ui.txid}`, '_blank');
+  walletStore.openExplorerTx(ui.txid);
 }
 
 onMounted(async () => {

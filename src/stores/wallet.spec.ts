@@ -117,4 +117,41 @@ describe('Wallet Store', () => {
 
         vi.useRealTimers();
     });
+
+    it('cacheMnemonic should update the mnemonic in the store', async () => {
+        const store = useWalletStore();
+        await store.createWallet('password123');
+
+        // After creation, plaintextMnemonic should be set
+        expect(store.plaintextMnemonic).not.toBeNull();
+        const originalMnemonic = store.plaintextMnemonic;
+
+        // Lock clears it
+        store.lock();
+        expect(store.plaintextMnemonic).toBeNull();
+
+        // cacheMnemonic restores it
+        store.cacheMnemonic(originalMnemonic!);
+        expect(store.plaintextMnemonic).toBe(originalMnemonic);
+    });
+
+    it('plaintextMnemonic should be exposed as readonly', async () => {
+        const store = useWalletStore();
+        await store.createWallet('password123');
+
+        // Verify it's a Ref and contains a value
+        expect(store.plaintextMnemonic).toBeTruthy();
+
+        // Direct assignment should be a no-op (readonly ref)
+        // TypeScript would prevent this, but at runtime readonly refs
+        // issue a warning and silently fail
+        const original = store.plaintextMnemonic;
+        try {
+            (store as any).plaintextMnemonic = 'hacked';
+        } catch {
+            // Expected for readonly
+        }
+        // Should still be the original value, not 'hacked'
+        expect(store.plaintextMnemonic).toBe(original);
+    });
 });

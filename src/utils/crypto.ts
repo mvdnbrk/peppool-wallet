@@ -14,6 +14,23 @@ export function validateMnemonic(mnemonic: string): boolean {
     return bip39.validateMnemonic(mnemonic);
 }
 
+/**
+ * Returns an array of words from the mnemonic that are not in the BIP39 wordlist.
+ * Only checks "completed" words (followed by a space), not the word currently being typed.
+ */
+export function getInvalidMnemonicWords(mnemonic: string): string[] {
+    const wordlist = bip39.wordlists.english;
+    if (!wordlist) return [];
+
+    const trimmed = mnemonic.trim().toLowerCase();
+    if (!trimmed) return [];
+
+    const words = trimmed.split(/\s+/);
+    // Exclude the last word unless the input ends with whitespace (word is "complete")
+    const completedWords = mnemonic.endsWith(' ') ? words : words.slice(0, -1);
+    return completedWords.filter(word => !wordlist.includes(word));
+}
+
 export function deriveAddress(mnemonic: string, index = 0): string {
     const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
     // BIP32 v5+ expects Uint8Array, not Buffer

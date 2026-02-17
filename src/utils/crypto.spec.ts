@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateMnemonic, validateMnemonic, deriveAddress, deriveSigner, createSignedTx, type UTXO, estimateTxSize, isValidAddress } from './crypto';
+import { generateMnemonic, validateMnemonic, deriveAddress, deriveSigner, createSignedTx, type UTXO, estimateTxSize, isValidAddress, getInvalidMnemonicWords } from './crypto';
 import { RIBBITS_PER_PEP } from './constants';
 
 describe('Crypto Utils', () => {
@@ -43,6 +43,30 @@ describe('Crypto Utils', () => {
     it('should estimate transaction size correctly', () => {
         // 1 input, 2 outputs: 1*148 + 2*34 + 10 = 148 + 68 + 10 = 226
         expect(estimateTxSize(1, 2)).toBe(226);
+    });
+
+    it('should return empty array for valid mnemonic words', () => {
+        expect(getInvalidMnemonicWords('suffer dish east ')).toEqual([]);
+    });
+
+    it('should detect invalid mnemonic words', () => {
+        expect(getInvalidMnemonicWords('suffer lxfxfjxjh east')).toEqual(['lxfxfjxjh']);
+    });
+
+    it('should detect multiple invalid words', () => {
+        expect(getInvalidMnemonicWords('xfoo suffer xbaz ')).toEqual(['xfoo', 'xbaz']);
+    });
+
+    it('should return empty array for empty input', () => {
+        expect(getInvalidMnemonicWords('')).toEqual([]);
+        expect(getInvalidMnemonicWords('   ')).toEqual([]);
+    });
+
+    it('should not validate the word currently being typed', () => {
+        // 'suf' is incomplete — should not be flagged
+        expect(getInvalidMnemonicWords('suffer suf')).toEqual([]);
+        // but once followed by a space, it should be checked
+        expect(getInvalidMnemonicWords('suffer suf ')).toEqual(['suf']);
     });
 
     it('should derive a signer with a valid publicKey', () => {

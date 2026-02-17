@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
-import { validateMnemonic } from '../utils/crypto';
+import { validateMnemonic, getInvalidMnemonicWords } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '../utils/form';
 import { MIN_PASSWORD_LENGTH } from '../utils/constants';
-import { watch } from 'vue';
+import { watch, computed } from 'vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -13,6 +13,11 @@ const form = useForm({
   mnemonic: '',
   password: '',
   confirmPassword: ''
+});
+
+const invalidWords = computed(() => {
+  if (!form.mnemonic) return [];
+  return getInvalidMnemonicWords(form.mnemonic);
 });
 
 const { sanitizeMnemonic, onBlurMnemonic } = useMnemonicField(form, validateMnemonic);
@@ -64,7 +69,7 @@ async function handleImport() {
         <PepInputGroup
           label="Secret phrase (12 or 24 words)"
           id="mnemonic"
-          :error="form.errors.mnemonic"
+          :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
         >
           <textarea
             v-model="form.mnemonic"
@@ -72,9 +77,13 @@ async function handleImport() {
             rows="3"
             placeholder="word1 word2 ..."
             class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-offwhite outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-pep-green sm:text-sm"
-            :class="{ 'outline-red-500/50 focus:outline-red-400': form.errors.mnemonic }"
+            :class="{ 'outline-red-500/50 focus:outline-red-400': form.errors.mnemonic && invalidWords.length === 0 }"
             @blur="onBlurMnemonic"
           ></textarea>
+
+          <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
+            <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not a valid seed phrase word
+          </p>
         </PepInputGroup>
 
         <PepInput
@@ -99,7 +108,7 @@ async function handleImport() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleImport" :loading="form.isProcessing" :disabled="!form.mnemonic || !form.password || !form.confirmPassword || form.hasError() || !validateMnemonic(form.mnemonic.trim().toLowerCase())" class="w-full">
+        <PepButton @click="handleImport" :loading="form.isProcessing" :disabled="!form.mnemonic || !form.password || !form.confirmPassword || form.hasError() || invalidWords.length > 0 || !validateMnemonic(form.mnemonic.trim().toLowerCase())" class="w-full">
           Import wallet
         </PepButton>
       </div>

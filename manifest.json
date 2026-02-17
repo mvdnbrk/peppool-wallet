@@ -33,7 +33,7 @@
                 "assets/*"
             ],
             "matches": [
-                "<all_urls>"
+                "https://peppool.space/api/*"
             ]
         }
     ]

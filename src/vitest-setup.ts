@@ -1,4 +1,10 @@
 import { vi } from 'vitest';
+import { webcrypto } from 'node:crypto';
+
+// Polyfill crypto for bip39/zxcvbn and other utils
+if (typeof global !== 'undefined' && !global.crypto) {
+  (global as any).crypto = webcrypto;
+}
 
 // Mock global chrome
 const chromeMock = {

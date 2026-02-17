@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../stores/wallet';
-import { decrypt } from '../utils/encryption';
+import { useWalletStore } from '../../stores/wallet';
+import { decrypt } from '../../utils/encryption';
 
 const router = useRouter();
 const walletStore = useWalletStore();

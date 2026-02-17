@@ -1,23 +1,23 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
-import WelcomeView from '../views/WelcomeView.vue';
-import CreateWalletView from '../views/CreateWalletView.vue';
-import ImportWalletView from '../views/ImportWalletView.vue';
-import DashboardView from '../views/DashboardView.vue';
-import ReceiveView from '../views/ReceiveView.vue';
-import SendView from '../views/SendView.vue';
-import ShowMnemonicView from '../views/ShowMnemonicView.vue';
-import SettingsView from '../views/SettingsView.vue';
-import ChangePasswordView from '../views/ChangePasswordView.vue';
-import ForgotPasswordView from '../views/ForgotPasswordView.vue';
-import ResetWalletView from '../views/ResetWalletView.vue';
-import TransactionDetailView from '../views/TransactionDetailView.vue';
-import CurrencyView from '../views/CurrencyView.vue';
-import PreferredExplorerView from '../views/PreferredExplorerView.vue';
-import AutoLockView from '../views/AutoLockView.vue';
-import PreferencesView from '../views/PreferencesView.vue';
-import SecurityView from '../views/SecurityView.vue';
-import AboutView from '../views/AboutView.vue';
+import WelcomeView from '../views/onboarding/WelcomeView.vue';
+import CreateWalletView from '../views/onboarding/CreateWalletView.vue';
+import ImportWalletView from '../views/onboarding/ImportWalletView.vue';
+import DashboardView from '../views/wallet/DashboardView.vue';
+import ReceiveView from '../views/wallet/ReceiveView.vue';
+import SendView from '../views/wallet/SendView.vue';
+import ShowMnemonicView from '../views/settings/ShowMnemonicView.vue';
+import SettingsView from '../views/settings/SettingsView.vue';
+import ChangePasswordView from '../views/settings/ChangePasswordView.vue';
+import ForgotPasswordView from '../views/onboarding/ForgotPasswordView.vue';
+import ResetWalletView from '../views/settings/ResetWalletView.vue';
+import TransactionDetailView from '../views/wallet/TransactionDetailView.vue';
+import CurrencyView from '../views/settings/CurrencyView.vue';
+import PreferredExplorerView from '../views/settings/PreferredExplorerView.vue';
+import AutoLockView from '../views/settings/AutoLockView.vue';
+import PreferencesView from '../views/settings/PreferencesView.vue';
+import SecurityView from '../views/settings/SecurityView.vue';
+import AboutView from '../views/settings/AboutView.vue';
 
 const routes = [
   { path: '/', component: WelcomeView },

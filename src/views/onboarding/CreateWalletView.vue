@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../stores/wallet';
-import { generateMnemonic } from '../utils/crypto';
-import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
-import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
-import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
-import PepForm from '../components/ui/PepForm.vue';
-import { UX_DELAY_SLOW } from '../utils/constants';
+import { useWalletStore } from '../../stores/wallet';
+import { generateMnemonic } from '../../utils/crypto';
+import { useForm, validatePasswordMatch, usePasswordBlur } from '../../utils/form';
+import PepPasswordFields from '../../components/ui/PepPasswordFields.vue';
+import PepLoadingButton from '../../components/ui/PepLoadingButton.vue';
+import PepForm from '../../components/ui/PepForm.vue';
+import { UX_DELAY_SLOW } from '../../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();

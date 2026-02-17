@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../stores/wallet';
-import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
-import { UX_DELAY_NORMAL } from '../utils/constants';
+import { useWalletStore } from '../../stores/wallet';
 
 const router = useRouter();
 const walletStore = useWalletStore();
 const confirmedBackup = ref(false);
-const isProcessing = ref(false);
 
-async function handleReset() {
-  isProcessing.value = true;
+function handleReset() {
   walletStore.resetWallet();
   router.push('/');
 }
@@ -19,20 +15,24 @@ async function handleReset() {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepHeader title="Reset wallet" :absolute="false" />
+    <PepHeader title="Forgot password" :absolute="false" />
 
     <div class="flex flex-1 flex-col pt-4">
       <div class="flex-1 space-y-8">
         <div class="space-y-4 text-sm text-slate-400">
           <p class="text-offwhite font-bold">
-            This will completely wipe your wallet data from this browser.
+            Peppool Wallet does not keep a copy of your password.
+          </p>
+          <p>
+            If you're unable to access your account, you will need to reset your wallet and input
+            the secret phrase you used when you generated your wallet.
           </p>
           <div
             class="rounded-lg border border-red-900/20 bg-red-900/10 p-3 font-semibold text-red-400"
           >
             <p>
-              Ensure you have your secret phrase backed up. Without it, you will lose access to your
-              funds permanently.
+              This will reset your wallet from this browser. Make sure you have your secret phrase
+              backed up.
             </p>
           </div>
         </div>
@@ -47,16 +47,14 @@ async function handleReset() {
       </div>
 
       <div class="pt-6">
-        <PepLoadingButton
+        <PepButton
           @click="handleReset"
-          :loading="isProcessing"
-          :min-loading-ms="UX_DELAY_NORMAL"
           :disabled="!confirmedBackup"
           variant="danger"
           class="w-full"
         >
           Reset wallet
-        </PepLoadingButton>
+        </PepButton>
       </div>
     </div>
   </div>

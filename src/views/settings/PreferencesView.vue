@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../stores/wallet';
-import { EXPLORERS } from '../utils/explorer';
+import { useWalletStore } from '../../stores/wallet';
+import { EXPLORERS } from '../../utils/explorer';
 
 const router = useRouter();
 const walletStore = useWalletStore();

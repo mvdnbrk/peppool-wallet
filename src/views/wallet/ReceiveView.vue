@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../stores/wallet';
+import { useWalletStore } from '../../stores/wallet';
 import QrcodeVue from 'qrcode.vue';
 
 const walletStore = useWalletStore();

@@ -65,13 +65,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
         }
 
         if (!contentType || !contentType.includes('application/json')) {
-            console.error('Expected JSON but received:', contentType, 'at', url);
+            console.error('Unexpected content-type from API:', contentType);
             throw new Error('Invalid response from server.');
         }
 
         return await response.json();
     } catch (e: any) {
-        console.error(`API Request Failed [${url}]:`, e.message);
+        console.error('API request failed:', e.message);
         throw e;
     }
 }

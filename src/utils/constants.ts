@@ -11,6 +11,10 @@ export const RECOMMENDED_FEE_RATE = 1000;
 export const MIN_SEND_PEP = 0.01;
 export const MIN_PASSWORD_LENGTH = 8;
 
+export const UX_DELAY_FAST = 500;
+export const UX_DELAY_NORMAL = 750;
+export const UX_DELAY_SLOW = 1000;
+
 /**
  * Format a fiat value with enough precision to be meaningful.
  * For values ≥ 0.01 → 2 decimals ($1.23)

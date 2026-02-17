@@ -5,6 +5,7 @@ import { useWalletStore } from '../stores/wallet';
 import { generateMnemonic } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
+import { UX_DELAY_NORMAL } from '../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -114,7 +115,7 @@ async function handleCreate() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleCreate" :loading="form.isProcessing" :disabled="!confirmedSeed" class="w-full">
+        <PepButton @click="handleCreate" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_NORMAL" :disabled="!confirmedSeed" class="w-full">
           Create wallet
         </PepButton>
       </div>

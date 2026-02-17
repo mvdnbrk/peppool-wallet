@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useForm } from '../utils/form';
+import { UX_DELAY_FAST } from '../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -60,12 +61,9 @@ async function handleUnlock() {
   
   form.isProcessing = true;
   form.clearError();
-  const startTime = Date.now();
 
   try {
     const success = await walletStore.unlock(form.password);
-    const elapsed = Date.now() - startTime;
-    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
 
     if (success) {
       router.push('/dashboard');
@@ -112,6 +110,7 @@ async function handleUnlock() {
       <PepButton 
         @click="handleUnlock" 
         :loading="form.isProcessing" 
+        :min-loading-ms="UX_DELAY_FAST"
         :disabled="localIsLockedOut || !form.password || form.hasError()"
         class="w-full"
       >

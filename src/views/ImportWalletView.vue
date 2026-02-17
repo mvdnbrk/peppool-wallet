@@ -4,6 +4,7 @@ import { useWalletStore } from '../stores/wallet';
 import { validateMnemonic, getInvalidMnemonicWords } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
+import { UX_DELAY_NORMAL } from '../utils/constants';
 import { watch, computed, onMounted } from 'vue';
 
 const router = useRouter();
@@ -80,15 +81,9 @@ async function handleImport() {
   }
 
   form.isProcessing = true;
-  const startTime = Date.now();
   try {
     await walletStore.importWallet(normalizedMnemonic, form.password);
     clearSessionDraft();
-
-    // Minimum loading time for better UX
-    const elapsed = Date.now() - startTime;
-    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
-
     router.push('/dashboard');
   } catch (e) {
     form.setError('general', 'Failed to import wallet');
@@ -135,7 +130,7 @@ async function handleImport() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleImport" :loading="form.isProcessing" :disabled="!form.mnemonic || !form.password || !form.confirmPassword || form.hasError() || invalidWords.length > 0 || !validateMnemonic(form.mnemonic.trim().toLowerCase())" class="w-full">
+        <PepButton @click="handleImport" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_NORMAL" :disabled="!form.mnemonic || !form.password || !form.confirmPassword || form.hasError() || invalidWords.length > 0 || !validateMnemonic(form.mnemonic.trim().toLowerCase())" class="w-full">
           Import wallet
         </PepButton>
       </div>

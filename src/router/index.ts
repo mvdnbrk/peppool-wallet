@@ -21,7 +21,7 @@ import AboutView from '../views/AboutView.vue';
 
 const routes = [
     { path: '/', component: WelcomeView },
-    { path: '/create', component: CreateWalletView, meta: { persist: true } },
+    { path: '/create', component: CreateWalletView },
     { path: '/import', component: ImportWalletView, meta: { persist: true } },
     { path: '/dashboard', component: DashboardView },
     { path: '/receive', component: ReceiveView, meta: { persist: true } },

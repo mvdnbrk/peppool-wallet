@@ -88,8 +88,7 @@ async function handleChangePassword() {
     }
 
     const newEncrypted = await encrypt(mnemonic, form.password);
-    walletStore.encryptedMnemonic = newEncrypted;
-    localStorage.setItem('peppool_vault', newEncrypted);
+    walletStore.updateVault(newEncrypted);
 
     successMsg.value = 'Password updated successfully!';
     setTimeout(() => {

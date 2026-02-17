@@ -252,8 +252,7 @@ export const useWalletStore = defineStore('wallet', () => {
             // Auto-upgrade legacy (SHA-256 only) vaults to PBKDF2
             if (isLegacyVault(encryptedMnemonic.value)) {
                 const upgraded = await encrypt(mnemonic, password);
-                encryptedMnemonic.value = upgraded;
-                localStorage.setItem('peppool_vault', upgraded);
+                updateVault(upgraded);
             }
 
             plaintextMnemonic.value = mnemonic;
@@ -338,9 +337,18 @@ export const useWalletStore = defineStore('wallet', () => {
         plaintextMnemonic.value = mnemonic;
     }
 
+    /**
+     * Update the encrypted vault (e.g. after a password change).
+     * Centralises the write so in-memory state and localStorage stay in sync.
+     */
+    function updateVault(encrypted: string) {
+        encryptedMnemonic.value = encrypted;
+        localStorage.setItem('peppool_vault', encrypted);
+    }
+
     return {
         address,
-        encryptedMnemonic,
+        encryptedMnemonic: readonly(encryptedMnemonic),
         plaintextMnemonic: readonly(plaintextMnemonic),
         isUnlocked,
         isCreated,
@@ -374,6 +382,7 @@ export const useWalletStore = defineStore('wallet', () => {
         unlock,
         lock,
         resetWallet,
-        cacheMnemonic
+        cacheMnemonic,
+        updateVault
     };
 });

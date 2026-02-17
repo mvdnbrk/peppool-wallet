@@ -37,7 +37,7 @@ describe('Wallet Store - Lockout Logic', () => {
 
     it('should track failed attempts and lockout after 3 failures', async () => {
         const store = useWalletStore();
-        store.encryptedMnemonic = 'vault';
+        store.updateVault('vault');
         store.address = 'correct-addr';
 
         await store.unlock('w1');
@@ -48,7 +48,7 @@ describe('Wallet Store - Lockout Logic', () => {
 
     it('should prevent unlock attempts during lockout', async () => {
         const store = useWalletStore();
-        store.encryptedMnemonic = 'vault';
+        store.updateVault('vault');
         store.address = 'correct-addr';
 
         // Manually set lockout in the past
@@ -70,7 +70,7 @@ describe('Wallet Store - Lockout Logic', () => {
 
     it('should reset failed attempts if lockout period has passed', async () => {
         const store = useWalletStore();
-        store.encryptedMnemonic = 'vault';
+        store.updateVault('vault');
         store.address = 'correct-addr';
 
         // Set 3 failures and an expired lockout
@@ -87,7 +87,7 @@ describe('Wallet Store - Lockout Logic', () => {
 
     it('should escalate lockout duration at each tier', async () => {
         const store = useWalletStore();
-        store.encryptedMnemonic = 'vault';
+        store.updateVault('vault');
         store.address = 'correct-addr';
 
         // Tier 1: 3 failures → 30s lockout
@@ -114,7 +114,7 @@ describe('Wallet Store - Lockout Logic', () => {
 
     it('should wipe wallet after 12 consecutive failures', async () => {
         const store = useWalletStore();
-        store.encryptedMnemonic = 'vault';
+        store.updateVault('vault');
         store.address = 'correct-addr';
 
         // Directly simulate 11 accumulated failures (lockoutUntil=0 avoids auto-reset)

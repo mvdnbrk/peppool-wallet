@@ -91,7 +91,7 @@ export interface AddressInfo {
 }
 
 export async function fetchAddressInfo(address: string): Promise<number> {
-    const data = await request<AddressInfo>(`/address/${address}`);
+    const data = await request<AddressInfo>(`/address/${encodeURIComponent(address)}`);
     const confirmedBalance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
     const mempoolBalance = data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum;
     return confirmedBalance + mempoolBalance;
@@ -114,7 +114,7 @@ export async function fetchRecommendedFees(): Promise<RecommendedFees> {
 }
 
 export async function validateAddress(address: string): Promise<{ isvalid: boolean }> {
-    return await request<{ isvalid: boolean }>(`/validate-address/${address}`);
+    return await request<{ isvalid: boolean }>(`/validate-address/${encodeURIComponent(address)}`);
 }
 
 export interface ApiUtxo {
@@ -129,16 +129,16 @@ export interface ApiUtxo {
 }
 
 export async function fetchTransactions(address: string): Promise<RawTransaction[]> {
-    const data = await request<unknown[]>(`/address/${address}/txs`);
+    const data = await request<unknown[]>(`/address/${encodeURIComponent(address)}/txs`);
     return data.map(tx => v.parse(RawTransactionSchema, tx));
 }
 
 export async function fetchUtxos(address: string): Promise<ApiUtxo[]> {
-    return await request<ApiUtxo[]>(`/address/${address}/utxo`);
+    return await request<ApiUtxo[]>(`/address/${encodeURIComponent(address)}/utxo`);
 }
 
 export async function fetchTransaction(txid: string): Promise<RawTransaction> {
-    const data = await request<unknown>(`/tx/${txid}`);
+    const data = await request<unknown>(`/tx/${encodeURIComponent(txid)}`);
     return v.parse(RawTransactionSchema, data);
 }
 
@@ -147,7 +147,7 @@ export async function fetchTxHex(txid: string): Promise<string> {
     const id = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     try {
-        const response = await fetch(`${API_BASE}/tx/${txid}/hex`, {
+        const response = await fetch(`${API_BASE}/tx/${encodeURIComponent(txid)}/hex`, {
             signal: controller.signal,
             headers: COMMON_HEADERS
         });

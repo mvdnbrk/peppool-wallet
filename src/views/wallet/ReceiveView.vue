@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../../stores/wallet';
 import QrcodeVue from 'qrcode.vue';
+import logoUrl from '../../assets/p-icon.svg';
 
 const walletStore = useWalletStore();
 const router = useRouter();
@@ -13,7 +14,18 @@ const router = useRouter();
 
     <div class="flex flex-1 flex-col items-center justify-center space-y-8">
       <div class="rounded-2xl bg-white p-4 shadow-xl">
-        <qrcode-vue :value="walletStore.address || ''" :size="200" level="H" render-as="svg" />
+        <qrcode-vue
+          :value="walletStore.address || ''"
+          :size="200"
+          level="H"
+          render-as="svg"
+          :image-settings="{
+            src: logoUrl,
+            width: 40,
+            height: 40,
+            excavate: true
+          }"
+        />
       </div>
 
       <div class="w-full space-y-2 text-center">

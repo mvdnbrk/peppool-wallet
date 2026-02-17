@@ -33,7 +33,7 @@
                 "assets/*"
             ],
             "matches": [
-                "https://peppool.space/api/*"
+                "https://peppool.space/*"
             ]
         }
     ]

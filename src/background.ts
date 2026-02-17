@@ -28,7 +28,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 });
 
 // ── Message handler (popup → background) ───────────────────────────────────
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Only accept messages from this extension
+    if (sender.id !== chrome.runtime.id) return;
+
     if (message.type === 'set-auto-lock') {
         // Minimum alarm granularity in Chrome is ~1 minute.
         // Values below 1 are clamped to 1 by Chrome automatically.

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { generateMnemonic } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
-import { UX_DELAY_NORMAL } from '../utils/constants';
+import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
+import { UX_DELAY_SLOW } from '../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -20,6 +21,10 @@ const form = useForm({
 });
 
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
+
+const canProceed = computed(() => {
+  return form.password && form.confirmPassword && !form.hasError();
+});
 
 function handleNextToSeed() {
   const errors = validatePasswordMatch(form.password, form.confirmPassword);
@@ -87,7 +92,7 @@ async function handleCreate() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleNextToSeed" :disabled="!form.password || !form.confirmPassword || form.hasError()" class="w-full">
+        <PepButton @click="handleNextToSeed" :disabled="!canProceed" class="w-full">
           Next
         </PepButton>
       </div>
@@ -115,9 +120,9 @@ async function handleCreate() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleCreate" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_NORMAL" :disabled="!confirmedSeed" class="w-full">
+        <PepLoadingButton @click="handleCreate" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_SLOW" :disabled="!confirmedSeed" class="w-full">
           Create wallet
-        </PepButton>
+        </PepLoadingButton>
       </div>
     </div>
   </div>

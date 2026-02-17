@@ -4,6 +4,7 @@ import { useWalletStore } from '../stores/wallet';
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useForm } from '../utils/form';
 import { UX_DELAY_FAST } from '../utils/constants';
+import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -32,6 +33,10 @@ const loginErrorMessage = computed(() => {
     return `Too many failed attempts. Locked for ${secondsRemaining.value}s.`;
   }
   return form.errors.general;
+});
+
+const canUnlock = computed(() => {
+  return !localIsLockedOut.value && form.password && !form.hasError();
 });
 
 // Watch local lockout state change
@@ -107,15 +112,15 @@ async function handleUnlock() {
         />
       </div>
       
-      <PepButton 
+      <PepLoadingButton 
         @click="handleUnlock" 
         :loading="form.isProcessing" 
         :min-loading-ms="UX_DELAY_FAST"
-        :disabled="localIsLockedOut || !form.password || form.hasError()"
+        :disabled="!canUnlock"
         class="w-full"
       >
         {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
-      </PepButton>
+      </PepLoadingButton>
 
       <button 
         @click="router.push('/forgot-password')"

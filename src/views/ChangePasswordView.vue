@@ -5,6 +5,7 @@ import { useWalletStore } from '../stores/wallet';
 import { encrypt } from '../utils/encryption';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
+import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
 import { UX_DELAY_NORMAL } from '../utils/constants';
 
 const router = useRouter();
@@ -137,9 +138,9 @@ async function handleChangePassword() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleChangePassword" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_NORMAL" :disabled="isLockedOut || form.isProcessing || !form.oldPassword || !form.password || !form.confirmPassword || form.hasError()" class="w-full">
+        <PepLoadingButton @click="handleChangePassword" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_NORMAL" :disabled="isLockedOut || form.isProcessing || !form.oldPassword || !form.password || !form.confirmPassword || form.hasError()" class="w-full">
           {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
-        </PepButton>
+        </PepLoadingButton>
       </div>
     </div>
   </div>

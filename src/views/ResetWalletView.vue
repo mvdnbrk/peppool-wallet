@@ -2,12 +2,19 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
+import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
+import { UX_DELAY_NORMAL } from '../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
 const confirmedBackup = ref(false);
+const isProcessing = ref(false);
 
-function handleReset() {
+async function handleReset() {
+  isProcessing.value = true;
+  // Use a slight delay before reset to let the loading state show
+  await new Promise(r => setTimeout(r, 100)); 
+  
   walletStore.resetWallet();
   router.push('/');
 }
@@ -36,14 +43,16 @@ function handleReset() {
       </div>
 
       <div class="pt-6">
-        <PepButton 
+        <PepLoadingButton 
           @click="handleReset"
+          :loading="isProcessing"
+          :min-loading-ms="UX_DELAY_NORMAL"
           :disabled="!confirmedBackup"
           variant="danger"
           class="w-full"
         >
           Reset wallet
-        </PepButton>
+        </PepLoadingButton>
       </div>
     </div>
   </div>

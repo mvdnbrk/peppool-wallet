@@ -7,6 +7,7 @@ import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '../util
 import { decrypt as decryptMnemonic } from '../utils/encryption';
 import { useForm } from '../utils/form';
 import { SendTransaction } from '../models/SendTransaction';
+import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
 import { RIBBITS_PER_PEP, MIN_SEND_PEP, formatFiat, truncateId, UX_DELAY_SLOW } from '../utils/constants';
 
 const router = useRouter();
@@ -348,9 +349,9 @@ onMounted(async () => {
         <div v-if="walletStore.isMnemonicLoaded" class="h-6 flex items-center justify-center mb-2">
           <p class="text-sm font-medium text-red-400 transition-opacity duration-200 text-center" :class="form.hasError() ? 'opacity-100' : 'opacity-0 select-none pointer-events-none'">{{ form.errors.general }}</p>
         </div>
-        <PepButton @click="handleSend" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_SLOW" :disabled="form.hasError()" class="w-full">
+        <PepLoadingButton @click="handleSend" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_SLOW" :disabled="form.hasError()" class="w-full">
           Send
-        </PepButton>
+        </PepLoadingButton>
         <PepButton @click="handleCancel" variant="secondary" class="w-full">
           Cancel
         </PepButton>

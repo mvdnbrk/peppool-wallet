@@ -4,7 +4,8 @@ import { useWalletStore } from '../stores/wallet';
 import { validateMnemonic, getInvalidMnemonicWords } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
-import { UX_DELAY_NORMAL } from '../utils/constants';
+import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
+import { UX_DELAY_SLOW } from '../utils/constants';
 import { watch, computed, onMounted } from 'vue';
 
 const router = useRouter();
@@ -27,6 +28,16 @@ const invalidWords = computed(() => {
 
 const { sanitizeMnemonic, onBlurMnemonic } = useMnemonicField(form, validateMnemonic);
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
+
+const canImport = computed(() => {
+  const mnemonic = form.mnemonic.trim().toLowerCase();
+  return mnemonic && 
+    form.password && 
+    form.confirmPassword && 
+    !form.hasError() && 
+    invalidWords.value.length === 0 && 
+    validateMnemonic(mnemonic);
+});
 
 // Strip commas and normalize internal spacing while typing
 watch(() => form.mnemonic, sanitizeMnemonic);
@@ -130,9 +141,15 @@ async function handleImport() {
       </div>
 
       <div class="pt-6">
-        <PepButton @click="handleImport" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_NORMAL" :disabled="!form.mnemonic || !form.password || !form.confirmPassword || form.hasError() || invalidWords.length > 0 || !validateMnemonic(form.mnemonic.trim().toLowerCase())" class="w-full">
+        <PepLoadingButton 
+          @click="handleImport" 
+          :loading="form.isProcessing" 
+          :min-loading-ms="UX_DELAY_SLOW" 
+          :disabled="!canImport" 
+          class="w-full"
+        >
           Import wallet
-        </PepButton>
+        </PepLoadingButton>
       </div>
     </div>
   </div>

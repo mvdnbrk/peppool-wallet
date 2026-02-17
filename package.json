@@ -12,11 +12,14 @@
     },
     "dependencies": {
         "@tailwindplus/elements": "^1.0.22",
+        "@zxcvbn-ts/core": "^3.0.4",
+        "@zxcvbn-ts/language-common": "^3.0.4",
+        "@zxcvbn-ts/language-en": "^3.0.2",
+        "pinia": "^3.0.4",
         "qrcode.vue": "^3.8.0",
         "valibot": "^1.2.0",
         "vue": "^3.5.25",
-        "vue-router": "^4.6.4",
-        "pinia": "^3.0.4"
+        "vue-router": "^4.6.4"
     },
     "devDependencies": {
         "@crxjs/vite-plugin": "^2.0.0-beta.33",

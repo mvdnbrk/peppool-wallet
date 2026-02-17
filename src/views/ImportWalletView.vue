@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { validateMnemonic, getInvalidMnemonicWords } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '../utils/form';
-import { MIN_PASSWORD_LENGTH } from '../utils/constants';
+import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
 import { watch, computed } from 'vue';
 
 const router = useRouter();
@@ -86,24 +86,12 @@ async function handleImport() {
           </p>
         </PepInputGroup>
 
-        <PepInput
-          v-model="form.password"
-          id="new-password"
-          type="password"
-          label="New password"
-          :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
-          :error="form.errors.password"
-          @blur="onBlurPassword"
-        />
-
-        <PepInput
-          v-model="form.confirmPassword"
-          id="confirm-password"
-          type="password"
-          label="Confirm password"
-          placeholder="Repeat password"
-          :error="form.errors.confirmPassword"
-          @blur="onBlurConfirmPassword"
+        <PepPasswordFields
+          v-model:password="form.password"
+          v-model:confirmPassword="form.confirmPassword"
+          :errors="form.errors"
+          @blur-password="onBlurPassword"
+          @blur-confirm="onBlurConfirmPassword"
         />
       </div>
 

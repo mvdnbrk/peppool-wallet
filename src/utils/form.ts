@@ -1,5 +1,6 @@
 import { reactive, watch } from 'vue';
 import { MIN_PASSWORD_LENGTH } from './constants';
+import { getPasswordStrength } from './password';
 
 interface FormOptions {
     persistKey?: string;
@@ -70,7 +71,7 @@ export function useForm<T extends object>(initialData: T, options: FormOptions =
 }
 
 /**
- * Validates that a password meets the minimum length and matches the confirmation.
+ * Validates that a password meets the minimum length, strength requirements, and matches the confirmation.
  * Returns an object with error messages if validation fails.
  */
 export function validatePasswordMatch(password: string, confirmPassword: string) {
@@ -78,7 +79,16 @@ export function validatePasswordMatch(password: string, confirmPassword: string)
 
     if (password.length < MIN_PASSWORD_LENGTH) {
         errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters`;
-    } else if (password !== confirmPassword) {
+    }
+
+    if (!errors.password) {
+        const strength = getPasswordStrength(password);
+        if (strength.score < 2) {
+            errors.password = strength.feedback.warning || 'Password is too weak';
+        }
+    }
+
+    if (!errors.password && password !== confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
     }
 
@@ -105,13 +115,34 @@ export function useMnemonicField(form: { mnemonic: string; setError: (f: string,
 
 /**
  * Provides standardized onBlur handlers for password fields.
- * Can be used with any form object that implements setError.
+ * Can be used with any form object that implements setError and clearError.
  */
-export function usePasswordBlur(form: { password: string; confirmPassword: string; setError: (f: string, m: string) => void }) {
+export function usePasswordBlur(form: { 
+    password: string; 
+    confirmPassword: string; 
+    errors: Record<string, string>;
+    setError: (f: string, m: string) => void;
+    clearError: (f: string) => void;
+}) {
+    // Clear "do not match" error immediately when they match
+    watch([() => form.password, () => form.confirmPassword], () => {
+        if (form.password === form.confirmPassword && form.errors.confirmPassword === 'Passwords do not match') {
+            form.clearError('confirmPassword');
+        }
+    });
+
     return {
         onBlurPassword() {
-            if (form.password && form.password.length < MIN_PASSWORD_LENGTH) {
+            if (!form.password) return;
+
+            if (form.password.length < MIN_PASSWORD_LENGTH) {
                 form.setError('password', `Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+                return;
+            }
+
+            const strength = getPasswordStrength(form.password);
+            if (strength.score < 2) {
+                form.setError('password', strength.feedback.warning || 'Password is too weak');
             }
         },
         onBlurConfirmPassword() {

@@ -3,8 +3,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { encrypt } from '../utils/encryption';
-import { MIN_PASSWORD_LENGTH } from '../utils/constants';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '../utils/form';
+import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -119,29 +119,16 @@ async function handleChangePassword() {
           :disabled="isLockedOut"
         />
 
-        <div class="space-y-4">
-          <PepInput
-            v-model="form.password"
-            id="new-password"
-            type="password"
-            label="New password"
-            :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
-            :error="form.errors.password"
-            :disabled="isLockedOut"
-            @blur="onBlurPassword"
-          />
-
-          <PepInput
-            v-model="form.confirmPassword"
-            id="confirm-password"
-            type="password"
-            label="Confirm new password"
-            placeholder="Repeat new password"
-            :error="form.errors.confirmPassword"
-            :disabled="isLockedOut"
-            @blur="onBlurConfirmPassword"
-          />
-        </div>
+        <PepPasswordFields
+          v-model:password="form.password"
+          v-model:confirmPassword="form.confirmPassword"
+          :errors="form.errors"
+          :disabled="isLockedOut"
+          passwordLabel="New password"
+          confirmLabel="Confirm new password"
+          @blur-password="onBlurPassword"
+          @blur-confirm="onBlurConfirmPassword"
+        />
 
         <p v-if="successMsg" class="text-sm text-pep-green-light font-bold text-center animate-pulse">
           {{ successMsg }}

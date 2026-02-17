@@ -167,16 +167,21 @@ describe('Wallet Store', () => {
     // Verify it's a Ref and contains a value
     expect(store.plaintextMnemonic).toBeTruthy();
 
-    // Direct assignment should be a no-op (readonly ref)
-    // TypeScript would prevent this, but at runtime readonly refs
-    // issue a warning and silently fail
     const original = store.plaintextMnemonic;
+
+    // Direct assignment should be a no-op (readonly ref)
+    // We expect a Vue warning in the console here, which is what we're testing.
+    // To avoid polluting test logs, we can temporarily mock console.warn
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
     try {
       (store as any).plaintextMnemonic = 'hacked';
     } catch {
-      // Expected for readonly
+      // Expected for readonly in some environments
     }
+
     // Should still be the original value, not 'hacked'
     expect(store.plaintextMnemonic).toBe(original);
+    warnSpy.mockRestore();
   });
 });

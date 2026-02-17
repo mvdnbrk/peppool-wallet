@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateMnemonic, validateMnemonic, deriveAddress, createSignedTx, type UTXO, estimateTxSize, isValidAddress } from './crypto';
+import { generateMnemonic, validateMnemonic, deriveAddress, deriveSigner, createSignedTx, type UTXO, estimateTxSize, isValidAddress } from './crypto';
 import { RIBBITS_PER_PEP } from './constants';
 
 describe('Crypto Utils', () => {
@@ -45,25 +45,39 @@ describe('Crypto Utils', () => {
         expect(estimateTxSize(1, 2)).toBe(226);
     });
 
+    it('should derive a signer with a valid publicKey', () => {
+        const signer = deriveSigner(mnemonic);
+        expect(signer.publicKey).toBeDefined();
+        expect(signer.publicKey.length).toBe(33); // compressed public key
+        expect(typeof signer.sign).toBe('function');
+    });
+
+    it('should derive different signers for different indices', () => {
+        const s0 = deriveSigner(mnemonic, 0);
+        const s1 = deriveSigner(mnemonic, 1);
+        expect(Buffer.from(s0.publicKey).toString('hex')).not.toBe(Buffer.from(s1.publicKey).toString('hex'));
+    });
+
     describe('Transaction Signing', () => {
         const toAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
         // Use a more valid minimal transaction hex
         const validDummyHex = '010000000100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff0100000000000000000000000000000000';
         const txid1 = '0'.repeat(64);
         const txid2 = '1'.repeat(64);
+        const signer = deriveSigner(mnemonic);
         const mockUtxos: UTXO[] = [
             { txid: txid1, vout: 0, value: RIBBITS_PER_PEP, rawHex: validDummyHex },
             { txid: txid2, vout: 1, value: RIBBITS_PER_PEP, rawHex: validDummyHex },
         ];
 
         it('should throw error if funds are insufficient', async () => {
-            await expect(createSignedTx(mnemonic, toAddress, RIBBITS_PER_PEP * 3, mockUtxos, RIBBITS_PER_PEP * 0.01))
+            await expect(createSignedTx(signer, toAddress, RIBBITS_PER_PEP * 3, mockUtxos, RIBBITS_PER_PEP * 0.01))
                 .rejects.toThrow('Insufficient funds to cover amount and fee');
         });
 
         it('should throw error if rawHex is missing', async () => {
             const badUtxos: UTXO[] = [{ txid: 'tx1', vout: 0, value: RIBBITS_PER_PEP * 2 }];
-            await expect(createSignedTx(mnemonic, toAddress, RIBBITS_PER_PEP, badUtxos, RIBBITS_PER_PEP * 0.01))
+            await expect(createSignedTx(signer, toAddress, RIBBITS_PER_PEP, badUtxos, RIBBITS_PER_PEP * 0.01))
                 .rejects.toThrow('Missing raw hex');
         });
     });

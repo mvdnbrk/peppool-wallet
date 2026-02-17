@@ -53,18 +53,29 @@ export interface UTXO {
     rawHex?: string;
 }
 
+export interface Signer {
+    publicKey: Uint8Array;
+    sign(hash: Uint8Array): Uint8Array;
+}
+
+/**
+ * Derive a signing key pair from a mnemonic.
+ * The returned signer can sign transactions without exposing the mnemonic.
+ */
+export function deriveSigner(mnemonic: string, index = 0): Signer {
+    const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
+    const seed = new Uint8Array(seedBuffer);
+    const root = bip32.fromSeed(seed, PEPECOIN);
+    return root.derivePath(`m/44'/0'/0'/0/${index}`);
+}
+
 export async function createSignedTx(
-    mnemonic: string,
+    signer: Signer,
     toAddress: string,
     amountRibbits: number,
     utxos: UTXO[],
     feeRibbits: number
 ): Promise<string> {
-    const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
-    const seed = new Uint8Array(seedBuffer);
-    const root = bip32.fromSeed(seed, PEPECOIN);
-    const keyPair = root.derivePath("m/44'/0'/0'/0/0");
-
     const psbt = new bitcoin.Psbt({ network: PEPECOIN });
     psbt.version = 1; // Force Version 1 for Pepecoin compatibility
 
@@ -94,7 +105,7 @@ export async function createSignedTx(
     // Change output
     if (change > 0) {
         const { address: myAddress } = bitcoin.payments.p2pkh({
-            pubkey: keyPair.publicKey,
+            pubkey: signer.publicKey,
             network: PEPECOIN,
         });
         psbt.addOutput({
@@ -103,7 +114,7 @@ export async function createSignedTx(
         });
     }
 
-    psbt.signAllInputs(keyPair);
+    psbt.signAllInputs(signer);
     psbt.finalizeAllInputs();
 
     return psbt.extractTransaction().toHex();

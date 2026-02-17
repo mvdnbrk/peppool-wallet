@@ -3,7 +3,7 @@ import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
 import { fetchUtxos, broadcastTx, fetchTxHex, validateAddress, fetchRecommendedFees } from '../utils/api';
-import { createSignedTx, isValidAddress, type UTXO } from '../utils/crypto';
+import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '../utils/crypto';
 import { decrypt as decryptMnemonic } from '../utils/encryption';
 import { useForm } from '../utils/form';
 import { SendTransaction } from '../models/SendTransaction';
@@ -195,7 +195,8 @@ async function handleSend() {
     }
 
     const amountRibbits = tx.value.amountRibbits;
-    const signedHex = await createSignedTx(mnemonic, form.recipient, amountRibbits, usedUtxosWithHex, tx.value.estimatedFeeRibbits);
+    const signer = deriveSigner(mnemonic);
+    const signedHex = await createSignedTx(signer, form.recipient, amountRibbits, usedUtxosWithHex, tx.value.estimatedFeeRibbits);
     const result = await broadcastTx(signedHex);
     ui.txid = result;
 

@@ -127,12 +127,12 @@ describe('Wallet Store', () => {
     expect(localStorage.getItem('peppool_lock_duration')).toBe('180');
   });
 
-  it('should trigger lock after timeout', () => {
+  it('should trigger lock after timeout', async () => {
     vi.useFakeTimers();
     const store = useWalletStore();
     store.isUnlocked = true;
     store.setLockDuration(15);
-    store.resetLockTimer();
+    await store.resetLockTimer();
 
     vi.advanceTimersByTime(14 * 60 * 1000);
     expect(store.isUnlocked).toBe(true);

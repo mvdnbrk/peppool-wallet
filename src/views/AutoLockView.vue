@@ -22,13 +22,10 @@ function selectDuration(val: number) {
   <div class="relative flex h-full flex-col p-6">
     <PepHeader title="Auto-Lock" />
 
-    <div class="mt-16 flex-1 space-y-4">
-      <div class="space-y-1 px-1">
-        <p class="text-xs font-bold tracking-widest text-slate-500 uppercase">Inactivity Timeout</p>
-        <p class="text-[10px] leading-tight text-slate-500">
-          Select the desired duration before the extension locks.
-        </p>
-      </div>
+    <div class="mt-16 flex-1 space-y-6">
+      <p class="px-1 text-sm text-slate-400">
+        Select the desired duration before the extension locks.
+      </p>
 
       <PepList>
         <PepListItem

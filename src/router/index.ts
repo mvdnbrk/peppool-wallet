@@ -57,7 +57,11 @@ router.beforeEach(async (to, _from, next) => {
         // Auto-restore last route if unlocked AND the route was meant to persist
         const savedRoute = localStorage.getItem('peppool_last_route');
         if (walletStore.isUnlocked && savedRoute && to.path === '/') {
-            return next(savedRoute);
+            const resolved = router.resolve(savedRoute);
+            if (resolved.matched.length > 0 && resolved.meta.persist) {
+                return next(savedRoute);
+            }
+            localStorage.removeItem('peppool_last_route');
         }
     }
 

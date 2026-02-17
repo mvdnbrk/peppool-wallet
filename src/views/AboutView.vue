@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import pkg from '../../package.json';
+import { APP_VERSION } from '../utils/constants';
 </script>
 
 <template>
@@ -31,7 +31,7 @@ import pkg from '../../package.json';
       <PepCard class="p-4 space-y-3">
         <div class="flex justify-between text-sm">
           <span class="text-slate-400 font-semibold">Version</span>
-          <span class="text-offwhite font-bold">{{ pkg.version }}</span>
+          <span class="text-offwhite font-bold">{{ APP_VERSION }}</span>
         </div>
         <div class="flex justify-between text-sm pt-1">
           <span class="text-slate-400 font-semibold">Network</span>

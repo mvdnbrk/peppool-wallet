@@ -1,14 +1,22 @@
-import { API_TIMEOUT_MS } from './constants';
+import { API_TIMEOUT_MS, APP_NAME, APP_VERSION } from './constants';
 import { RawTransactionSchema, type RawTransaction } from '../models/Transaction';
 import * as v from 'valibot';
 
 const API_BASE = import.meta.env.VITE_MAINNET_API || 'https://peppool.space/api';
 
+const COMMON_HEADERS = {
+    'X-App-Name': APP_NAME,
+    'X-App-Version': APP_VERSION
+};
+
 export async function fetchTipHeight(): Promise<number> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
     try {
-        const response = await fetch(`${API_BASE}/blocks/tip/height`, { signal: controller.signal });
+        const response = await fetch(`${API_BASE}/blocks/tip/height`, {
+            signal: controller.signal,
+            headers: COMMON_HEADERS
+        });
         clearTimeout(id);
         if (!response.ok) throw new Error(`Tip height fetch failed (${response.status})`);
         return parseInt(await response.text(), 10);
@@ -26,6 +34,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     try {
         const response = await fetch(url, {
             ...options,
+            headers: {
+                ...options?.headers,
+                ...COMMON_HEADERS
+            },
             signal: controller.signal
         });
         clearTimeout(id);
@@ -136,7 +148,8 @@ export async function fetchTxHex(txid: string): Promise<string> {
 
     try {
         const response = await fetch(`${API_BASE}/tx/${txid}/hex`, {
-            signal: controller.signal
+            signal: controller.signal,
+            headers: COMMON_HEADERS
         });
         clearTimeout(id);
         if (!response.ok) {
@@ -158,7 +171,8 @@ export async function broadcastTx(txHex: string): Promise<string> {
         const response = await fetch(`${API_BASE}/tx`, {
             method: 'POST',
             body: txHex,
-            signal: controller.signal
+            signal: controller.signal,
+            headers: COMMON_HEADERS
         });
         clearTimeout(id);
 

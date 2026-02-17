@@ -1,5 +1,10 @@
+import pkg from '../../package.json';
+
 export const RIBBITS_PER_PEP = 100_000_000;
 export const API_TIMEOUT_MS = 15_000;
+
+export const APP_NAME = pkg.name;
+export const APP_VERSION = pkg.version;
 
 // 1,000 ribbits/byte = 0.01 PEP per KB (Network recommendation)
 export const RECOMMENDED_FEE_RATE = 1000;

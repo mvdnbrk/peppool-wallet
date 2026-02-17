@@ -31,8 +31,6 @@ describe('ResetWalletView Feature', () => {
     });
 
     it('should call resetWallet and redirect to home on confirm', async () => {
-        vi.useFakeTimers();
-
         const wrapper = mount(ResetWalletView, {
             global: {
                 stubs,
@@ -60,13 +58,8 @@ describe('ResetWalletView Feature', () => {
         // 3. Click reset
         await button.trigger('click');
 
-        // 4. Advance past the 100ms delay in handleReset
-        await vi.advanceTimersByTimeAsync(200);
-
-        // 5. VERIFY: wallet is reset and user redirected
+        // 4. VERIFY: wallet is reset and user redirected
         expect(resetSpy).toHaveBeenCalled();
         expect(pushMock).toHaveBeenCalledWith('/');
-
-        vi.useRealTimers();
     });
 });

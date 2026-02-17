@@ -14,7 +14,6 @@ export const MIN_PASSWORD_LENGTH = 8;
 export const UX_DELAY_FAST = 1000;
 export const UX_DELAY_NORMAL = 2000;
 export const UX_DELAY_SLOW = 3000;
-
 /**
  * Format a fiat value with enough precision to be meaningful.
  * For values ≥ 0.01 → 2 decimals ($1.23)

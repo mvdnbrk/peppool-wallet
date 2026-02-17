@@ -12,9 +12,6 @@ const isProcessing = ref(false);
 
 async function handleReset() {
   isProcessing.value = true;
-  // Use a slight delay before reset to let the loading state show
-  await new Promise(r => setTimeout(r, 100)); 
-  
   walletStore.resetWallet();
   router.push('/');
 }

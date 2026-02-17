@@ -76,9 +76,15 @@ function openDetail(txid: string) {
             <div>
               <p
                 class="text-sm leading-tight font-bold"
-                :class="tx.isOutgoing ? 'text-offwhite' : 'text-pep-green-light'"
+                :class="
+                  tx.isOutgoing
+                    ? 'text-offwhite'
+                    : tx.isConfirmed
+                      ? 'text-pep-green-light'
+                      : 'text-yellow-500'
+                "
               >
-                {{ tx.isOutgoing ? 'Sent' : 'Received' }}
+                {{ tx.isOutgoing ? 'Sent' : tx.isConfirmed ? 'Received' : 'Receiving' }}
               </p>
               <p class="font-mono text-[10px] text-slate-500">
                 {{ tx.txidShort }}

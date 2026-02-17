@@ -64,6 +64,102 @@ describe('Wallet Views Navigation', () => {
     expect(pushMock).toHaveBeenCalledWith('/receive');
   });
 
+  it('Dashboard: should show "Receiving" in yellow for unconfirmed incoming tx', () => {
+    const wrapper = mount(DashboardView, {
+      global: {
+        stubs,
+        plugins: [
+          createTestingPinia({
+            initialState: {
+              wallet: {
+                isUnlocked: true,
+                balance: 69,
+                prices: { USD: 0.01, EUR: 0.01 },
+                transactions: [
+                  {
+                    txid: 'tx1',
+                    isOutgoing: false,
+                    isConfirmed: false,
+                    formattedAmount: '+13.37',
+                    txidShort: 'abc...def'
+                  }
+                ]
+              }
+            }
+          })
+        ]
+      }
+    });
+
+    const label = wrapper.find('.group.flex.cursor-pointer .font-bold');
+    expect(label.text()).toBe('Receiving');
+    expect(label.classes()).toContain('text-yellow-500');
+  });
+
+  it('Dashboard: should show "Received" in green for confirmed incoming tx', () => {
+    const wrapper = mount(DashboardView, {
+      global: {
+        stubs,
+        plugins: [
+          createTestingPinia({
+            initialState: {
+              wallet: {
+                isUnlocked: true,
+                balance: 69,
+                prices: { USD: 0.01, EUR: 0.01 },
+                transactions: [
+                  {
+                    txid: 'tx1',
+                    isOutgoing: false,
+                    isConfirmed: true,
+                    formattedAmount: '+420.00',
+                    txidShort: 'abc...def'
+                  }
+                ]
+              }
+            }
+          })
+        ]
+      }
+    });
+
+    const label = wrapper.find('.group.flex.cursor-pointer .font-bold');
+    expect(label.text()).toBe('Received');
+    expect(label.classes()).toContain('text-pep-green-light');
+  });
+
+  it('Dashboard: should show "Sent" for outgoing tx', () => {
+    const wrapper = mount(DashboardView, {
+      global: {
+        stubs,
+        plugins: [
+          createTestingPinia({
+            initialState: {
+              wallet: {
+                isUnlocked: true,
+                balance: 69,
+                prices: { USD: 0.01, EUR: 0.01 },
+                transactions: [
+                  {
+                    txid: 'tx1',
+                    isOutgoing: true,
+                    isConfirmed: true,
+                    formattedAmount: '-351.00',
+                    txidShort: 'abc...def'
+                  }
+                ]
+              }
+            }
+          })
+        ]
+      }
+    });
+
+    const label = wrapper.find('.group.flex.cursor-pointer .font-bold');
+    expect(label.text()).toBe('Sent');
+    expect(label.classes()).toContain('text-offwhite');
+  });
+
   it('ReceiveView: should have a specific onBack callback to dashboard', () => {
     const wrapper = mount(ReceiveView, {
       global: { stubs, plugins: [createTestingPinia()] }

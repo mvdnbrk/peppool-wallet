@@ -13,7 +13,7 @@ vi.mock('../utils/api', () => ({
 
 // Mock Crypto logic
 vi.mock('../utils/crypto', () => ({
-    deriveWallet: vi.fn(() => ({ address: 'correct-addr' })),
+    deriveAddress: vi.fn(() => 'correct-addr'),
     generateMnemonic: vi.fn(),
     validateMnemonic: vi.fn()
 }));

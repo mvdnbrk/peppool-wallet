@@ -14,7 +14,7 @@ export function validateMnemonic(mnemonic: string): boolean {
     return bip39.validateMnemonic(mnemonic);
 }
 
-export function deriveWallet(mnemonic: string, index = 0) {
+export function deriveAddress(mnemonic: string, index = 0): string {
     const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
     // BIP32 v5+ expects Uint8Array, not Buffer
     const seed = new Uint8Array(seedBuffer);
@@ -27,12 +27,7 @@ export function deriveWallet(mnemonic: string, index = 0) {
         network: PEPECOIN,
     });
 
-    return {
-        address: address!,
-        privateKey: child.toWIF(),
-        publicKey: Buffer.from(child.publicKey).toString('hex'),
-        mnemonic,
-    };
+    return address!;
 }
 
 export function isValidAddress(address: string): boolean {

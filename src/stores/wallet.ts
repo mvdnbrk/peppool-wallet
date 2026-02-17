@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, readonly } from 'vue';
-import { generateMnemonic, deriveWallet } from '../utils/crypto';
+import { generateMnemonic, deriveAddress } from '../utils/crypto';
 import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
 import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } from '../utils/api';
 import { Transaction } from '../models/Transaction';
@@ -208,7 +208,7 @@ export const useWalletStore = defineStore('wallet', () => {
     }
 
     async function importWallet(mnemonic: string, password: string) {
-        const wallet = deriveWallet(mnemonic);
+        const walletAddress = deriveAddress(mnemonic);
         const encrypted = await encrypt(mnemonic, password);
 
         encryptedMnemonic.value = encrypted;
@@ -218,10 +218,10 @@ export const useWalletStore = defineStore('wallet', () => {
             await chrome.storage.session.set({ mnemonic });
         }
 
-        address.value = wallet.address;
+        address.value = walletAddress;
         isUnlocked.value = true;
         localStorage.setItem('peppool_vault', encrypted);
-        localStorage.setItem('peppool_address', wallet.address);
+        localStorage.setItem('peppool_address', walletAddress);
 
         failedAttempts.value = 0;
         lockoutUntil.value = 0;
@@ -245,9 +245,9 @@ export const useWalletStore = defineStore('wallet', () => {
 
         try {
             const mnemonic = await decrypt(encryptedMnemonic.value, password);
-            const wallet = deriveWallet(mnemonic);
+            const walletAddress = deriveAddress(mnemonic);
 
-            if (wallet.address !== address.value) throw new Error('Invalid vault');
+            if (walletAddress !== address.value) throw new Error('Invalid vault');
 
             // Auto-upgrade legacy (SHA-256 only) vaults to PBKDF2
             if (isLegacyVault(encryptedMnemonic.value)) {

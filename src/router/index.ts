@@ -54,11 +54,17 @@ router.beforeEach(async (to, _from, next) => {
         await walletStore.checkSession();
         sessionChecked = true;
 
-        // Auto-restore last route if unlocked AND the route was meant to persist
+        // Auto-restore last route
         const savedRoute = localStorage.getItem('peppool_last_route');
-        if (walletStore.isUnlocked && savedRoute && to.path === '/') {
+        if (savedRoute && to.path === '/') {
             const resolved = router.resolve(savedRoute);
-            if (resolved.matched.length > 0 && resolved.meta.persist) {
+            const isPersistent = resolved.matched.length > 0 && resolved.meta.persist;
+            
+            // Public routes that don't require an unlocked wallet
+            const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
+            const isPublic = publicRoutes.includes(resolved.path);
+
+            if (isPersistent && (walletStore.isUnlocked || isPublic)) {
                 return next(savedRoute);
             }
             localStorage.removeItem('peppool_last_route');

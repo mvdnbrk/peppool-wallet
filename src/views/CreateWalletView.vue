@@ -62,6 +62,7 @@ async function handleCreate() {
     <PepHeader
       title="Create wallet"
       :onBack="step === 2 ? () => step = 1 : undefined"
+      :backTo="step === 1 ? '/' : undefined"
       :absolute="false"
     />
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepPasswordFields from './PepPasswordFields.vue';
-import { MIN_PASSWORD_LENGTH } from '../../utils/constants';
 import { nextTick } from 'vue';
 
 describe('PepPasswordFields Component', () => {
@@ -104,11 +103,12 @@ describe('PepPasswordFields Component', () => {
     });
 
     const inputs = wrapper.findAll('input');
+    expect(inputs.length).toBeGreaterThanOrEqual(2);
     
-    await inputs[0].trigger('blur');
+    if (inputs[0]) await inputs[0].trigger('blur');
     expect(wrapper.emitted('blur-password')).toBeTruthy();
 
-    await inputs[1].trigger('blur');
+    if (inputs[1]) await inputs[1].trigger('blur');
     expect(wrapper.emitted('blur-confirm')).toBeTruthy();
   });
 

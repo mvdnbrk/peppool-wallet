@@ -4,10 +4,14 @@ import { useWalletStore } from '../stores/wallet';
 import { validateMnemonic, getInvalidMnemonicWords } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
-import { watch, computed } from 'vue';
+import { watch, computed, onMounted } from 'vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();
+
+const SESSION_KEY = 'import_draft_mnemonic';
+const SESSION_TS_KEY = 'import_draft_ts';
+const DRAFT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 const form = useForm({
   mnemonic: '',
@@ -25,6 +29,34 @@ const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 // Strip commas and normalize internal spacing while typing
 watch(() => form.mnemonic, sanitizeMnemonic);
+
+// Persist mnemonic to session storage (in-memory only, cleared on browser close)
+watch(() => form.mnemonic, (val) => {
+  if (chrome?.storage?.session) {
+    chrome.storage.session.set({
+      [SESSION_KEY]: val,
+      [SESSION_TS_KEY]: Date.now(),
+    });
+  }
+});
+
+onMounted(async () => {
+  if (chrome?.storage?.session) {
+    const data = await chrome.storage.session.get([SESSION_KEY, SESSION_TS_KEY]);
+    const savedAt = Number(data[SESSION_TS_KEY]) || 0;
+    if (data[SESSION_KEY] && Date.now() - savedAt < DRAFT_TTL_MS) {
+      form.mnemonic = data[SESSION_KEY];
+    } else {
+      clearSessionDraft();
+    }
+  }
+});
+
+function clearSessionDraft() {
+  if (chrome?.storage?.session) {
+    chrome.storage.session.remove([SESSION_KEY, SESSION_TS_KEY]);
+  }
+}
 
 async function handleImport() {
   const normalizedMnemonic = form.mnemonic.trim().toLowerCase();
@@ -48,8 +80,15 @@ async function handleImport() {
   }
 
   form.isProcessing = true;
+  const startTime = Date.now();
   try {
     await walletStore.importWallet(normalizedMnemonic, form.password);
+    clearSessionDraft();
+
+    // Minimum loading time for better UX
+    const elapsed = Date.now() - startTime;
+    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
+
     router.push('/dashboard');
   } catch (e) {
     form.setError('general', 'Failed to import wallet');
@@ -62,7 +101,7 @@ async function handleImport() {
 
 <template>
   <div class="flex flex-col min-h-full p-6 relative">
-    <PepHeader title="Import wallet" :absolute="false" />
+    <PepHeader title="Import wallet" backTo="/" :absolute="false" />
 
     <div class="flex-1 flex flex-col pt-4">
       <div class="space-y-6 flex-1 overflow-y-auto pr-2">

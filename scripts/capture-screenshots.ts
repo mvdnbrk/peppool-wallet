@@ -91,7 +91,7 @@ async function capture() {
 
             const state = dev.pinia.state.value.wallet;
             state.isUnlocked = v.unlocked;
-            state.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+            state.address = 'PmiGh•••••••••••••••••••••••Khdh';
 
             dev.router.push(v.path);
         }, view);

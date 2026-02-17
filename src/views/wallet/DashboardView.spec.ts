@@ -19,7 +19,7 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: { 
+  PepHeader: {
     name: 'PepHeader',
     template: '<div>{{ title }}</div>',
     props: ['title', 'backTo', 'onBack']
@@ -41,24 +41,26 @@ describe('Wallet Views Navigation', () => {
     const wrapper = mount(DashboardView, {
       global: {
         stubs,
-        plugins: [createTestingPinia({
+        plugins: [
+          createTestingPinia({
             initialState: {
-                wallet: {
-                    isUnlocked: true,
-                    balance: 0,
-                    prices: { USD: 0, EUR: 0 },
-                    transactions: []
-                }
+              wallet: {
+                isUnlocked: true,
+                balance: 0,
+                prices: { USD: 0, EUR: 0 },
+                transactions: []
+              }
             }
-        })]
+          })
+        ]
       }
     });
 
-    const sendBtn = wrapper.findAll('button').find(b => b.text() === 'Send');
+    const sendBtn = wrapper.findAll('button').find((b) => b.text() === 'Send');
     await sendBtn?.trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/send');
 
-    const receiveBtn = wrapper.findAll('button').find(b => b.text() === 'Receive');
+    const receiveBtn = wrapper.findAll('button').find((b) => b.text() === 'Receive');
     await receiveBtn?.trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/receive');
   });
@@ -79,4 +81,3 @@ describe('Wallet Views Navigation', () => {
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 });
-

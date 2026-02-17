@@ -47,8 +47,7 @@ describe('SendView Success State', () => {
 
     await wrapper.vm.$nextTick();
 
-    // 1. Verify the Step 3 container exists
-    expect(wrapper.find('div[v-if="ui.step === 3"]').exists());
+    // Computed properties validate that Step 3 is active
 
     // 2. Verify computed properties for display
     // @ts-ignore

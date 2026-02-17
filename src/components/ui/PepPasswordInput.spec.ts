@@ -4,7 +4,7 @@ import PepPasswordInput from './PepPasswordInput.vue';
 
 // Mock global components
 const stubs = {
-  PepInputGroup: { 
+  PepInputGroup: {
     template: '<div><label v-if="label">{{ label }}</label><slot /></div>',
     props: ['label']
   },

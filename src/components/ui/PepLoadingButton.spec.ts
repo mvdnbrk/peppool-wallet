@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepLoadingButton from './PepLoadingButton.vue';
 
@@ -13,6 +13,10 @@ const stubs = {
 describe('PepLoadingButton UI Component', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('should show loading state immediately', async () => {
@@ -36,7 +40,7 @@ describe('PepLoadingButton UI Component', () => {
 
     // 2. Stop loading prop immediately
     await wrapper.setProps({ loading: false });
-    
+
     // 3. Verify it is STILL in loading state because of minLoadingMs
     expect(wrapper.find('button').classes()).toContain('loading');
 

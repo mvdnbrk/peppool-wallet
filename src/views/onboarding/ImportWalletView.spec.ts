@@ -20,20 +20,24 @@ vi.mock('../../stores/wallet', () => ({
 // Components
 const stubs = {
   PepHeader: { template: '<div />' },
-  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' },
-  PepInputGroup: { 
+  PepForm: {
+    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+  },
+  PepInputGroup: {
     template: '<div><label>{{ label }}</label><slot /></div>',
     props: ['label']
   },
-  PepPasswordFields: { 
-    template: '<div><input id="pwd" type="password" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" type="password" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
+  PepPasswordFields: {
+    template:
+      '<div><input id="pwd" type="password" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" type="password" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
     props: ['password', 'confirmPassword']
   },
   PepLoadingButton: { template: '<button type="submit"><slot /></button>' },
   PepIcon: { template: '<div />' }
 };
 
-const VALID_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+const VALID_MNEMONIC =
+  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 
 describe('ImportWalletView Logic', () => {
   let mockStore: any;
@@ -55,7 +59,7 @@ describe('ImportWalletView Logic', () => {
 
     // 1. Fill mnemonic
     await wrapper.find('textarea').setValue(VALID_MNEMONIC);
-    
+
     // 2. Fill passwords
     await wrapper.find('#pwd').setValue('Password123!');
     await wrapper.find('#conf').setValue('Password123!');

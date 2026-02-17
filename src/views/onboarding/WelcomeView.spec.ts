@@ -19,10 +19,13 @@ vi.mock('../../stores/wallet', () => ({
 // Components
 const stubs = {
   PepWordmark: { template: '<div />' },
-  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' },
-  PepPasswordInput: { 
+  PepForm: {
+    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+  },
+  PepPasswordInput: {
     name: 'PepPasswordInput',
-    template: '<input type="password" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+    template:
+      '<input type="password" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
     props: ['modelValue']
   },
   PepLoadingButton: { template: '<button type="submit"><slot /></button>' },

@@ -22,7 +22,7 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: { 
+  PepHeader: {
     name: 'PepHeader',
     template: '<div>{{ title }}</div>',
     props: ['title', 'backTo', 'onBack']
@@ -80,7 +80,10 @@ describe('Settings Views Navigation', () => {
 
   it('ChangePasswordView: should use default router.back()', () => {
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs, plugins: [createTestingPinia({ initialState: { wallet: { isUnlocked: true } } })] }
+      global: {
+        stubs,
+        plugins: [createTestingPinia({ initialState: { wallet: { isUnlocked: true } } })]
+      }
     });
     const header = wrapper.findComponent({ name: 'PepHeader' });
     expect(header.props('backTo')).toBeUndefined();
@@ -98,7 +101,10 @@ describe('Settings Views Navigation', () => {
 
   it('ShowMnemonicView: should use default router.back()', () => {
     const wrapper = mount(ShowMnemonicView, {
-      global: { stubs, plugins: [createTestingPinia({ initialState: { wallet: { isUnlocked: true } } })] }
+      global: {
+        stubs,
+        plugins: [createTestingPinia({ initialState: { wallet: { isUnlocked: true } } })]
+      }
     });
     const header = wrapper.findComponent({ name: 'PepHeader' });
     expect(header.props('backTo')).toBeUndefined();
@@ -132,4 +138,3 @@ describe('Settings Views Navigation', () => {
     expect(header.props('onBack')).toBeUndefined();
   });
 });
-

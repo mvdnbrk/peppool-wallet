@@ -14,7 +14,7 @@ describe('Router Logic', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
-    
+
     // Default locked state
     walletStore = {
       isUnlocked: false,
@@ -32,7 +32,7 @@ describe('Router Logic', () => {
 
   it('should allow access to public routes even when locked', async () => {
     walletStore.isUnlocked = false;
-    
+
     const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
     for (const path of publicRoutes) {
       await router.push(path);
@@ -48,7 +48,7 @@ describe('Router Logic', () => {
 
   it('should protect sensitive routes (send, receive, settings) when locked', async () => {
     walletStore.isUnlocked = false;
-    
+
     const sensitiveRoutes = ['/send', '/receive', '/settings', '/settings/preferences'];
     for (const path of sensitiveRoutes) {
       await router.push(path);

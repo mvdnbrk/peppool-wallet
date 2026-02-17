@@ -29,17 +29,21 @@ vi.mock('../../utils/crypto', async (importOriginal) => {
 // Components
 const stubs = {
   PepHeader: { template: '<div />' },
-  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' },
-  PepPasswordFields: { 
-    template: '<div><input id="pwd" type="password" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" type="password" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
+  PepForm: {
+    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+  },
+  PepPasswordFields: {
+    template:
+      '<div><input id="pwd" type="password" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" type="password" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
     props: ['password', 'confirmPassword']
   },
-  PepMnemonicGrid: { 
+  PepMnemonicGrid: {
     name: 'PepMnemonicGrid',
-    template: '<div class="mnemonic-grid" />' 
+    template: '<div class="mnemonic-grid" />'
   },
-  PepCheckbox: { 
-    template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+  PepCheckbox: {
+    template:
+      '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
     props: ['modelValue']
   },
   PepLoadingButton: { template: '<button type="submit"><slot /></button>' },
@@ -68,7 +72,7 @@ describe('CreateWalletView Logic', () => {
     // Step 1: Fill passwords
     await wrapper.find('#pwd').setValue(STRONG_PWD);
     await wrapper.find('#conf').setValue(STRONG_PWD);
-    
+
     // Trigger form submit directly
     await wrapper.find('form').trigger('submit');
     await wrapper.vm.$nextTick();

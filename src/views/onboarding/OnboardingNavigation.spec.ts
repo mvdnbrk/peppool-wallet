@@ -16,7 +16,7 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: { 
+  PepHeader: {
     name: 'PepHeader',
     template: '<div>{{ title }}</div>',
     props: ['title', 'backTo', 'onBack']

@@ -12,7 +12,10 @@ interface Props {
 const props = defineProps<Props>();
 defineEmits(['update:modelValue']);
 
-const formDisabled = inject<ComputedRef<boolean>>('isFormDisabled', computed(() => false));
+const formDisabled = inject<ComputedRef<boolean>>(
+  'isFormDisabled',
+  computed(() => false)
+);
 const isDisabled = computed(() => props.disabled || formDisabled.value);
 </script>
 
@@ -26,20 +29,27 @@ const isDisabled = computed(() => props.disabled || formDisabled.value);
           :checked="modelValue"
           :disabled="isDisabled"
           @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
-          class="col-start-1 row-start-1 appearance-none rounded-md border border-white/40 bg-white/5 checked:border-pep-green checked:bg-pep-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pep-green hover:border-pep-green-light transition-all cursor-pointer disabled:cursor-not-allowed"
+          class="checked:border-pep-green checked:bg-pep-green focus-visible:outline-pep-green hover:border-pep-green-light col-start-1 row-start-1 cursor-pointer appearance-none rounded-md border border-white/40 bg-white/5 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
         />
-        <div class="pointer-events-none col-start-1 row-start-1 size-4 self-center justify-self-center flex items-center justify-center">
-          <PepIcon 
-            name="check" 
-            size="16" 
-            class="text-offwhite transition-opacity" 
-            :class="modelValue ? 'opacity-100' : 'opacity-0'" 
+        <div
+          class="pointer-events-none col-start-1 row-start-1 flex size-4 items-center justify-center self-center justify-self-center"
+        >
+          <PepIcon
+            name="check"
+            size="16"
+            class="text-offwhite transition-opacity"
+            :class="modelValue ? 'opacity-100' : 'opacity-0'"
           />
         </div>
       </div>
     </div>
     <div class="text-sm/6">
-      <label :for="id" class="font-medium text-offwhite" :class="isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'">{{ label }}</label>
+      <label
+        :for="id"
+        class="text-offwhite font-medium"
+        :class="isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'"
+        >{{ label }}</label
+      >
       <p v-if="description" class="text-xs text-slate-500">{{ description }}</p>
     </div>
   </div>

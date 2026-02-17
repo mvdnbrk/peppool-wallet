@@ -19,15 +19,17 @@ function selectExplorer(id: ExplorerId) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 relative">
+  <div class="relative flex h-full flex-col p-6">
     <PepHeader title="Preferred explorer" />
 
     <div class="mt-16 flex-1 space-y-2">
-      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-4">Select Explorer</p>
-      
+      <p class="mb-4 px-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+        Select Explorer
+      </p>
+
       <PepList>
-        <PepListItem 
-          v-for="opt in options" 
+        <PepListItem
+          v-for="opt in options"
           :key="opt.id"
           :label="opt.name"
           :selected="walletStore.selectedExplorer === opt.id"

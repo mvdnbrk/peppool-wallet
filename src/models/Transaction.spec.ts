@@ -5,11 +5,13 @@ const mockRawTx: RawTransaction = {
   txid: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
   version: 1,
   locktime: 0,
-  vin: [{
-    txid: 'prev-tx',
-    vout: 0,
-    prevout: { scriptpubkey_address: 'user-address', value: 100000000 }
-  }],
+  vin: [
+    {
+      txid: 'prev-tx',
+      vout: 0,
+      prevout: { scriptpubkey_address: 'user-address', value: 100000000 }
+    }
+  ],
   vout: [
     { scriptpubkey_address: 'other-address', value: 50000000 },
     { scriptpubkey_address: 'user-address', value: 40000000 }
@@ -46,11 +48,13 @@ describe('Transaction Model', () => {
   it('should identify incoming transactions correctly', () => {
     const incomingRaw: RawTransaction = {
       ...mockRawTx,
-      vin: [{ 
-        txid: 'someone-else-tx',
-        vout: 0,
-        prevout: { scriptpubkey_address: 'someone-else', value: 100000000 } 
-      }]
+      vin: [
+        {
+          txid: 'someone-else-tx',
+          vout: 0,
+          prevout: { scriptpubkey_address: 'someone-else', value: 100000000 }
+        }
+      ]
     };
     const tx = new Transaction(incomingRaw, userAddress);
     expect(tx.isOutgoing).toBe(false);

@@ -32,26 +32,31 @@ const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 const canImport = computed(() => {
   const mnemonic = form.mnemonic.trim().toLowerCase();
-  return mnemonic && 
-    form.password && 
-    form.confirmPassword && 
-    !form.hasError() && 
-    invalidWords.value.length === 0 && 
-    validateMnemonic(mnemonic);
+  return (
+    mnemonic &&
+    form.password &&
+    form.confirmPassword &&
+    !form.hasError() &&
+    invalidWords.value.length === 0 &&
+    validateMnemonic(mnemonic)
+  );
 });
 
 // Strip commas and normalize internal spacing while typing
 watch(() => form.mnemonic, sanitizeMnemonic);
 
 // Persist mnemonic to session storage (in-memory only, cleared on browser close)
-watch(() => form.mnemonic, (val) => {
-  if (chrome?.storage?.session) {
-    chrome.storage.session.set({
-      [SESSION_KEY]: val,
-      [SESSION_TS_KEY]: Date.now(),
-    });
+watch(
+  () => form.mnemonic,
+  (val) => {
+    if (chrome?.storage?.session) {
+      chrome.storage.session.set({
+        [SESSION_KEY]: val,
+        [SESSION_TS_KEY]: Date.now()
+      });
+    }
   }
-});
+);
 
 onMounted(async () => {
   if (chrome?.storage?.session) {
@@ -107,12 +112,12 @@ async function handleImport() {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-full p-6 relative">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepHeader title="Import wallet" backTo="/" :absolute="false" />
 
-    <div class="flex-1 flex flex-col pt-4">
-      <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex-1 flex flex-col">
-        <div class="space-y-6 flex-1 overflow-y-auto pr-2">
+    <div class="flex flex-1 flex-col pt-4">
+      <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex flex-1 flex-col">
+        <div class="flex-1 space-y-6 overflow-y-auto pr-2">
           <PepInputGroup
             label="Secret phrase (12 or 24 words)"
             id="mnemonic"
@@ -124,13 +129,17 @@ async function handleImport() {
               rows="3"
               placeholder="word1 word2 ..."
               :disabled="form.isProcessing"
-              class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-offwhite outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-pep-green sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              :class="{ 'outline-red-500/50 focus:outline-red-400': form.errors.mnemonic && invalidWords.length === 0 }"
+              class="text-offwhite focus:outline-pep-green block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+              :class="{
+                'outline-red-500/50 focus:outline-red-400':
+                  form.errors.mnemonic && invalidWords.length === 0
+              }"
               @blur="onBlurMnemonic"
             ></textarea>
 
             <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
-              <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not a valid seed phrase word
+              <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not
+              a valid seed phrase word
             </p>
           </PepInputGroup>
 
@@ -144,11 +153,11 @@ async function handleImport() {
         </div>
 
         <template #actions>
-          <PepLoadingButton 
+          <PepLoadingButton
             type="submit"
-            :loading="form.isProcessing" 
-            :min-loading-ms="UX_DELAY_SLOW" 
-            :disabled="!canImport" 
+            :loading="form.isProcessing"
+            :min-loading-ms="UX_DELAY_SLOW"
+            :disabled="!canImport"
             class="w-full"
           >
             Import wallet

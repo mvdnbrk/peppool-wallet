@@ -2,14 +2,26 @@
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '../stores/wallet';
-import { fetchUtxos, broadcastTx, fetchTxHex, validateAddress, fetchRecommendedFees } from '../utils/api';
+import {
+  fetchUtxos,
+  broadcastTx,
+  fetchTxHex,
+  validateAddress,
+  fetchRecommendedFees
+} from '../utils/api';
 import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '../utils/crypto';
 import { decrypt as decryptMnemonic } from '../utils/encryption';
 import { useForm } from '../utils/form';
 import { SendTransaction } from '../models/SendTransaction';
 import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
 import PepForm from '../components/ui/PepForm.vue';
-import { RIBBITS_PER_PEP, MIN_SEND_PEP, formatFiat, truncateId, UX_DELAY_SLOW } from '../utils/constants';
+import {
+  RIBBITS_PER_PEP,
+  MIN_SEND_PEP,
+  formatFiat,
+  truncateId,
+  UX_DELAY_SLOW
+} from '../utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -17,11 +29,14 @@ const walletStore = useWalletStore();
 // The logical object for the transaction
 const tx = ref(new SendTransaction(walletStore.address!));
 
-const form = useForm({
-  recipient: '',
-  inputAmount: '',
-  password: ''
-}, { persistKey: 'send', sensitiveFields: ['password'] });
+const form = useForm(
+  {
+    recipient: '',
+    inputAmount: '',
+    password: ''
+  },
+  { persistKey: 'send', sensitiveFields: ['password'] }
+);
 
 const ui = reactive({
   step: 1,
@@ -47,17 +62,20 @@ const isMax = computed(() => {
 });
 
 // Strip whitespace from recipient as the user types (addresses never contain spaces)
-watch(() => form.recipient, (val) => {
-  const stripped = val.replace(/\s/g, '');
-  if (stripped !== val) form.recipient = stripped;
-});
+watch(
+  () => form.recipient,
+  (val) => {
+    const stripped = val.replace(/\s/g, '');
+    if (stripped !== val) form.recipient = stripped;
+  }
+);
 
 // Sync form to logical object
 let isMaxLocked = false;
 watch([() => form.inputAmount, () => form.recipient], () => {
   if (!isMaxLocked) {
     const val = parseFloat(form.inputAmount);
-    tx.value.amountPep = isNaN(val) ? 0 : (ui.isFiatMode ? val / currentPrice.value : val);
+    tx.value.amountPep = isNaN(val) ? 0 : ui.isFiatMode ? val / currentPrice.value : val;
   }
   isMaxLocked = false;
   tx.value.recipient = form.recipient;
@@ -156,7 +174,7 @@ async function handleReview() {
     }
 
     const elapsed = Date.now() - startTime;
-    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
+    if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
     ui.step = 2;
   } catch (e: any) {
     form.setError('general', e.message || 'Validation failed');
@@ -198,13 +216,19 @@ async function handleSend() {
 
     const amountRibbits = tx.value.amountRibbits;
     const signer = deriveSigner(mnemonic);
-    const signedHex = await createSignedTx(signer, form.recipient, amountRibbits, usedUtxosWithHex, tx.value.estimatedFeeRibbits);
+    const signedHex = await createSignedTx(
+      signer,
+      form.recipient,
+      amountRibbits,
+      usedUtxosWithHex,
+      tx.value.estimatedFeeRibbits
+    );
     const result = await broadcastTx(signedHex);
     ui.txid = result;
 
     await walletStore.refreshBalance(true);
     const elapsed = Date.now() - startTime;
-    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
+    if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
 
     form.reset();
     ui.step = 3;
@@ -229,7 +253,7 @@ onMounted(async () => {
   if (form.recipient) tx.value.recipient = form.recipient;
   if (form.inputAmount) {
     const val = parseFloat(form.inputAmount);
-    tx.value.amountPep = isNaN(val) ? 0 : (ui.isFiatMode ? val / currentPrice.value : val);
+    tx.value.amountPep = isNaN(val) ? 0 : ui.isFiatMode ? val / currentPrice.value : val;
   }
 
   try {
@@ -249,16 +273,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-full p-6 relative">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepHeader
       :title="ui.step === 3 ? 'Success' : 'Send PEP'"
-      :onBack="ui.step === 2 ? () => { ui.step = 1; form.clearError(); form.password = ''; } : ui.step === 1 ? handleCancel : undefined"
+      :onBack="
+        ui.step === 2
+          ? () => {
+              ui.step = 1;
+              form.clearError();
+              form.password = '';
+            }
+          : ui.step === 1
+            ? handleCancel
+            : undefined
+      "
       :absolute="false"
     />
 
     <!-- Step 1 -->
-    <div v-if="ui.step === 1" class="flex-1 flex flex-col pt-4">
-      <div class="space-y-6 flex-1">
+    <div v-if="ui.step === 1" class="flex flex-1 flex-col pt-4">
+      <div class="flex-1 space-y-6">
         <PepInput
           v-model="form.recipient"
           id="recipient"
@@ -272,17 +306,29 @@ onMounted(async () => {
         />
 
         <div class="space-y-1">
-          <div class="flex justify-between items-end px-1">
-            <label for="amount" class="block text-sm font-medium text-offwhite">Amount</label>
-            <div class="text-sm font-bold uppercase tracking-wider flex items-center space-x-2">
+          <div class="flex items-end justify-between px-1">
+            <label for="amount" class="text-offwhite block text-sm font-medium">Amount</label>
+            <div class="flex items-center space-x-2 text-sm font-bold tracking-wider uppercase">
               <span class="text-slate-500">Available:</span>
               <span class="text-slate-300">{{ displayBalance }}</span>
-              <button @click="setMax" :disabled="form.isProcessing || ui.isLoadingRequirements" class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" tabindex="-1">MAX</button>
+              <button
+                @click="setMax"
+                :disabled="form.isProcessing || ui.isLoadingRequirements"
+                class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                tabindex="-1"
+              >
+                MAX
+              </button>
             </div>
           </div>
 
-          <div class="mt-2 flex items-center rounded-md bg-white/5 outline-1 -outline-offset-1 outline-white/10 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-pep-green transition-opacity" :class="{ 'opacity-50 pointer-events-none': form.isProcessing || ui.isLoadingRequirements }">
-            <div class="shrink-0 pl-3 text-sm text-slate-500 select-none font-bold">
+          <div
+            class="focus-within:outline-pep-green mt-2 flex items-center rounded-md bg-white/5 outline-1 -outline-offset-1 outline-white/10 transition-opacity focus-within:outline-2 focus-within:-outline-offset-2"
+            :class="{
+              'pointer-events-none opacity-50': form.isProcessing || ui.isLoadingRequirements
+            }"
+          >
+            <div class="shrink-0 pl-3 text-sm font-bold text-slate-500 select-none">
               {{ ui.isFiatMode ? walletStore.selectedCurrency : 'PEP' }}
             </div>
             <input
@@ -291,16 +337,25 @@ onMounted(async () => {
               v-model="form.inputAmount"
               placeholder="0.00"
               :disabled="form.isProcessing || ui.isLoadingRequirements"
-              class="block min-w-0 grow bg-transparent py-1.5 pl-1.5 pr-2 text-base text-offwhite placeholder:text-gray-500 focus:outline-none sm:text-sm font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              class="text-offwhite block min-w-0 grow [appearance:textfield] bg-transparent py-1.5 pr-2 pl-1.5 text-base font-bold placeholder:text-gray-500 focus:outline-none sm:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
-            <button type="button" @click="toggleMode" :disabled="form.isProcessing || ui.isLoadingRequirements" class="shrink-0 mr-2 p-1 rounded text-slate-500 hover:text-pep-green-light transition-colors cursor-pointer disabled:cursor-not-allowed" title="Switch currency" tabindex="-1">
+            <button
+              type="button"
+              @click="toggleMode"
+              :disabled="form.isProcessing || ui.isLoadingRequirements"
+              class="hover:text-pep-green-light mr-2 shrink-0 cursor-pointer rounded p-1 text-slate-500 transition-colors disabled:cursor-not-allowed"
+              title="Switch currency"
+              tabindex="-1"
+            >
               <PepIcon name="swap" size="16" />
             </button>
           </div>
 
-          <div class="mt-3 bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+          <div class="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
             <div class="flex flex-col">
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Estimated Fee</span>
+              <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase"
+                >Estimated Fee</span
+              >
               <span class="text-xs font-bold text-slate-300">{{ displayFee }}</span>
             </div>
           </div>
@@ -308,8 +363,13 @@ onMounted(async () => {
       </div>
 
       <div class="pt-6">
-        <div class="h-6 flex items-center justify-center mb-2">
-          <p class="text-sm font-medium text-red-400 transition-opacity duration-200 text-center" :class="form.hasError() ? 'opacity-100' : 'opacity-0 select-none pointer-events-none'">{{ form.errors.general || form.errors.recipient }}</p>
+        <div class="mb-2 flex h-6 items-center justify-center">
+          <p
+            class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
+            :class="form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
+          >
+            {{ form.errors.general || form.errors.recipient }}
+          </p>
         </div>
         <PepButton
           @click="handleReview"
@@ -324,40 +384,76 @@ onMounted(async () => {
     </div>
 
     <!-- Step 2 -->
-    <div v-if="ui.step === 2" class="flex-1 flex flex-col pt-4">
-      <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex-1 flex flex-col">
-        <div class="space-y-4 flex-1">
-          <div class="bg-slate-800 rounded-2xl p-4 space-y-4 border border-slate-700 text-left">
+    <div v-if="ui.step === 2" class="flex flex-1 flex-col pt-4">
+      <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
+        <div class="flex-1 space-y-4">
+          <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
             <div class="flex flex-col space-y-0.5">
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sending</span>
-              <span class="text-xl font-bold text-offwhite">{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span>
+              <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
+                >Sending</span
+              >
+              <span class="text-offwhite text-xl font-bold"
+                >{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span
+              >
             </div>
 
             <div class="flex flex-col space-y-0.5">
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">To</span>
-              <span class="text-xs font-mono break-all text-slate-300 leading-relaxed">{{ form.recipient }}</span>
+              <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">To</span>
+              <span class="font-mono text-xs leading-relaxed break-all text-slate-300">{{
+                form.recipient
+              }}</span>
             </div>
 
             <div class="flex flex-col space-y-0.5">
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Network Fee</span>
+              <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
+                >Network Fee</span
+              >
               <span class="text-sm font-bold text-slate-400">{{ displayFee }}</span>
             </div>
           </div>
 
           <div v-if="!walletStore.isMnemonicLoaded" class="mt-4">
-            <PepPasswordInput v-model="form.password" id="confirm-password" label="Enter Password to Confirm" placeholder="Enter your password" :error="form.errors.general" />
+            <PepPasswordInput
+              v-model="form.password"
+              id="confirm-password"
+              label="Enter Password to Confirm"
+              placeholder="Enter your password"
+              :error="form.errors.general"
+            />
           </div>
         </div>
 
         <template #actions>
           <div class="space-y-3">
-            <div v-if="walletStore.isMnemonicLoaded" class="h-6 flex items-center justify-center mb-2">
-              <p class="text-sm font-medium text-red-400 transition-opacity duration-200 text-center" :class="form.hasError() ? 'opacity-100' : 'opacity-0 select-none pointer-events-none'">{{ form.errors.general }}</p>
+            <div
+              v-if="walletStore.isMnemonicLoaded"
+              class="mb-2 flex h-6 items-center justify-center"
+            >
+              <p
+                class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
+                :class="
+                  form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'
+                "
+              >
+                {{ form.errors.general }}
+              </p>
             </div>
-            <PepLoadingButton type="submit" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_SLOW" :disabled="form.hasError()" class="w-full">
+            <PepLoadingButton
+              type="submit"
+              :loading="form.isProcessing"
+              :min-loading-ms="UX_DELAY_SLOW"
+              :disabled="form.hasError()"
+              class="w-full"
+            >
               Send
             </PepLoadingButton>
-            <PepButton type="button" @click="handleCancel" variant="secondary" :disabled="form.isProcessing" class="w-full">
+            <PepButton
+              type="button"
+              @click="handleCancel"
+              variant="secondary"
+              :disabled="form.isProcessing"
+              class="w-full"
+            >
               Cancel
             </PepButton>
           </div>
@@ -366,17 +462,28 @@ onMounted(async () => {
     </div>
 
     <!-- Step 3 -->
-    <div v-if="ui.step === 3" class="flex-1 flex flex-col pt-12 items-center text-center">
-      <div class="flex-1 space-y-8 w-full">
+    <div v-if="ui.step === 3" class="flex flex-1 flex-col items-center pt-12 text-center">
+      <div class="w-full flex-1 space-y-8">
         <PepIcon name="checkmark-circle" size="80" class="text-pep-green-light mx-auto" />
-        <div class="space-y-2"><h3 class="text-xl font-bold text-offwhite">Transaction sent!</h3><p class="text-slate-400 text-sm">Your PEP is on its way.</p></div>
+        <div class="space-y-2">
+          <h3 class="text-offwhite text-xl font-bold">Transaction sent!</h3>
+          <p class="text-sm text-slate-400">Your PEP is on its way.</p>
+        </div>
 
-        <PepInputGroup label="Transaction ID" id="sent-txid" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left">
+        <PepInputGroup
+          label="Transaction ID"
+          id="sent-txid"
+          labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left"
+        >
           <div class="flex items-center gap-2">
-            <div class="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 overflow-hidden flex items-center h-[38px] text-left">
-              <span class="inline-flex max-w-full min-w-0 text-[11px] font-mono text-slate-400">
+            <div
+              class="flex h-[38px] flex-1 items-center overflow-hidden rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-left"
+            >
+              <span class="inline-flex max-w-full min-w-0 font-mono text-[11px] text-slate-400">
                 <span class="flex min-w-0">
-                  <span class="overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{{ txidStart }}</span>
+                  <span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{{
+                    txidStart
+                  }}</span>
                 </span>
                 <span class="whitespace-nowrap">{{ txidEnd }}</span>
               </span>
@@ -388,20 +495,18 @@ onMounted(async () => {
                 type="button"
                 command="--copy"
                 commandfor="sent-txid"
-                class="group inline-flex items-center justify-center w-[38px] h-[38px] rounded-lg bg-slate-800 border border-slate-700 text-offwhite hover:text-white copied:text-pep-green-light copied:hover:text-pep-green-light transition-colors cursor-pointer shrink-0"
+                class="group text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
               >
-                <PepIcon name="copy" class="w-5 h-5 copied:hidden" />
-                <PepIcon name="check" class="w-5 h-5 hidden copied:block" />
+                <PepIcon name="copy" class="copied:hidden h-5 w-5" />
+                <PepIcon name="check" class="copied:block hidden h-5 w-5" />
               </button>
             </span>
           </div>
         </PepInputGroup>
       </div>
 
-      <div class="pt-8 w-full space-y-3">
-        <PepButton @click="openExplorer" class="w-full">
-          View on Explorer
-        </PepButton>
+      <div class="w-full space-y-3 pt-8">
+        <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
         <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
           Back to Dashboard
         </PepButton>

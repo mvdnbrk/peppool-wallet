@@ -14,16 +14,26 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-full p-6 relative">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepHeader title="Forgot password" :absolute="false" />
 
-    <div class="flex-1 flex flex-col pt-4">
-      <div class="space-y-8 flex-1">
-        <div class="space-y-4 text-slate-400 text-sm">
-          <p class="text-offwhite font-bold">Peppool Wallet does not keep a copy of your password.</p>
-          <p>If you're unable to access your account, you will need to reset your wallet and input the secret phrase you used when you generated your wallet.</p>
-          <div class="bg-red-900/10 border border-red-900/20 p-3 rounded-lg text-red-400 font-semibold">
-            <p>This will reset your wallet from this browser. Make sure you have your secret phrase backed up.</p>
+    <div class="flex flex-1 flex-col pt-4">
+      <div class="flex-1 space-y-8">
+        <div class="space-y-4 text-sm text-slate-400">
+          <p class="text-offwhite font-bold">
+            Peppool Wallet does not keep a copy of your password.
+          </p>
+          <p>
+            If you're unable to access your account, you will need to reset your wallet and input
+            the secret phrase you used when you generated your wallet.
+          </p>
+          <div
+            class="rounded-lg border border-red-900/20 bg-red-900/10 p-3 font-semibold text-red-400"
+          >
+            <p>
+              This will reset your wallet from this browser. Make sure you have your secret phrase
+              backed up.
+            </p>
           </div>
         </div>
 
@@ -37,7 +47,7 @@ function handleReset() {
       </div>
 
       <div class="pt-6">
-        <PepButton 
+        <PepButton
           @click="handleReset"
           :disabled="!confirmedBackup"
           variant="danger"

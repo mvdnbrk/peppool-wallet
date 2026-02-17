@@ -13,38 +13,44 @@ function getDurationLabel(val: number) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 relative">
+  <div class="relative flex h-full flex-col p-6">
     <PepHeader title="Preferences" />
 
     <div class="mt-16 flex-1 space-y-2">
       <PepList>
-        <PepListItem 
-          label="Currency" 
-          icon="chevron-right" 
+        <PepListItem
+          label="Currency"
+          icon="chevron-right"
           @click="router.push('/settings/currency')"
         >
           <template #right>
-            <span class="text-sm font-medium text-offwhite uppercase">{{ walletStore.selectedCurrency }}</span>
+            <span class="text-offwhite text-sm font-medium uppercase">{{
+              walletStore.selectedCurrency
+            }}</span>
           </template>
         </PepListItem>
 
-        <PepListItem 
-          label="Preferred explorer" 
-          icon="chevron-right" 
+        <PepListItem
+          label="Preferred explorer"
+          icon="chevron-right"
           @click="router.push('/settings/explorer')"
         >
           <template #right>
-            <span class="text-sm font-medium text-offwhite">{{ EXPLORERS[walletStore.selectedExplorer].name }}</span>
+            <span class="text-offwhite text-sm font-medium">{{
+              EXPLORERS[walletStore.selectedExplorer].name
+            }}</span>
           </template>
         </PepListItem>
 
-        <PepListItem 
-          label="Auto-Lock" 
-          icon="chevron-right" 
+        <PepListItem
+          label="Auto-Lock"
+          icon="chevron-right"
           @click="router.push('/settings/auto-lock')"
         >
           <template #right>
-            <span class="text-sm font-medium text-offwhite">{{ getDurationLabel(walletStore.lockDuration) }}</span>
+            <span class="text-offwhite text-sm font-medium">{{
+              getDurationLabel(walletStore.lockDuration)
+            }}</span>
           </template>
         </PepListItem>
       </PepList>

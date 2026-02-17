@@ -18,15 +18,22 @@ async function handleReset() {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-full p-6 relative">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepHeader title="Reset wallet" :absolute="false" />
 
-    <div class="flex-1 flex flex-col pt-4">
-      <div class="space-y-8 flex-1">
-        <div class="space-y-4 text-slate-400 text-sm">
-          <p class="text-offwhite font-bold">This will completely wipe your wallet data from this browser.</p>
-          <div class="bg-red-900/10 border border-red-900/20 p-3 rounded-lg text-red-400 font-semibold">
-            <p>Ensure you have your secret phrase backed up. Without it, you will lose access to your funds permanently.</p>
+    <div class="flex flex-1 flex-col pt-4">
+      <div class="flex-1 space-y-8">
+        <div class="space-y-4 text-sm text-slate-400">
+          <p class="text-offwhite font-bold">
+            This will completely wipe your wallet data from this browser.
+          </p>
+          <div
+            class="rounded-lg border border-red-900/20 bg-red-900/10 p-3 font-semibold text-red-400"
+          >
+            <p>
+              Ensure you have your secret phrase backed up. Without it, you will lose access to your
+              funds permanently.
+            </p>
           </div>
         </div>
 
@@ -40,7 +47,7 @@ async function handleReset() {
       </div>
 
       <div class="pt-6">
-        <PepLoadingButton 
+        <PepLoadingButton
           @click="handleReset"
           :loading="isProcessing"
           :min-loading-ms="UX_DELAY_NORMAL"

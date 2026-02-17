@@ -7,7 +7,8 @@ describe('PepPasswordFields Component', () => {
   const globalOptions = {
     stubs: {
       PepInput: {
-        template: '<div class="pep-input-stub"><label>{{ label }}</label><span v-if="error" class="error">{{ error }}</span><slot /></div>',
+        template:
+          '<div class="pep-input-stub"><label>{{ label }}</label><span v-if="error" class="error">{{ error }}</span><slot /></div>',
         props: ['label', 'error']
       }
     }
@@ -69,7 +70,7 @@ describe('PepPasswordFields Component', () => {
 
     expect(bar.classes()).not.toContain('bg-white/20');
     // It should have one of the strength colors (e.g. FAIR, STRONG)
-    expect(bar.classes().some(c => c.startsWith('bg-'))).toBe(true);
+    expect(bar.classes().some((c) => c.startsWith('bg-'))).toBe(true);
   });
 
   it('displays the correct strength label', async () => {
@@ -104,7 +105,7 @@ describe('PepPasswordFields Component', () => {
 
     const inputs = wrapper.findAll('input');
     expect(inputs.length).toBeGreaterThanOrEqual(2);
-    
+
     if (inputs[0]) await inputs[0].trigger('blur');
     expect(wrapper.emitted('blur-password')).toBeTruthy();
 

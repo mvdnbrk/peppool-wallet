@@ -3,43 +3,43 @@ import { APP_VERSION } from '../utils/constants';
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 relative">
+  <div class="relative flex h-full flex-col p-6">
     <PepHeader title="About" />
 
     <div class="mt-16 flex-1 space-y-4">
       <PepList>
-        <PepListItem 
-          label="Peppool.space" 
-          href="https://peppool.space" 
-          target="_blank" 
-          icon="external-link" 
+        <PepListItem
+          label="Peppool.space"
+          href="https://peppool.space"
+          target="_blank"
+          icon="external-link"
         />
-        <PepListItem 
-          label="Privacy policy" 
-          href="https://github.com/mvdnbrk/peppool-wallet/blob/main/PRIVACY.md" 
-          target="_blank" 
-          icon="external-link" 
+        <PepListItem
+          label="Privacy policy"
+          href="https://github.com/mvdnbrk/peppool-wallet/blob/main/PRIVACY.md"
+          target="_blank"
+          icon="external-link"
         />
-        <PepListItem 
-          label="Source code" 
-          href="https://github.com/mvdnbrk/peppool-wallet" 
-          target="_blank" 
-          icon="external-link" 
+        <PepListItem
+          label="Source code"
+          href="https://github.com/mvdnbrk/peppool-wallet"
+          target="_blank"
+          icon="external-link"
         />
       </PepList>
-      
-      <PepCard class="p-4 space-y-3">
+
+      <PepCard class="space-y-3 p-4">
         <div class="flex justify-between text-sm">
-          <span class="text-slate-400 font-semibold">Version</span>
+          <span class="font-semibold text-slate-400">Version</span>
           <span class="text-offwhite font-bold">{{ APP_VERSION }}</span>
         </div>
-        <div class="flex justify-between text-sm pt-1">
-          <span class="text-slate-400 font-semibold">Network</span>
+        <div class="flex justify-between pt-1 text-sm">
+          <span class="font-semibold text-slate-400">Network</span>
           <span class="text-pep-green-light font-bold">Pepecoin Mainnet</span>
         </div>
       </PepCard>
     </div>
-    
+
     <PepFooter />
   </div>
 </template>

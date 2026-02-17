@@ -64,7 +64,7 @@ onUnmounted(() => {
 
 async function handleUnlock() {
   if (localIsLockedOut.value) return;
-  
+
   form.isProcessing = true;
   form.clearError();
 
@@ -91,11 +91,11 @@ async function handleUnlock() {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center min-h-full space-y-8 p-6 text-center">
-    <div class="space-y-4 flex flex-col items-center">
-      <img src="/src/assets/logo.svg" class="w-24 h-24 mx-auto" alt="Peppool Logo" />
+  <div class="flex min-h-full flex-col items-center justify-center space-y-8 p-6 text-center">
+    <div class="flex flex-col items-center space-y-4">
+      <img src="/src/assets/logo.svg" class="mx-auto h-24 w-24" alt="Peppool Logo" />
       <PepWordmark size="xl" />
-      <p class="text-slate-400 text-sm">The Pepecoin wallet for everyone</p>
+      <p class="text-sm text-slate-400">The Pepecoin wallet for everyone</p>
     </div>
 
     <div v-if="walletStore.isCreated" class="w-full">
@@ -113,9 +113,9 @@ async function handleUnlock() {
 
         <template #actions>
           <div class="space-y-4">
-            <PepLoadingButton 
+            <PepLoadingButton
               type="submit"
-              :loading="form.isProcessing" 
+              :loading="form.isProcessing"
               :min-loading-ms="UX_DELAY_FAST"
               :disabled="!canUnlock"
               class="w-full"
@@ -123,10 +123,10 @@ async function handleUnlock() {
               {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
             </PepLoadingButton>
 
-            <button 
+            <button
               type="button"
               @click="router.push('/forgot-password')"
-              class="text-xs text-slate-500 hover:text-white transition-colors cursor-pointer underline hover:no-underline w-full"
+              class="w-full cursor-pointer text-xs text-slate-500 underline transition-colors hover:text-white hover:no-underline"
               tabindex="-1"
             >
               Forgot your password?
@@ -137,10 +137,8 @@ async function handleUnlock() {
     </div>
 
     <div v-else class="w-full space-y-4">
-      <PepButton @click="router.push('/create')" class="w-full">
-        Create new wallet
-      </PepButton>
-      
+      <PepButton @click="router.push('/create')" class="w-full"> Create new wallet </PepButton>
+
       <PepButton @click="router.push('/import')" variant="secondary" class="w-full">
         Import secret phrase
       </PepButton>

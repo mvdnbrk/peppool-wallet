@@ -49,7 +49,9 @@ onMounted(() => {
     router.replace('/');
     return;
   }
-  ticker = setInterval(() => { now.value = Date.now(); }, 1000);
+  ticker = setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
 });
 
 // Clear sensitive data from memory when leaving this view
@@ -90,14 +92,12 @@ async function handleReveal() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 justify-center relative">
+  <div class="relative flex h-full flex-col justify-center p-6">
     <PepHeader title="Secret phrase" />
 
     <!-- Step 1: Verify Password -->
-    <div v-if="step === 1" class="space-y-8 mt-12">
-      <p class="text-slate-400 text-sm">
-        Please enter your password to reveal your secret phrase.
-      </p>
+    <div v-if="step === 1" class="mt-12 space-y-8">
+      <p class="text-sm text-slate-400">Please enter your password to reveal your secret phrase.</p>
 
       <div class="space-y-6">
         <PepPasswordInput
@@ -111,7 +111,11 @@ async function handleReveal() {
         />
 
         <div class="space-y-3">
-          <PepButton @click="handleReveal" :disabled="isLockedOut || !password || !!errorMessage" class="w-full">
+          <PepButton
+            @click="handleReveal"
+            :disabled="isLockedOut || !password || !!errorMessage"
+            class="w-full"
+          >
             {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}
           </PepButton>
         </div>
@@ -119,9 +123,10 @@ async function handleReveal() {
     </div>
 
     <!-- Step 2: Show Phrase -->
-    <div v-if="step === 2" class="space-y-6 mt-12">
-      <div class="bg-red-900/20 border border-red-900/50 p-3 rounded-lg text-xs text-red-400">
-        <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this phrase can steal your funds.
+    <div v-if="step === 2" class="mt-12 space-y-6">
+      <div class="rounded-lg border border-red-900/50 bg-red-900/20 p-3 text-xs text-red-400">
+        <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this
+        phrase can steal your funds.
       </div>
 
       <PepMnemonicGrid :mnemonic="mnemonic" />

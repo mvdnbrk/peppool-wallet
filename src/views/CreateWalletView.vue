@@ -65,19 +65,19 @@ async function handleCreate() {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-full p-6 relative">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepHeader
       title="Create wallet"
-      :onBack="step === 2 ? () => step = 1 : undefined"
+      :onBack="step === 2 ? () => (step = 1) : undefined"
       :backTo="step === 1 ? '/' : undefined"
       :absolute="false"
     />
 
     <!-- Step 1: Password -->
-    <div v-if="step === 1" class="flex-1 flex flex-col pt-4">
-      <PepForm @submit="handleNextToSeed" class="flex-1 flex flex-col">
-        <div class="space-y-8 flex-1">
-          <div class="text-slate-400 text-sm space-y-2">
+    <div v-if="step === 1" class="flex flex-1 flex-col pt-4">
+      <PepForm @submit="handleNextToSeed" class="flex flex-1 flex-col">
+        <div class="flex-1 space-y-8">
+          <div class="space-y-2 text-sm text-slate-400">
             <p>Set a password to protect your wallet.</p>
             <p>This password is used to encrypt your secret phrase locally.</p>
           </div>
@@ -94,20 +94,21 @@ async function handleCreate() {
         </div>
 
         <template #actions>
-          <PepButton type="submit" :disabled="!canProceed" class="w-full">
-            Next
-          </PepButton>
+          <PepButton type="submit" :disabled="!canProceed" class="w-full"> Next </PepButton>
         </template>
       </PepForm>
     </div>
 
     <!-- Step 2: Show Seed -->
-    <div v-if="step === 2" class="flex-1 flex flex-col pt-4">
-      <PepForm :loading="form.isProcessing" @submit="handleCreate" class="flex-1 flex flex-col">
-        <div class="space-y-6 flex-1">
-          <div class="text-slate-400 text-sm space-y-2">
-            <p class="font-bold text-offwhite">Write down your secret phrase</p>
-            <p>This phrase is the ONLY way to recover your wallet if you lose your device or password.</p>
+    <div v-if="step === 2" class="flex flex-1 flex-col pt-4">
+      <PepForm :loading="form.isProcessing" @submit="handleCreate" class="flex flex-1 flex-col">
+        <div class="flex-1 space-y-6">
+          <div class="space-y-2 text-sm text-slate-400">
+            <p class="text-offwhite font-bold">Write down your secret phrase</p>
+            <p>
+              This phrase is the ONLY way to recover your wallet if you lose your device or
+              password.
+            </p>
           </div>
 
           <PepMnemonicGrid :mnemonic="mnemonic" />
@@ -121,15 +122,17 @@ async function handleCreate() {
             />
           </div>
 
-          <p v-if="form.errors.general" class="mt-2 text-sm text-red-400">{{ form.errors.general }}</p>
+          <p v-if="form.errors.general" class="mt-2 text-sm text-red-400">
+            {{ form.errors.general }}
+          </p>
         </div>
 
         <template #actions>
-          <PepLoadingButton 
+          <PepLoadingButton
             type="submit"
-            :loading="form.isProcessing" 
-            :min-loading-ms="UX_DELAY_SLOW" 
-            :disabled="!confirmedSeed" 
+            :loading="form.isProcessing"
+            :min-loading-ms="UX_DELAY_SLOW"
+            :disabled="!confirmedSeed"
             class="w-full"
           >
             Create wallet

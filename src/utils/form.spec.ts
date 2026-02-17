@@ -25,10 +25,10 @@ describe('useForm Utility', () => {
   it('should return true for hasError() if any field has an error', () => {
     const form = useForm({ a: '', b: '' });
     expect(form.hasError()).toBe(false);
-    
+
     form.setError('a', 'error');
     expect(form.hasError()).toBe(true);
-    
+
     form.clearError('a');
     expect(form.hasError()).toBe(false);
   });
@@ -37,7 +37,7 @@ describe('useForm Utility', () => {
     const form = useForm({ a: '', b: '' });
     form.setError('a', 'err a');
     form.setError('b', 'err b');
-    
+
     form.clearError();
     expect(form.hasError()).toBe(false);
     expect(form.errors).toEqual({});
@@ -47,12 +47,12 @@ describe('useForm Utility', () => {
     const form = useForm({ email: '' });
     form.setError('email', 'Invalid email');
     form.setError('general', 'Something went wrong');
-    
+
     expect(form.hasError('email')).toBe(true);
-    
+
     form.email = 'new@test.com';
     await nextTick();
-    
+
     expect(form.errors.email).toBe('');
     expect(form.errors.general).toBe('');
     expect(form.hasError()).toBe(false);
@@ -65,7 +65,7 @@ describe('useForm Utility', () => {
     form.setError('name', 'error');
 
     form.reset();
-    
+
     expect(form.name).toBe('initial');
     expect(form.isProcessing).toBe(false);
     expect(form.hasError()).toBe(false);
@@ -90,7 +90,10 @@ describe('Password Validation Logic', () => {
     });
 
     it('returns no errors for valid matching passwords', () => {
-      const errors = validatePasswordMatch('Correct-Horse-Battery-Staple-2026!', 'Correct-Horse-Battery-Staple-2026!');
+      const errors = validatePasswordMatch(
+        'Correct-Horse-Battery-Staple-2026!',
+        'Correct-Horse-Battery-Staple-2026!'
+      );
       expect(errors).toEqual({});
     });
   });
@@ -102,7 +105,7 @@ describe('Password Validation Logic', () => {
 
       // 1. User types in confirmation (mismatch)
       form.confirmPassword = 'WrongPassword';
-      
+
       // 2. User blurs confirmation -> error appears
       onBlurConfirmPassword();
       expect(form.errors.confirmPassword).toBe('Passwords do not match');

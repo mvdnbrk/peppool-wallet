@@ -17,15 +17,17 @@ function selectCurrency(code: 'USD' | 'EUR') {
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 relative">
+  <div class="relative flex h-full flex-col p-6">
     <PepHeader title="Display currency" />
 
     <div class="mt-16 flex-1 space-y-2">
-      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 mb-4">Select Currency</p>
-      
+      <p class="mb-4 px-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+        Select Currency
+      </p>
+
       <PepList>
-        <PepListItem 
-          v-for="opt in options" 
+        <PepListItem
+          v-for="opt in options"
           :key="opt.code"
           :label="opt.label"
           :selected="walletStore.selectedCurrency === opt.code"

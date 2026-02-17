@@ -12,32 +12,26 @@ function handleLock() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 relative">
+  <div class="relative flex h-full flex-col p-6">
     <PepHeader title="Settings" backTo="/dashboard" />
 
     <div class="mt-16 flex-1 space-y-2">
       <PepList>
-        <PepListItem 
-          label="Preferences" 
-          icon="chevron-right" 
-          @click="router.push('/settings/preferences')" 
+        <PepListItem
+          label="Preferences"
+          icon="chevron-right"
+          @click="router.push('/settings/preferences')"
         />
-        <PepListItem 
-          label="Security" 
-          icon="chevron-right" 
-          @click="router.push('/settings/security')" 
+        <PepListItem
+          label="Security"
+          icon="chevron-right"
+          @click="router.push('/settings/security')"
         />
-        <PepListItem 
-          label="About" 
-          icon="chevron-right" 
-          @click="router.push('/settings/about')" 
-        />
+        <PepListItem label="About" icon="chevron-right" @click="router.push('/settings/about')" />
       </PepList>
 
       <div class="pt-6">
-        <PepButton @click="handleLock" variant="secondary" class="w-full">
-          Lock Wallet
-        </PepButton>
+        <PepButton @click="handleLock" variant="secondary" class="w-full"> Lock Wallet </PepButton>
       </div>
     </div>
 

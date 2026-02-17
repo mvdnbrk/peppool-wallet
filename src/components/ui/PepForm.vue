@@ -28,7 +28,7 @@ function handleSubmit(e: Event) {
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
     <slot />
-    
+
     <div v-if="$slots.actions" class="pt-6">
       <slot name="actions" />
     </div>

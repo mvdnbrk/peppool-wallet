@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, inject, type ComputedRef } from 'vue';
 import { MIN_PASSWORD_LENGTH } from '../../utils/constants';
-import { getPasswordStrength, getStrengthLabel, getStrengthColor, getStrengthBgColor, getStrengthWidth } from '../../utils/password';
+import {
+  getPasswordStrength,
+  getStrengthLabel,
+  getStrengthColor,
+  getStrengthBgColor,
+  getStrengthWidth
+} from '../../utils/password';
 import PepInput from './PepInput.vue';
 
 const props = defineProps<{
@@ -20,7 +26,10 @@ const emit = defineEmits<{
   'blur-confirm': [];
 }>();
 
-const formDisabled = inject<ComputedRef<boolean>>('isFormDisabled', computed(() => false));
+const formDisabled = inject<ComputedRef<boolean>>(
+  'isFormDisabled',
+  computed(() => false)
+);
 const isDisabled = computed(() => props.disabled || formDisabled.value);
 
 const passwordValue = computed({
@@ -66,17 +75,31 @@ const strength = computed(() => {
     </div>
 
     <!-- Strength Meter -->
-    <div class="mt-2 space-y-2 px-1 transition-opacity duration-200" :class="{ 'opacity-50': isDisabled }">
-      <div v-if="passwordValue.length >= MIN_PASSWORD_LENGTH" class="flex justify-between items-end">
+    <div
+      class="mt-2 space-y-2 px-1 transition-opacity duration-200"
+      :class="{ 'opacity-50': isDisabled }"
+    >
+      <div
+        v-if="passwordValue.length >= MIN_PASSWORD_LENGTH"
+        class="flex items-end justify-between"
+      >
         <span class="text-sm font-medium text-slate-400">Your password strength</span>
-        <span class="text-xs font-semibold transition-colors duration-300" :class="getStrengthColor(strength?.score)">
+        <span
+          class="text-xs font-semibold transition-colors duration-300"
+          :class="getStrengthColor(strength?.score)"
+        >
           {{ getStrengthLabel(strength?.score) }}
         </span>
       </div>
       <div v-else class="text-sm font-medium">&nbsp;</div>
       <div class="overflow-hidden rounded-full bg-white/10">
-        <div class="h-2 rounded-full transition-all duration-500 ease-out" 
-          :class="passwordValue.length >= MIN_PASSWORD_LENGTH ? getStrengthBgColor(strength?.score) : 'bg-white/20'"
+        <div
+          class="h-2 rounded-full transition-all duration-500 ease-out"
+          :class="
+            passwordValue.length >= MIN_PASSWORD_LENGTH
+              ? getStrengthBgColor(strength?.score)
+              : 'bg-white/20'
+          "
           :style="{ width: getStrengthWidth(strength?.score) }"
         ></div>
       </div>

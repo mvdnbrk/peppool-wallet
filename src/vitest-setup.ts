@@ -7,6 +7,6 @@ vi.mock('./utils/constants', async (importOriginal) => {
     ...actual,
     UX_DELAY_FAST: 0,
     UX_DELAY_NORMAL: 0,
-    UX_DELAY_SLOW: 0,
+    UX_DELAY_SLOW: 0
   };
 });

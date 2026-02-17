@@ -26,13 +26,14 @@ function handleBack() {
 </script>
 
 <template>
-  <div 
-    class="flex items-center z-20"
-    :class="absolute ? 'absolute top-6 left-6' : 'mb-8'"
-  >
-    <button @click="handleBack" class="text-slate-400 hover:text-white mr-4 cursor-pointer" tabindex="-1">
+  <div class="z-20 flex items-center" :class="absolute ? 'absolute top-6 left-6' : 'mb-8'">
+    <button
+      @click="handleBack"
+      class="mr-4 cursor-pointer text-slate-400 hover:text-white"
+      tabindex="-1"
+    >
       <PepIcon name="back" />
     </button>
-    <h2 class="text-xl font-bold text-offwhite">{{ title }}</h2>
+    <h2 class="text-offwhite text-xl font-bold">{{ title }}</h2>
   </div>
 </template>

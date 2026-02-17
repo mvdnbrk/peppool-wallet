@@ -47,7 +47,9 @@ onMounted(() => {
     router.replace('/');
     return;
   }
-  ticker = setInterval(() => { now.value = Date.now(); }, 1000);
+  ticker = setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
 });
 
 onUnmounted(() => {
@@ -108,12 +110,16 @@ async function handleChangePassword() {
 </script>
 
 <template>
-  <div class="flex flex-col min-h-full p-6 relative">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepHeader title="Change password" :absolute="false" />
 
-    <div class="flex-1 flex flex-col pt-4">
-      <PepForm :loading="form.isProcessing" @submit="handleChangePassword" class="flex-1 flex flex-col">
-        <div class="space-y-6 flex-1">
+    <div class="flex flex-1 flex-col pt-4">
+      <PepForm
+        :loading="form.isProcessing"
+        @submit="handleChangePassword"
+        class="flex flex-1 flex-col"
+      >
+        <div class="flex-1 space-y-6">
           <PepPasswordInput
             v-model="form.oldPassword"
             id="old-password"
@@ -134,17 +140,27 @@ async function handleChangePassword() {
             @blur-confirm="onBlurConfirmPassword"
           />
 
-          <p v-if="successMsg" class="text-sm text-pep-green-light font-bold text-center animate-pulse">
+          <p
+            v-if="successMsg"
+            class="text-pep-green-light animate-pulse text-center text-sm font-bold"
+          >
             {{ successMsg }}
           </p>
         </div>
 
         <template #actions>
-          <PepLoadingButton 
+          <PepLoadingButton
             type="submit"
-            :loading="form.isProcessing" 
-            :min-loading-ms="UX_DELAY_NORMAL" 
-            :disabled="isLockedOut || form.isProcessing || !form.oldPassword || !form.password || !form.confirmPassword || form.hasError()" 
+            :loading="form.isProcessing"
+            :min-loading-ms="UX_DELAY_NORMAL"
+            :disabled="
+              isLockedOut ||
+              form.isProcessing ||
+              !form.oldPassword ||
+              !form.password ||
+              !form.confirmPassword ||
+              form.hasError()
+            "
             class="w-full"
           >
             {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}

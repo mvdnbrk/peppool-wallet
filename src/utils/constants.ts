@@ -20,12 +20,12 @@ export const UX_DELAY_SLOW = 3000;
  * For tiny values → extends until 2 significant digits ($0.0023)
  */
 export function formatFiat(value: number): string {
-    if (value === 0) return '0.00';
-    const abs = Math.abs(value);
-    if (abs >= 0.01) return value.toFixed(2);
-    // Count leading zeros after decimal point, then show 2 significant digits
-    const decimals = Math.max(2, -Math.floor(Math.log10(abs)) + 1);
-    return value.toFixed(decimals);
+  if (value === 0) return '0.00';
+  const abs = Math.abs(value);
+  if (abs >= 0.01) return value.toFixed(2);
+  // Count leading zeros after decimal point, then show 2 significant digits
+  const decimals = Math.max(2, -Math.floor(Math.log10(abs)) + 1);
+  return value.toFixed(decimals);
 }
 
 /**
@@ -33,10 +33,10 @@ export function formatFiat(value: number): string {
  * Returns an object with start and end pieces.
  */
 export function truncateId(id: string, endLength = 6) {
-    if (!id) return { start: '', end: '', full: '' };
-    return {
-        start: id.slice(0, -endLength),
-        end: id.slice(-endLength),
-        full: id
-    };
+  if (!id) return { start: '', end: '', full: '' };
+  return {
+    start: id.slice(0, -endLength),
+    end: id.slice(-endLength),
+    full: id
+  };
 }

@@ -20,7 +20,10 @@ const props = withDefaults(defineProps<Props>(), {
 });
 defineEmits(['update:modelValue']);
 
-const formDisabled = inject<ComputedRef<boolean>>('isFormDisabled', computed(() => false));
+const formDisabled = inject<ComputedRef<boolean>>(
+  'isFormDisabled',
+  computed(() => false)
+);
 const isDisabled = computed(() => props.disabled || formDisabled.value);
 
 const showPassword = ref(false);
@@ -44,33 +47,36 @@ defineExpose({
         :disabled="isDisabled"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         :placeholder="isDisabled ? '' : placeholder"
-        class="col-start-1 row-start-1 block w-full rounded-md bg-white/5 py-1.5 pl-3 pr-10 text-base text-offwhite outline-1 -outline-offset-1 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 sm:text-sm outline-white/10 focus:outline-pep-green disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="text-offwhite focus:outline-pep-green col-start-1 row-start-1 block w-full rounded-md bg-white/5 py-1.5 pr-10 pl-3 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
         :class="[
-          { 'text-red-400 outline-red-500/50 placeholder:text-red-400/70 focus:outline-red-400': error && !isDisabled },
+          {
+            'text-red-400 outline-red-500/50 placeholder:text-red-400/70 focus:outline-red-400':
+              error && !isDisabled
+          },
           inputClass
         ]"
         :aria-invalid="!!error"
         :aria-describedby="`${id}-error`"
       />
-      
-      <div class="col-start-1 row-start-1 flex items-center justify-end pr-3 pointer-events-none">
+
+      <div class="pointer-events-none col-start-1 row-start-1 flex items-center justify-end pr-3">
         <PepIcon v-if="error && !isDisabled" name="error" class="text-red-400" size="16" />
 
-        <button 
+        <button
           v-else
           type="button"
           @click="showPassword = !showPassword"
           :disabled="isDisabled"
-          class="text-gray-500 hover:text-white cursor-pointer transition-colors pointer-events-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          class="pointer-events-auto flex cursor-pointer items-center justify-center text-gray-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           <PepIcon :name="showPassword ? 'eye-slash' : 'eye'" size="16" />
         </button>
       </div>
     </div>
-    <p 
-      :id="`${id}-error`" 
+    <p
+      :id="`${id}-error`"
       class="mt-2 text-sm font-medium text-red-400 transition-opacity duration-200"
-      :class="error ? 'opacity-100' : 'opacity-0 select-none pointer-events-none'"
+      :class="error ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
     >
       {{ error || '&nbsp;' }}
     </p>

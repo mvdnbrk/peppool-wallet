@@ -8,31 +8,29 @@ const router = useRouter();
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6">
+  <div class="flex h-full flex-col p-6">
     <PepHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" :absolute="false" />
 
-    <div class="flex-1 flex flex-col items-center justify-center space-y-8">
-      <div class="bg-white p-4 rounded-2xl shadow-xl">
-        <qrcode-vue 
-          :value="walletStore.address || ''" 
-          :size="200"
-          level="H"
-          render-as="svg"
-        />
+    <div class="flex flex-1 flex-col items-center justify-center space-y-8">
+      <div class="rounded-2xl bg-white p-4 shadow-xl">
+        <qrcode-vue :value="walletStore.address || ''" :size="200" level="H" render-as="svg" />
       </div>
 
       <div class="w-full space-y-2 text-center">
-        <p class="text-xs text-slate-500 uppercase tracking-widest font-bold">Your Pepecoin Address</p>
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col items-center space-y-4">
-          <el-copyable id="receive-address" class="break-all text-[11px] font-mono text-slate-300 leading-relaxed text-center">
+        <p class="text-xs font-bold tracking-widest text-slate-500 uppercase">
+          Your Pepecoin Address
+        </p>
+        <div
+          class="flex flex-col items-center space-y-4 rounded-xl border border-slate-700 bg-slate-800 p-4"
+        >
+          <el-copyable
+            id="receive-address"
+            class="text-center font-mono text-[11px] leading-relaxed break-all text-slate-300"
+          >
             {{ walletStore.address }}
           </el-copyable>
-          
-          <PepButton 
-            command="--copy" 
-            commandfor="receive-address"
-            class="w-full"
-          >
+
+          <PepButton command="--copy" commandfor="receive-address" class="w-full">
             <span class="in-data-copied:hidden">Copy address</span>
             <span class="not-in-data-copied:hidden">Address copied!</span>
           </PepButton>
@@ -40,8 +38,6 @@ const router = useRouter();
       </div>
     </div>
 
-    <p class="text-center text-xs text-slate-500 mt-4">
-      Only send Pepecoin (PEP) to this address.
-    </p>
+    <p class="mt-4 text-center text-xs text-slate-500">Only send Pepecoin (PEP) to this address.</p>
   </div>
 </template>

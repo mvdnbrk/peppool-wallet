@@ -35,25 +35,28 @@ function openExplorer() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full px-6 pt-4 pb-0 relative">
+  <div class="relative flex h-full flex-col px-6 pt-4 pb-0">
     <PepHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
 
-    <div class="mt-16 flex-1 flex flex-col min-h-0">
-      <div v-if="isLoading" class="flex-1 flex flex-col items-center justify-center space-y-4">
+    <div class="mt-16 flex min-h-0 flex-1 flex-col">
+      <div v-if="isLoading" class="flex flex-1 flex-col items-center justify-center space-y-4">
         <PepSpinner size="32" class="text-pep-green" />
-        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest">Loading Details...</p>
+        <p class="text-sm font-bold tracking-widest text-slate-500 uppercase">Loading Details...</p>
       </div>
 
-      <div v-else-if="error" class="flex-1 flex flex-col items-center justify-center space-y-4 text-center">
-        <p class="text-red-400 font-bold">{{ error }}</p>
+      <div
+        v-else-if="error"
+        class="flex flex-1 flex-col items-center justify-center space-y-4 text-center"
+      >
+        <p class="font-bold text-red-400">{{ error }}</p>
       </div>
 
-      <div v-else-if="txModel" class="flex-1 overflow-y-auto pr-1 text-center space-y-6 pb-4">
+      <div v-else-if="txModel" class="flex-1 space-y-6 overflow-y-auto pr-1 pb-4 text-center">
         <div class="flex flex-col items-center space-y-1">
-          <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          <p class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase">
             {{ txModel.isOutgoing ? 'Sent' : 'Received' }}
           </p>
-          <h3 
+          <h3
             class="text-4xl font-bold"
             :class="txModel.isOutgoing ? 'text-offwhite' : 'text-pep-green-light'"
           >
@@ -62,56 +65,69 @@ function openExplorer() {
         </div>
 
         <div class="space-y-4 text-left">
-          <PepCard class="p-3 space-y-2">
-            <div class="flex justify-between items-baseline">
-              <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Status</span>
-              <span class="text-xs font-bold uppercase tracking-wider" :class="txModel.isConfirmed ? 'text-pep-green-light' : 'text-yellow-500'">
+          <PepCard class="space-y-2 p-3">
+            <div class="flex items-baseline justify-between">
+              <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Status</span>
+              <span
+                class="text-xs font-bold tracking-wider uppercase"
+                :class="txModel.isConfirmed ? 'text-pep-green-light' : 'text-yellow-500'"
+              >
                 {{ txModel.isConfirmed ? 'Confirmed' : 'In Mempool' }}
               </span>
             </div>
-            <div class="flex justify-between items-baseline pt-2 border-t border-slate-700/30">
-              <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Date</span>
-              <span class="text-xs text-offwhite font-semibold">{{ txModel.date || '-' }}</span>
+            <div class="flex items-baseline justify-between border-t border-slate-700/30 pt-2">
+              <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Date</span>
+              <span class="text-offwhite text-xs font-semibold">{{ txModel.date || '-' }}</span>
             </div>
-            <div class="flex justify-between items-baseline pt-2 border-t border-slate-700/30">
-              <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Block</span>
-              <span class="text-xs text-offwhite font-semibold">{{ txModel.blockHeight ?? '-' }}</span>
+            <div class="flex items-baseline justify-between border-t border-slate-700/30 pt-2">
+              <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Block</span>
+              <span class="text-offwhite text-xs font-semibold">{{
+                txModel.blockHeight ?? '-'
+              }}</span>
             </div>
-            <div class="flex justify-between items-baseline pt-2 border-t border-slate-700/30">
-              <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Network Fee</span>
-              <span class="text-xs text-offwhite font-semibold">{{ txModel.fee }} PEP</span>
+            <div class="flex items-baseline justify-between border-t border-slate-700/30 pt-2">
+              <span class="text-xs font-bold tracking-wider text-slate-500 uppercase"
+                >Network Fee</span
+              >
+              <span class="text-offwhite text-xs font-semibold">{{ txModel.fee }} PEP</span>
             </div>
           </PepCard>
 
-          <PepInputGroup label="Transaction ID" id="txid-value" labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1">
+          <PepInputGroup
+            label="Transaction ID"
+            id="txid-value"
+            labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1"
+          >
             <div class="flex items-center gap-2">
-              <div class="flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 overflow-hidden flex items-center h-[38px]">
-                <span class="inline-flex max-w-full min-w-0 text-[11px] font-mono text-slate-400">
+              <div
+                class="flex h-[38px] flex-1 items-center overflow-hidden rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2"
+              >
+                <span class="inline-flex max-w-full min-w-0 font-mono text-[11px] text-slate-400">
                   <span class="flex min-w-0">
-                    <span class="overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{{ txidStart }}</span>
+                    <span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{{
+                      txidStart
+                    }}</span>
                   </span>
                   <span class="whitespace-nowrap">{{ txidEnd }}</span>
                 </span>
               </div>
-              
+
               <span class="inline-flex">
                 <el-copyable id="txid-value" class="hidden">{{ txModel.txid }}</el-copyable>
-                <button 
-                  type="button" 
-                  command="--copy" 
-                  commandfor="txid-value" 
-                  class="group inline-flex items-center justify-center w-[38px] h-[38px] rounded-lg bg-slate-800 border border-slate-700 text-offwhite hover:text-white copied:text-pep-green-light copied:hover:text-pep-green-light transition-colors cursor-pointer shrink-0"
+                <button
+                  type="button"
+                  command="--copy"
+                  commandfor="txid-value"
+                  class="group text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
                 >
-                  <PepIcon name="copy" class="w-5 h-5 copied:hidden" />
-                  <PepIcon name="check" class="w-5 h-5 hidden copied:block" />
+                  <PepIcon name="copy" class="copied:hidden h-5 w-5" />
+                  <PepIcon name="check" class="copied:block hidden h-5 w-5" />
                 </button>
               </span>
             </div>
           </PepInputGroup>
 
-          <PepButton @click="openExplorer" class="w-full">
-            View on Explorer
-          </PepButton>
+          <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
         </div>
       </div>
     </div>

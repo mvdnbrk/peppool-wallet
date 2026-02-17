@@ -19,18 +19,20 @@ function selectDuration(val: number) {
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6 relative">
+  <div class="relative flex h-full flex-col p-6">
     <PepHeader title="Auto-Lock" />
 
     <div class="mt-16 flex-1 space-y-4">
-      <div class="px-1 space-y-1">
-        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Inactivity Timeout</p>
-        <p class="text-[10px] text-slate-500 leading-tight">Select the desired duration before the extension locks.</p>
+      <div class="space-y-1 px-1">
+        <p class="text-xs font-bold tracking-widest text-slate-500 uppercase">Inactivity Timeout</p>
+        <p class="text-[10px] leading-tight text-slate-500">
+          Select the desired duration before the extension locks.
+        </p>
       </div>
-      
+
       <PepList>
-        <PepListItem 
-          v-for="opt in options" 
+        <PepListItem
+          v-for="opt in options"
           :key="opt.val"
           :label="opt.label"
           :selected="walletStore.lockDuration === opt.val"

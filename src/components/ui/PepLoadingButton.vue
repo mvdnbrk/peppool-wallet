@@ -16,30 +16,34 @@ const displayedLoading = ref(false);
 let startTimestamp = 0;
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-watch(() => props.loading, (isLoading) => {
-  if (timeoutId) {
-    clearTimeout(timeoutId);
-    timeoutId = null;
-  }
-
-  if (isLoading) {
-    startTimestamp = Date.now();
-    displayedLoading.value = true;
-    return;
-  }
-
-  const elapsed = Date.now() - startTimestamp;
-  const remaining = props.minLoadingMs - elapsed;
-
-  if (remaining > 0) {
-    timeoutId = setTimeout(() => {
-      displayedLoading.value = false;
+watch(
+  () => props.loading,
+  (isLoading) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
       timeoutId = null;
-    }, remaining);
-  } else {
-    displayedLoading.value = false;
-  }
-}, { immediate: true });
+    }
+
+    if (isLoading) {
+      startTimestamp = Date.now();
+      displayedLoading.value = true;
+      return;
+    }
+
+    const elapsed = Date.now() - startTimestamp;
+    const remaining = props.minLoadingMs - elapsed;
+
+    if (remaining > 0) {
+      timeoutId = setTimeout(() => {
+        displayedLoading.value = false;
+        timeoutId = null;
+      }, remaining);
+    } else {
+      displayedLoading.value = false;
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   if (timeoutId) clearTimeout(timeoutId);

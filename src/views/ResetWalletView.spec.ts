@@ -15,11 +15,11 @@ vi.mock('vue-router', () => ({
 // Mock global components
 const stubs = {
     PepHeader: { template: '<div><slot /></div>' },
-    PepCheckbox: { 
+    PepCheckbox: {
         template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
         props: ['modelValue']
     },
-    PepButton: { 
+    PepButton: {
         template: '<button @click="$emit(\'click\')"><slot /></button>',
         props: ['disabled']
     }
@@ -31,6 +31,8 @@ describe('ResetWalletView Feature', () => {
     });
 
     it('should call resetWallet and redirect to home on confirm', async () => {
+        vi.useFakeTimers();
+
         const wrapper = mount(ResetWalletView, {
             global: {
                 stubs,
@@ -58,8 +60,13 @@ describe('ResetWalletView Feature', () => {
         // 3. Click reset
         await button.trigger('click');
 
-        // 4. VERIFY: wallet is reset and user redirected
+        // 4. Advance past the 100ms delay in handleReset
+        await vi.advanceTimersByTimeAsync(200);
+
+        // 5. VERIFY: wallet is reset and user redirected
         expect(resetSpy).toHaveBeenCalled();
         expect(pushMock).toHaveBeenCalledWith('/');
+
+        vi.useRealTimers();
     });
 });

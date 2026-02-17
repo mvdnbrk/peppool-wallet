@@ -5,6 +5,7 @@ import { validateMnemonic, getInvalidMnemonicWords } from '../utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '../utils/form';
 import PepPasswordFields from '../components/ui/PepPasswordFields.vue';
 import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
+import PepForm from '../components/ui/PepForm.vue';
 import { UX_DELAY_SLOW } from '../utils/constants';
 import { watch, computed, onMounted } from 'vue';
 
@@ -110,47 +111,50 @@ async function handleImport() {
     <PepHeader title="Import wallet" backTo="/" :absolute="false" />
 
     <div class="flex-1 flex flex-col pt-4">
-      <div class="space-y-6 flex-1 overflow-y-auto pr-2">
-        <PepInputGroup
-          label="Secret phrase (12 or 24 words)"
-          id="mnemonic"
-          :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
-        >
-          <textarea
-            v-model="form.mnemonic"
+      <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex-1 flex flex-col">
+        <div class="space-y-6 flex-1 overflow-y-auto pr-2">
+          <PepInputGroup
+            label="Secret phrase (12 or 24 words)"
             id="mnemonic"
-            rows="3"
-            placeholder="word1 word2 ..."
-            class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-offwhite outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-pep-green sm:text-sm"
-            :class="{ 'outline-red-500/50 focus:outline-red-400': form.errors.mnemonic && invalidWords.length === 0 }"
-            @blur="onBlurMnemonic"
-          ></textarea>
+            :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
+          >
+            <textarea
+              v-model="form.mnemonic"
+              id="mnemonic"
+              rows="3"
+              placeholder="word1 word2 ..."
+              :disabled="form.isProcessing"
+              class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-offwhite outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-pep-green sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              :class="{ 'outline-red-500/50 focus:outline-red-400': form.errors.mnemonic && invalidWords.length === 0 }"
+              @blur="onBlurMnemonic"
+            ></textarea>
 
-          <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
-            <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not a valid seed phrase word
-          </p>
-        </PepInputGroup>
+            <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
+              <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not a valid seed phrase word
+            </p>
+          </PepInputGroup>
 
-        <PepPasswordFields
-          v-model:password="form.password"
-          v-model:confirmPassword="form.confirmPassword"
-          :errors="form.errors"
-          @blur-password="onBlurPassword"
-          @blur-confirm="onBlurConfirmPassword"
-        />
-      </div>
+          <PepPasswordFields
+            v-model:password="form.password"
+            v-model:confirmPassword="form.confirmPassword"
+            :errors="form.errors"
+            @blur-password="onBlurPassword"
+            @blur-confirm="onBlurConfirmPassword"
+          />
+        </div>
 
-      <div class="pt-6">
-        <PepLoadingButton 
-          @click="handleImport" 
-          :loading="form.isProcessing" 
-          :min-loading-ms="UX_DELAY_SLOW" 
-          :disabled="!canImport" 
-          class="w-full"
-        >
-          Import wallet
-        </PepLoadingButton>
-      </div>
+        <template #actions>
+          <PepLoadingButton 
+            type="submit"
+            :loading="form.isProcessing" 
+            :min-loading-ms="UX_DELAY_SLOW" 
+            :disabled="!canImport" 
+            class="w-full"
+          >
+            Import wallet
+          </PepLoadingButton>
+        </template>
+      </PepForm>
     </div>
   </div>
 </template>

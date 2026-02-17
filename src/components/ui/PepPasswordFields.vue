@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject, type ComputedRef } from 'vue';
 import { MIN_PASSWORD_LENGTH } from '../../utils/constants';
 import { getPasswordStrength, getStrengthLabel, getStrengthColor, getStrengthBgColor, getStrengthWidth } from '../../utils/password';
 import PepInput from './PepInput.vue';
@@ -19,6 +19,9 @@ const emit = defineEmits<{
   'blur-password': [];
   'blur-confirm': [];
 }>();
+
+const formDisabled = inject<ComputedRef<boolean>>('isFormDisabled', computed(() => false));
+const isDisabled = computed(() => props.disabled || formDisabled.value);
 
 const passwordValue = computed({
   get: () => props.password || '',
@@ -46,7 +49,7 @@ const strength = computed(() => {
         :label="passwordLabel || 'New password'"
         :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
         :error="errors?.password"
-        :disabled="disabled"
+        :disabled="isDisabled"
         @blur="emit('blur-password')"
       />
 
@@ -57,13 +60,13 @@ const strength = computed(() => {
         :label="confirmLabel || 'Confirm password'"
         placeholder="Repeat password"
         :error="errors?.confirmPassword"
-        :disabled="disabled"
+        :disabled="isDisabled"
         @blur="emit('blur-confirm')"
       />
     </div>
 
     <!-- Strength Meter -->
-    <div class="mt-2 space-y-2 px-1">
+    <div class="mt-2 space-y-2 px-1 transition-opacity duration-200" :class="{ 'opacity-50': isDisabled }">
       <div v-if="passwordValue.length >= MIN_PASSWORD_LENGTH" class="flex justify-between items-end">
         <span class="text-sm font-medium text-slate-400">Your password strength</span>
         <span class="text-xs font-semibold transition-colors duration-300" :class="getStrengthColor(strength?.score)">

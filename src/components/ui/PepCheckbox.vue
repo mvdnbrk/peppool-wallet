@@ -1,25 +1,32 @@
 <script setup lang="ts">
+import { inject, computed, type ComputedRef } from 'vue';
+
 interface Props {
   modelValue: boolean;
   id: string;
   label: string;
   description?: string;
+  disabled?: boolean;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits(['update:modelValue']);
+
+const formDisabled = inject<ComputedRef<boolean>>('isFormDisabled', computed(() => false));
+const isDisabled = computed(() => props.disabled || formDisabled.value);
 </script>
 
 <template>
-  <div class="flex gap-3">
+  <div class="flex gap-3 transition-opacity duration-200" :class="{ 'opacity-50': isDisabled }">
     <div class="flex h-6 shrink-0 items-center">
       <div class="group grid size-5 grid-cols-1">
         <input
           :id="id"
           type="checkbox"
           :checked="modelValue"
+          :disabled="isDisabled"
           @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
-          class="col-start-1 row-start-1 appearance-none rounded-md border border-white/40 bg-white/5 checked:border-pep-green checked:bg-pep-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pep-green hover:border-pep-green-light transition-all cursor-pointer"
+          class="col-start-1 row-start-1 appearance-none rounded-md border border-white/40 bg-white/5 checked:border-pep-green checked:bg-pep-green focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pep-green hover:border-pep-green-light transition-all cursor-pointer disabled:cursor-not-allowed"
         />
         <div class="pointer-events-none col-start-1 row-start-1 size-4 self-center justify-self-center flex items-center justify-center">
           <PepIcon 
@@ -32,7 +39,7 @@ defineEmits(['update:modelValue']);
       </div>
     </div>
     <div class="text-sm/6">
-      <label :for="id" class="font-medium text-offwhite cursor-pointer">{{ label }}</label>
+      <label :for="id" class="font-medium text-offwhite" :class="isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'">{{ label }}</label>
       <p v-if="description" class="text-xs text-slate-500">{{ description }}</p>
     </div>
   </div>

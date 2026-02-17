@@ -5,6 +5,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useForm } from '../utils/form';
 import { UX_DELAY_FAST } from '../utils/constants';
 import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
+import PepForm from '../components/ui/PepForm.vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -97,8 +98,8 @@ async function handleUnlock() {
       <p class="text-slate-400 text-sm">The Pepecoin wallet for everyone</p>
     </div>
 
-    <div v-if="walletStore.isCreated" class="w-full space-y-4">
-      <div class="text-left">
+    <div v-if="walletStore.isCreated" class="w-full">
+      <PepForm :loading="form.isProcessing" @submit="handleUnlock">
         <PepPasswordInput
           ref="passwordInput"
           v-model="form.password"
@@ -108,27 +109,31 @@ async function handleUnlock() {
           :error="loginErrorMessage"
           :disabled="localIsLockedOut"
           autofocus
-          @keyup.enter="handleUnlock"
         />
-      </div>
-      
-      <PepLoadingButton 
-        @click="handleUnlock" 
-        :loading="form.isProcessing" 
-        :min-loading-ms="UX_DELAY_FAST"
-        :disabled="!canUnlock"
-        class="w-full"
-      >
-        {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
-      </PepLoadingButton>
 
-      <button 
-        @click="router.push('/forgot-password')"
-        class="text-xs text-slate-500 hover:text-white transition-colors cursor-pointer underline hover:no-underline"
-        tabindex="-1"
-      >
-        Forgot your password?
-      </button>
+        <template #actions>
+          <div class="space-y-4">
+            <PepLoadingButton 
+              type="submit"
+              :loading="form.isProcessing" 
+              :min-loading-ms="UX_DELAY_FAST"
+              :disabled="!canUnlock"
+              class="w-full"
+            >
+              {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
+            </PepLoadingButton>
+
+            <button 
+              type="button"
+              @click="router.push('/forgot-password')"
+              class="text-xs text-slate-500 hover:text-white transition-colors cursor-pointer underline hover:no-underline w-full"
+              tabindex="-1"
+            >
+              Forgot your password?
+            </button>
+          </div>
+        </template>
+      </PepForm>
     </div>
 
     <div v-else class="w-full space-y-4">

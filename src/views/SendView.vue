@@ -8,6 +8,7 @@ import { decrypt as decryptMnemonic } from '../utils/encryption';
 import { useForm } from '../utils/form';
 import { SendTransaction } from '../models/SendTransaction';
 import PepLoadingButton from '../components/ui/PepLoadingButton.vue';
+import PepForm from '../components/ui/PepForm.vue';
 import { RIBBITS_PER_PEP, MIN_SEND_PEP, formatFiat, truncateId, UX_DELAY_SLOW } from '../utils/constants';
 
 const router = useRouter();
@@ -264,6 +265,7 @@ onMounted(async () => {
           label="Recipient Address"
           placeholder="Enter address"
           :error="form.errors.recipient"
+          :disabled="form.isProcessing || ui.isLoadingRequirements"
           clearable
           autofocus
           @blur="handleAddressBlur"
@@ -275,11 +277,11 @@ onMounted(async () => {
             <div class="text-sm font-bold uppercase tracking-wider flex items-center space-x-2">
               <span class="text-slate-500">Available:</span>
               <span class="text-slate-300">{{ displayBalance }}</span>
-              <button @click="setMax" class="text-pep-green-light hover:text-pep-green cursor-pointer" tabindex="-1">MAX</button>
+              <button @click="setMax" :disabled="form.isProcessing || ui.isLoadingRequirements" class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" tabindex="-1">MAX</button>
             </div>
           </div>
 
-          <div class="mt-2 flex items-center rounded-md bg-white/5 outline-1 -outline-offset-1 outline-white/10 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-pep-green">
+          <div class="mt-2 flex items-center rounded-md bg-white/5 outline-1 -outline-offset-1 outline-white/10 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-pep-green transition-opacity" :class="{ 'opacity-50 pointer-events-none': form.isProcessing || ui.isLoadingRequirements }">
             <div class="shrink-0 pl-3 text-sm text-slate-500 select-none font-bold">
               {{ ui.isFiatMode ? walletStore.selectedCurrency : 'PEP' }}
             </div>
@@ -288,9 +290,10 @@ onMounted(async () => {
               type="number"
               v-model="form.inputAmount"
               placeholder="0.00"
+              :disabled="form.isProcessing || ui.isLoadingRequirements"
               class="block min-w-0 grow bg-transparent py-1.5 pl-1.5 pr-2 text-base text-offwhite placeholder:text-gray-500 focus:outline-none sm:text-sm font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <button type="button" @click="toggleMode" class="shrink-0 mr-2 p-1 rounded text-slate-500 hover:text-pep-green-light transition-colors cursor-pointer" title="Switch currency" tabindex="-1">
+            <button type="button" @click="toggleMode" :disabled="form.isProcessing || ui.isLoadingRequirements" class="shrink-0 mr-2 p-1 rounded text-slate-500 hover:text-pep-green-light transition-colors cursor-pointer disabled:cursor-not-allowed" title="Switch currency" tabindex="-1">
               <PepIcon name="swap" size="16" />
             </button>
           </div>
@@ -322,40 +325,44 @@ onMounted(async () => {
 
     <!-- Step 2 -->
     <div v-if="ui.step === 2" class="flex-1 flex flex-col pt-4">
-      <div class="space-y-4 flex-1">
-        <div class="bg-slate-800 rounded-2xl p-4 space-y-4 border border-slate-700 text-left">
-          <div class="flex flex-col space-y-0.5">
-            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sending</span>
-            <span class="text-xl font-bold text-offwhite">{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span>
+      <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex-1 flex flex-col">
+        <div class="space-y-4 flex-1">
+          <div class="bg-slate-800 rounded-2xl p-4 space-y-4 border border-slate-700 text-left">
+            <div class="flex flex-col space-y-0.5">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sending</span>
+              <span class="text-xl font-bold text-offwhite">{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span>
+            </div>
+
+            <div class="flex flex-col space-y-0.5">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">To</span>
+              <span class="text-xs font-mono break-all text-slate-300 leading-relaxed">{{ form.recipient }}</span>
+            </div>
+
+            <div class="flex flex-col space-y-0.5">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Network Fee</span>
+              <span class="text-sm font-bold text-slate-400">{{ displayFee }}</span>
+            </div>
           </div>
 
-          <div class="flex flex-col space-y-0.5">
-            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">To</span>
-            <span class="text-xs font-mono break-all text-slate-300 leading-relaxed">{{ form.recipient }}</span>
-          </div>
-
-          <div class="flex flex-col space-y-0.5">
-            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Network Fee</span>
-            <span class="text-sm font-bold text-slate-400">{{ displayFee }}</span>
+          <div v-if="!walletStore.isMnemonicLoaded" class="mt-4">
+            <PepPasswordInput v-model="form.password" id="confirm-password" label="Enter Password to Confirm" placeholder="Enter your password" :error="form.errors.general" />
           </div>
         </div>
 
-        <div v-if="!walletStore.isMnemonicLoaded" class="mt-4">
-          <PepPasswordInput v-model="form.password" id="confirm-password" label="Enter Password to Confirm" placeholder="Enter your password" :error="form.errors.general" @keyup.enter="handleSend" />
-        </div>
-      </div>
-
-      <div class="pt-6 space-y-3">
-        <div v-if="walletStore.isMnemonicLoaded" class="h-6 flex items-center justify-center mb-2">
-          <p class="text-sm font-medium text-red-400 transition-opacity duration-200 text-center" :class="form.hasError() ? 'opacity-100' : 'opacity-0 select-none pointer-events-none'">{{ form.errors.general }}</p>
-        </div>
-        <PepLoadingButton @click="handleSend" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_SLOW" :disabled="form.hasError()" class="w-full">
-          Send
-        </PepLoadingButton>
-        <PepButton @click="handleCancel" variant="secondary" class="w-full">
-          Cancel
-        </PepButton>
-      </div>
+        <template #actions>
+          <div class="space-y-3">
+            <div v-if="walletStore.isMnemonicLoaded" class="h-6 flex items-center justify-center mb-2">
+              <p class="text-sm font-medium text-red-400 transition-opacity duration-200 text-center" :class="form.hasError() ? 'opacity-100' : 'opacity-0 select-none pointer-events-none'">{{ form.errors.general }}</p>
+            </div>
+            <PepLoadingButton type="submit" :loading="form.isProcessing" :min-loading-ms="UX_DELAY_SLOW" :disabled="form.hasError()" class="w-full">
+              Send
+            </PepLoadingButton>
+            <PepButton type="button" @click="handleCancel" variant="secondary" :disabled="form.isProcessing" class="w-full">
+              Cancel
+            </PepButton>
+          </div>
+        </template>
+      </PepForm>
     </div>
 
     <!-- Step 3 -->

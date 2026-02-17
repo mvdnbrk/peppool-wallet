@@ -33,6 +33,7 @@ Thumbs.db
 # Gemini & Agents
 .gemini/
 .agents/
+screenshots/
 
 # Environment
 .env

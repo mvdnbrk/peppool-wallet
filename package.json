@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "format": "prettier --write \"src/**/*.{ts,vue,css}\" \"*.{html,json}\"",
-    "zip": "npm run build && zip -r peppool-wallet-v$npm_package_version.zip dist"
+    "zip": "npm run build && zip -r peppool-wallet-v$npm_package_version.zip dist",
+    "screenshots": "npx playwright install chromium && npx tsx scripts/capture-screenshots.ts"
   },
   "dependencies": {
     "@tailwindplus/elements": "^1.0.22",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.33",
     "@pinia/testing": "^1.0.3",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/vite": "^4.1.18",
     "@types/chrome": "^0.1.36",
     "@types/node": "^24.10.1",

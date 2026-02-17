@@ -11,13 +11,13 @@ describe('PepMnemonicGrid UI Component', () => {
 
     const words = wrapper.findAll('span.text-offwhite');
     expect(words).toHaveLength(3);
-    expect(words[0].text()).toBe('word1');
-    expect(words[1].text()).toBe('word2');
-    expect(words[2].text()).toBe('word3');
+    expect(words[0]?.text()).toBe('word1');
+    expect(words[1]?.text()).toBe('word2');
+    expect(words[2]?.text()).toBe('word3');
 
     const indices = wrapper.findAll('span.text-pep-green-light');
-    expect(indices[0].text()).toBe('1');
-    expect(indices[1].text()).toBe('2');
-    expect(indices[2].text()).toBe('3');
+    expect(indices[0]?.text()).toBe('1');
+    expect(indices[1]?.text()).toBe('2');
+    expect(indices[2]?.text()).toBe('3');
   });
 });

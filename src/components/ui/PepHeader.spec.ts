@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepHeader from './PepHeader.vue';
-import { createRouter, createWebHashHistory } from 'vue-router';
 
 // Mock Router
 const pushMock = vi.fn();

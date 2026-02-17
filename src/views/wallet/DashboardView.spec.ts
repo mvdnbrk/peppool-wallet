@@ -4,7 +4,6 @@ import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
 import TransactionDetailView from './TransactionDetailView.vue';
 import { createTestingPinia } from '@pinia/testing';
-import { useWalletStore } from '../../stores/wallet';
 
 // Mock Router
 const pushMock = vi.fn();

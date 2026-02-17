@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import CreateWalletView from './CreateWalletView.vue';
 import { useWalletStore } from '../../stores/wallet';
-import * as cryptoUtils from '../../utils/crypto';
 
 // Mock Router
 const pushMock = vi.fn();

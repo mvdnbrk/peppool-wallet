@@ -122,4 +122,42 @@ describe('SendView', () => {
     expect(txUtxos.every((u: any) => u.status.confirmed)).toBe(true);
     expect(txUtxos.map((u: any) => u.txid)).toEqual(['confirmed-1', 'confirmed-2']);
   });
+
+  it('should display available balance from confirmed UTXOs only', async () => {
+    // 5 PEP confirmed + 2 PEP unconfirmed = 7 PEP total, but only 5 spendable
+    mockFetchUtxos.mockResolvedValue([
+      { txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true, block_height: 100 } },
+      { txid: 'u1', vout: 0, value: 200_000_000, status: { confirmed: false } }
+    ]);
+    mockFetchRecommendedFees.mockResolvedValue({
+      fastestFee: 1000,
+      halfHourFee: 500,
+      hourFee: 250,
+      economyFee: 100,
+      minimumFee: 50
+    });
+
+    const wrapper = mount(SendView, {
+      global: {
+        stubs,
+        plugins: [
+          createTestingPinia({
+            initialState: {
+              wallet: {
+                address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+                isMnemonicLoaded: true,
+                balance: 7,
+                prices: { USD: 1, EUR: 1 }
+              }
+            }
+          })
+        ]
+      }
+    });
+
+    await flushPromises();
+
+    // @ts-ignore
+    expect(wrapper.vm.displayBalance).toBe('5 PEP');
+  });
 });

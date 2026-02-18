@@ -81,11 +81,14 @@ watch([() => form.inputAmount, () => form.recipient], () => {
   tx.value.recipient = form.recipient;
 });
 
+// Show spendable balance (confirmed UTXOs only), not the full wallet balance
 const displayBalance = computed(() => {
+  const spendable = tx.value.balancePep;
   if (ui.isFiatMode) {
-    return `${walletStore.currencySymbol}${formatFiat(walletStore.balanceFiat)} ${walletStore.selectedCurrency}`;
+    const fiatValue = spendable * currentPrice.value;
+    return `${walletStore.currencySymbol}${formatFiat(fiatValue)} ${walletStore.selectedCurrency}`;
   }
-  return `${parseFloat(walletStore.balance.toFixed(8))} PEP`;
+  return `${parseFloat(spendable.toFixed(8))} PEP`;
 });
 
 const displayFee = computed(() => {

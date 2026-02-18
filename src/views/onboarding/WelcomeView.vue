@@ -68,22 +68,36 @@ async function handleUnlock() {
   form.isProcessing = true;
   form.clearError();
 
+  const startTime = Date.now();
+
   try {
     const success = await walletStore.unlock(form.password);
 
     if (success) {
       router.push('/dashboard');
-    } else {
-      if (!localIsLockedOut.value) {
-        form.setError('general', 'Incorrect password');
-        passwordInput.value?.focus();
-      }
+      return;
     }
+
+    // Wait for the minimum loading time before showing error
+    const elapsed = Date.now() - startTime;
+    if (elapsed < UX_DELAY_FAST) {
+      await new Promise((r) => setTimeout(r, UX_DELAY_FAST - elapsed));
+    }
+
+    if (localIsLockedOut.value) return;
+
+    form.setError('general', 'Incorrect password');
+    passwordInput.value?.focus();
   } catch (e) {
-    if (!localIsLockedOut.value) {
-      form.setError('general', 'Incorrect password');
-      passwordInput.value?.focus();
+    const elapsed = Date.now() - startTime;
+    if (elapsed < UX_DELAY_FAST) {
+      await new Promise((r) => setTimeout(r, UX_DELAY_FAST - elapsed));
     }
+
+    if (localIsLockedOut.value) return;
+
+    form.setError('general', 'Incorrect password');
+    passwordInput.value?.focus();
   } finally {
     form.isProcessing = false;
   }

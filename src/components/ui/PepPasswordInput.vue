@@ -75,7 +75,7 @@ defineExpose({
     </div>
     <p
       :id="`${id}-error`"
-      class="mt-2 text-sm font-medium text-red-400 transition-opacity duration-200"
+      class="mt-2 text-left text-sm font-medium text-red-400 transition-opacity duration-200"
       :class="error ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
     >
       {{ error || '&nbsp;' }}

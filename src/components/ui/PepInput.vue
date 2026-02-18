@@ -70,7 +70,10 @@ function handleClear() {
 
       <div
         class="flex shrink-0 items-center pr-3 pl-2"
-        :class="{ 'pointer-events-none': !props.clearable || !modelValue || isDisabled }"
+        :class="{
+          'pointer-events-none': (!props.clearable || !modelValue) && !error && !$slots.suffix,
+          'pointer-events-auto': $slots.suffix
+        }"
       >
         <button
           v-if="props.clearable && modelValue && !error"

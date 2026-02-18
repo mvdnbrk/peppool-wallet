@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import SendView from './SendView.vue';
+import PepAmountInput from '../../components/ui/PepAmountInput.vue';
 import { createTestingPinia } from '@pinia/testing';
 
 // Mock Router
@@ -25,7 +26,10 @@ vi.mock('../../utils/api', () => ({
 const stubs = {
   PepHeader: { template: '<div><slot /></div>' },
   PepIcon: { template: '<div></div>' },
-  PepInput: { template: '<div><slot /></div>' },
+  PepInput: { 
+    template: '<div><slot name="prefix" /><slot /><slot name="suffix" /></div>',
+    props: ['modelValue']
+  },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepPasswordInput: { template: '<div><slot /></div>' },
   PepInputGroup: { template: '<div><slot /></div>' }
@@ -34,6 +38,48 @@ const stubs = {
 describe('SendView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
+    mockFetchUtxos.mockResolvedValue([]);
+    mockFetchRecommendedFees.mockResolvedValue({ fastestFee: 1000 });
+
+    const wrapper = mount(SendView, {
+      global: {
+        stubs,
+        components: { PepAmountInput }, // Don't stub the component we want to test interaction with
+        plugins: [
+          createTestingPinia({
+            initialState: {
+              wallet: {
+                address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+                isMnemonicLoaded: true,
+                selectedCurrency: 'USD',
+                prices: { USD: 10, EUR: 8 }
+              }
+            }
+          })
+        ]
+      }
+    });
+
+    await flushPromises();
+
+    const amountInput = wrapper.findComponent(PepAmountInput);
+    // @ts-ignore
+    expect(amountInput.vm.isFiatMode).toBe(false);
+
+    // Find and click swap button
+    const swapBtn = wrapper.find('button[title="Switch currency"]');
+    expect(swapBtn.exists()).toBe(true);
+    
+    await swapBtn.trigger('click');
+    // @ts-ignore
+    expect(amountInput.vm.isFiatMode).toBe(true);
+
+    await swapBtn.trigger('click');
+    // @ts-ignore
+    expect(amountInput.vm.isFiatMode).toBe(false);
   });
 
   it('should correctly display the txid on the success screen (Step 3)', async () => {

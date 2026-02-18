@@ -18,6 +18,7 @@ import PepListItem from './components/ui/PepListItem.vue';
 import PepCard from './components/ui/PepCard.vue';
 import PepInputGroup from './components/ui/PepInputGroup.vue';
 import PepSpinner from './components/ui/PepSpinner.vue';
+import PepAmountInput from './components/ui/PepAmountInput.vue';
 import * as constants from './utils/constants';
 
 const app = createApp(App);
@@ -46,4 +47,5 @@ app.component('PepListItem', PepListItem);
 app.component('PepCard', PepCard);
 app.component('PepInputGroup', PepInputGroup);
 app.component('PepSpinner', PepSpinner);
+app.component('PepAmountInput', PepAmountInput);
 app.mount('#app');

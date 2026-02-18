@@ -32,7 +32,8 @@ const tx = ref(new SendTransaction(walletStore.address!));
 const form = useForm(
   {
     recipient: '',
-    inputAmount: '',
+    amountRibbits: 0,
+    isFiatMode: false,
     password: '',
     isMax: false
   },
@@ -42,7 +43,6 @@ const form = useForm(
 const ui = reactive({
   step: 1,
   txid: '',
-  isFiatMode: false,
   isLoadingRequirements: true
 });
 
@@ -57,45 +57,29 @@ const isInsufficientFunds = computed(() => {
   return tx.value.balanceRibbits < needed;
 });
 
-const isMax = computed(() => {
-  if (tx.value.amountRibbits <= 0) return false;
-  return tx.value.amountRibbits >= tx.value.maxRibbits;
-});
-
 // Strip whitespace from recipient as the user types (addresses never contain spaces)
 watch(
   () => form.recipient,
   (val) => {
     const stripped = val.replace(/\s/g, '');
     if (stripped !== val) form.recipient = stripped;
+    tx.value.recipient = stripped;
   }
 );
 
-// Sync form to logical object
-let isMaxLocked = false;
-watch([() => form.inputAmount, () => form.recipient], ([newAmount], [oldAmount]) => {
-  if (!isMaxLocked) {
-    const val = parseFloat(form.inputAmount);
-    if (isNaN(val) || val <= 0) {
-      tx.value.amountRibbits = 0;
-    } else {
-      const pepValue = ui.isFiatMode ? val / currentPrice.value : val;
-      tx.value.amountRibbits = Math.round(pepValue * RIBBITS_PER_PEP);
-    }
-
-    // If user manually changed the amount, it's no longer MAX
-    if (newAmount !== oldAmount) {
-      form.isMax = false;
-    }
-  }
-  isMaxLocked = false;
-  tx.value.recipient = form.recipient;
-});
+// Sync persisted amount to tx object
+watch(
+  () => form.amountRibbits,
+  (val) => {
+    tx.value.amountRibbits = val;
+  },
+  { immediate: true }
+);
 
 // Show spendable balance (confirmed UTXOs only), not the full wallet balance
 const displayBalance = computed(() => {
   const spendable = tx.value.balancePep;
-  if (ui.isFiatMode) {
+  if (form.isFiatMode) {
     const fiatValue = spendable * currentPrice.value;
     return `${walletStore.currencySymbol}${formatFiat(fiatValue)} ${walletStore.selectedCurrency}`;
   }
@@ -107,35 +91,10 @@ const displayFee = computed(() => {
   return `${parseFloat(feePep.toFixed(8))} PEP`;
 });
 
-function toggleMode() {
-  ui.isFiatMode = !ui.isFiatMode;
-
-  if (tx.value.amountRibbits === 0) {
-    form.inputAmount = '';
-    return;
-  }
-
-  // Always derive the display amount from the canonical integer (ribbits) value
-  if (ui.isFiatMode) {
-    // For fiat math, we have to use float PEP, but it's only for temporary display
-    const pepFloat = tx.value.amountRibbits / RIBBITS_PER_PEP;
-    form.inputAmount = formatFiat(pepFloat * currentPrice.value);
-  } else {
-    form.inputAmount = tx.value.amountPep;
-  }
-}
-
 function setMax() {
-  const maxRibbits = tx.value.maxRibbits;
   // Set the canonical ribbits amount directly — no precision loss
-  isMaxLocked = true;
   form.isMax = true;
-  tx.value.amountRibbits = maxRibbits;
-
-  const maxPep = maxRibbits / RIBBITS_PER_PEP;
-  form.inputAmount = ui.isFiatMode
-    ? formatFiat(maxPep * currentPrice.value)
-    : maxPep.toFixed(8).replace(/\.?0+$/, '');
+  form.amountRibbits = tx.value.maxRibbits;
 }
 
 async function handleAddressBlur() {
@@ -228,7 +187,7 @@ async function handleSend() {
       }
     }
 
-    const { selectedUtxos } = tx.value.selectUtxos(isMax.value);
+    const { selectedUtxos } = tx.value.selectUtxos(form.isMax);
     const usedUtxosWithHex: UTXO[] = [];
 
     for (const utxo of selectedUtxos) {
@@ -273,9 +232,6 @@ function openExplorer() {
 onMounted(async () => {
   // Sync persisted form data to tx object on mount
   if (form.recipient) tx.value.recipient = form.recipient;
-  if (form.inputAmount) {
-    tx.value.amountPep = form.inputAmount;
-  }
 
   try {
     const [fees, utxos] = await Promise.all([
@@ -334,50 +290,28 @@ onMounted(async () => {
         />
 
         <div class="space-y-1">
-          <div class="flex items-end justify-between px-1">
-            <label for="amount" class="text-offwhite block text-sm font-medium">Amount</label>
-            <div class="flex items-center space-x-2 text-sm font-bold tracking-wider uppercase">
-              <span class="text-slate-500">Available:</span>
-              <span class="text-slate-300">{{ displayBalance }}</span>
-              <button
-                @click="setMax"
-                :disabled="form.isProcessing || ui.isLoadingRequirements"
-                class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                tabindex="-1"
-              >
-                MAX
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="focus-within:outline-pep-green mt-2 flex items-center rounded-md bg-white/5 outline-1 -outline-offset-1 outline-white/10 transition-opacity focus-within:outline-2 focus-within:-outline-offset-2"
-            :class="{
-              'pointer-events-none opacity-50': form.isProcessing || ui.isLoadingRequirements
-            }"
+          <PepAmountInput
+            v-model:ribbits="form.amountRibbits"
+            v-model:isFiatMode="form.isFiatMode"
+            :price="currentPrice"
+            :disabled="form.isProcessing || ui.isLoadingRequirements"
+            @change-max="form.isMax = $event"
           >
-            <div class="shrink-0 pl-3 text-sm font-bold text-slate-500 select-none">
-              {{ ui.isFiatMode ? walletStore.selectedCurrency : 'PEP' }}
-            </div>
-            <input
-              id="amount"
-              type="number"
-              v-model="form.inputAmount"
-              placeholder="0.00"
-              :disabled="form.isProcessing || ui.isLoadingRequirements"
-              class="text-offwhite block min-w-0 grow [appearance:textfield] bg-transparent py-1.5 pr-2 pl-1.5 text-base font-bold placeholder:text-gray-500 focus:outline-none sm:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
-            <button
-              type="button"
-              @click="toggleMode"
-              :disabled="form.isProcessing || ui.isLoadingRequirements"
-              class="hover:text-pep-green-light mr-2 shrink-0 cursor-pointer rounded p-1 text-slate-500 transition-colors disabled:cursor-not-allowed"
-              title="Switch currency"
-              tabindex="-1"
-            >
-              <PepIcon name="swap" size="16" />
-            </button>
-          </div>
+            <template #extra>
+              <div class="flex items-center space-x-2 text-sm font-bold tracking-wider uppercase">
+                <span class="text-slate-500">Available:</span>
+                <span class="text-slate-300">{{ displayBalance }}</span>
+                <button
+                  @click="setMax"
+                  :disabled="form.isProcessing || ui.isLoadingRequirements"
+                  class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                  tabindex="-1"
+                >
+                  MAX
+                </button>
+              </div>
+            </template>
+          </PepAmountInput>
 
           <div class="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
             <div class="flex flex-col">

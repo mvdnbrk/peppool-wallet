@@ -263,7 +263,9 @@ onMounted(async () => {
     ]);
 
     tx.value.fees = fees;
-    tx.value.utxos = utxos;
+    // Only use confirmed UTXOs for spending — unconfirmed outputs could be
+    // invalidated if the parent transaction is dropped from the mempool.
+    tx.value.utxos = utxos.filter((u) => u.status.confirmed);
   } catch (e) {
     console.error('Failed to load transaction requirements', e);
   } finally {

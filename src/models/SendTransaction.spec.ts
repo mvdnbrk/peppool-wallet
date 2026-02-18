@@ -53,10 +53,10 @@ describe('SendTransaction', () => {
       expect(tx.amountRibbits).toBe(50_000_000);
     });
 
-    it('should floor fractional ribbits', () => {
+    it('should round fractional ribbits', () => {
       const tx = createTx([RIBBITS_PER_PEP]);
       tx.amountPep = 0.123456789;
-      expect(tx.amountRibbits).toBe(12_345_678); // Floored, not 12_345_678.9
+      expect(tx.amountRibbits).toBe(12_345_679); // Rounded, not floored
       expect(Number.isInteger(tx.amountRibbits)).toBe(true);
     });
 

@@ -33,7 +33,8 @@ const form = useForm(
   {
     recipient: '',
     inputAmount: '',
-    password: ''
+    password: '',
+    isMax: false
   },
   { persistKey: 'send', sensitiveFields: ['password'] }
 );
@@ -51,7 +52,7 @@ const txidEnd = computed(() => truncateId(ui.txid).end);
 const currentPrice = computed(() => walletStore.prices[walletStore.selectedCurrency]);
 
 const isInsufficientFunds = computed(() => {
-  if (ui.isLoadingRequirements || tx.value.amountPep <= 0) return false;
+  if (ui.isLoadingRequirements || tx.value.amountRibbits <= 0) return false;
   const needed = tx.value.amountRibbits + tx.value.estimatedFeeRibbits;
   return tx.value.balanceRibbits < needed;
 });
@@ -72,10 +73,20 @@ watch(
 
 // Sync form to logical object
 let isMaxLocked = false;
-watch([() => form.inputAmount, () => form.recipient], () => {
+watch([() => form.inputAmount, () => form.recipient], ([newAmount], [oldAmount]) => {
   if (!isMaxLocked) {
     const val = parseFloat(form.inputAmount);
-    tx.value.amountPep = isNaN(val) ? 0 : ui.isFiatMode ? val / currentPrice.value : val;
+    if (isNaN(val) || val <= 0) {
+      tx.value.amountRibbits = 0;
+    } else {
+      const pepValue = ui.isFiatMode ? val / currentPrice.value : val;
+      tx.value.amountRibbits = Math.round(pepValue * RIBBITS_PER_PEP);
+    }
+
+    // If user manually changed the amount, it's no longer MAX
+    if (newAmount !== oldAmount) {
+      form.isMax = false;
+    }
   }
   isMaxLocked = false;
   tx.value.recipient = form.recipient;
@@ -97,23 +108,31 @@ const displayFee = computed(() => {
 });
 
 function toggleMode() {
-  if (!form.inputAmount) {
-    ui.isFiatMode = !ui.isFiatMode;
+  ui.isFiatMode = !ui.isFiatMode;
+
+  if (tx.value.amountRibbits === 0) {
+    form.inputAmount = '';
     return;
   }
-  const currentVal = parseFloat(form.inputAmount);
-  form.inputAmount = ui.isFiatMode
-    ? (currentVal / currentPrice.value).toFixed(8).replace(/\.?0+$/, '')
-    : formatFiat(currentVal * currentPrice.value);
 
-  ui.isFiatMode = !ui.isFiatMode;
+  // Always derive the display amount from the canonical integer (ribbits) value
+  if (ui.isFiatMode) {
+    // For fiat math, we have to use float PEP, but it's only for temporary display
+    const pepFloat = tx.value.amountRibbits / RIBBITS_PER_PEP;
+    form.inputAmount = formatFiat(pepFloat * currentPrice.value);
+  } else {
+    form.inputAmount = tx.value.amountPep;
+  }
 }
 
 function setMax() {
-  const maxPep = tx.value.calculateMaxPep();
-  // Set the canonical PEP amount directly — avoids precision loss from fiat round-trip
+  const maxRibbits = tx.value.maxRibbits;
+  // Set the canonical ribbits amount directly — no precision loss
   isMaxLocked = true;
-  tx.value.amountPep = maxPep;
+  form.isMax = true;
+  tx.value.amountRibbits = maxRibbits;
+
+  const maxPep = maxRibbits / RIBBITS_PER_PEP;
   form.inputAmount = ui.isFiatMode
     ? formatFiat(maxPep * currentPrice.value)
     : maxPep.toFixed(8).replace(/\.?0+$/, '');
@@ -141,13 +160,13 @@ async function handleAddressBlur() {
 }
 
 async function handleReview() {
-  if (!form.recipient || tx.value.amountPep <= 0) {
+  if (!form.recipient || tx.value.amountRibbits <= 0) {
     form.setError('general', 'Please enter a valid address and amount');
     return;
   }
 
-  if (tx.value.amountPep < MIN_SEND_PEP) {
-    form.setError('general', `Minimum send amount is ${MIN_SEND_PEP} PEP`);
+  if (tx.value.amountRibbits < Math.round(MIN_SEND_PEP * RIBBITS_PER_PEP)) {
+    form.setError('general', `Minimum amount to send is ${MIN_SEND_PEP} PEP`);
     return;
   }
 
@@ -255,8 +274,7 @@ onMounted(async () => {
   // Sync persisted form data to tx object on mount
   if (form.recipient) tx.value.recipient = form.recipient;
   if (form.inputAmount) {
-    const val = parseFloat(form.inputAmount);
-    tx.value.amountPep = isNaN(val) ? 0 : ui.isFiatMode ? val / currentPrice.value : val;
+    tx.value.amountPep = form.inputAmount;
   }
 
   try {
@@ -269,6 +287,11 @@ onMounted(async () => {
     // Only use confirmed UTXOs for spending — unconfirmed outputs could be
     // invalidated if the parent transaction is dropped from the mempool.
     tx.value.utxos = utxos.filter((u) => u.status.confirmed);
+
+    // If we were in MAX state, recalculate it now that fees/utxos are fresh
+    if (form.isMax) {
+      setMax();
+    }
   } catch (e) {
     console.error('Failed to load transaction requirements', e);
   } finally {
@@ -379,7 +402,9 @@ onMounted(async () => {
         <PepButton
           @click="handleReview"
           :loading="form.isProcessing || ui.isLoadingRequirements"
-          :disabled="!form.recipient || tx.amountPep <= 0 || form.hasError() || isInsufficientFunds"
+          :disabled="
+            !form.recipient || tx.amountRibbits <= 0 || form.hasError() || isInsufficientFunds
+          "
           :variant="isInsufficientFunds ? 'danger' : 'primary'"
           class="w-full"
         >
@@ -397,9 +422,7 @@ onMounted(async () => {
               <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
                 >Sending</span
               >
-              <span class="text-offwhite text-xl font-bold"
-                >{{ parseFloat(tx.amountPep.toFixed(8)) }} PEP</span
-              >
+              <span class="text-offwhite text-xl font-bold">{{ tx.amountPep }} PEP</span>
             </div>
 
             <div class="flex flex-col space-y-0.5">

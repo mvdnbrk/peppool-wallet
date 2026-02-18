@@ -6,15 +6,30 @@ export class SendTransaction {
   public utxos: UTXO[] = [];
   public fees: RecommendedFees | null = null;
   public recipient: string = '';
-  public amountPep: number = 0;
+  public amountRibbits: number = 0;
   public readonly userAddress: string;
 
   constructor(userAddress: string) {
     this.userAddress = userAddress;
   }
 
-  get amountRibbits(): number {
-    return Math.floor(this.amountPep * RIBBITS_PER_PEP);
+  /**
+   * Returns the amount in PEP as a string, formatted with 100% precision.
+   * e.g. 100000000 -> "1", 1 -> "0.00000001"
+   */
+  get amountPep(): string {
+    if (this.amountRibbits === 0) return '0';
+
+    const s = this.amountRibbits.toString().padStart(9, '0');
+    const integerPart = s.slice(0, -8).replace(/^0+(?=\d)/, ''); // Remove leading zeros but keep at least one digit
+    const decimalPart = s.slice(-8).replace(/0+$/, ''); // Remove trailing zeros
+
+    return decimalPart ? `${integerPart || '0'}.${decimalPart}` : integerPart;
+  }
+
+  set amountPep(val: number | string) {
+    const numericVal = typeof val === 'string' ? parseFloat(val) : val;
+    this.amountRibbits = Math.round((numericVal || 0) * RIBBITS_PER_PEP);
   }
 
   get balanceRibbits(): number {

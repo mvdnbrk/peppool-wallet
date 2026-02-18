@@ -26,7 +26,7 @@ vi.mock('../../utils/api', () => ({
 const stubs = {
   PepHeader: { template: '<div><slot /></div>' },
   PepIcon: { template: '<div></div>' },
-  PepInput: { 
+  PepInput: {
     template: '<div><slot name="prefix" /><slot /><slot name="suffix" /></div>',
     props: ['modelValue']
   },
@@ -72,7 +72,7 @@ describe('SendView', () => {
     // Find and click swap button
     const swapBtn = wrapper.find('button[title="Switch currency"]');
     expect(swapBtn.exists()).toBe(true);
-    
+
     await swapBtn.trigger('click');
     // @ts-ignore
     expect(amountInput.vm.isFiatMode).toBe(true);

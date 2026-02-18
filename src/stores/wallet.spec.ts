@@ -184,4 +184,65 @@ describe('Wallet Store', () => {
     expect(store.plaintextMnemonic).toBe(original);
     warnSpy.mockRestore();
   });
+
+  describe('Transaction Caching', () => {
+    const mockTx = {
+      txid: 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3',
+      version: 1,
+      locktime: 0,
+      vin: [],
+      vout: [
+        {
+          value: 100000000,
+          scriptpubkey: '',
+          scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+        }
+      ],
+      status: {
+        confirmed: true,
+        block_height: 100,
+        block_hash: '...',
+        block_time: Date.now() / 1000
+      }
+    };
+
+    it('should cache transactions in localStorage when refreshed', async () => {
+      const api = await import('../utils/api');
+      vi.mocked(api.fetchTransactions).mockResolvedValue([mockTx] as any);
+
+      const store = useWalletStore();
+      store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+      await store.refreshTransactions();
+
+      const cached = localStorage.getItem('peppool_transactions');
+      expect(cached).not.toBeNull();
+      expect(JSON.parse(cached!)).toHaveLength(1);
+      expect(JSON.parse(cached!)[0].txid).toBe(mockTx.txid);
+    });
+
+    it('should restore transactions from cache on initialization', () => {
+      localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+      localStorage.setItem('peppool_address', 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+
+      const store = useWalletStore();
+      expect(store.transactions).toHaveLength(1);
+      expect(store.transactions[0]!.txid).toBe(mockTx.txid);
+    });
+
+    it('should clear cached transactions on lock', async () => {
+      localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+      const store = useWalletStore();
+
+      await store.lock();
+      expect(localStorage.getItem('peppool_transactions')).toBeNull();
+    });
+
+    it('should clear cached transactions on resetWallet', () => {
+      localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+      const store = useWalletStore();
+
+      store.resetWallet();
+      expect(localStorage.getItem('peppool_transactions')).toBeNull();
+    });
+  });
 });

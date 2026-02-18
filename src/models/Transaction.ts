@@ -38,12 +38,10 @@ export type RawTransaction = v.InferOutput<typeof RawTransactionSchema>;
 export class Transaction {
   public readonly raw: RawTransaction;
   public readonly userAddress: string;
-  public readonly timestamp: number;
 
   constructor(raw: RawTransaction, userAddress: string) {
     this.raw = raw;
     this.userAddress = userAddress;
-    this.timestamp = Date.now();
   }
 
   get txid() {

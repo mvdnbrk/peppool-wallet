@@ -73,7 +73,15 @@ export const useWalletStore = defineStore('wallet', () => {
   const failedAttempts = ref<number>(Number(localStorage.getItem('peppool_failed_attempts')) || 0);
   const lockoutUntil = ref<number>(Number(localStorage.getItem('peppool_lockout_until')) || 0);
 
-  const transactions = ref<Transaction[]>([]);
+  // Load cached transactions on initialization
+  const cachedTxs = localStorage.getItem('peppool_transactions');
+  const initialTransactions = cachedTxs
+    ? JSON.parse(cachedTxs).map(
+        (raw: any) => new Transaction(raw, localStorage.getItem('peppool_address') || '')
+      )
+    : [];
+
+  const transactions = ref<Transaction[]>(initialTransactions);
   let lockTimer: ReturnType<typeof setTimeout> | null = null;
 
   const isCreated = computed(() => !!encryptedMnemonic.value);
@@ -157,6 +165,10 @@ export const useWalletStore = defineStore('wallet', () => {
     try {
       const rawTxs = await fetchTransactions(address.value);
       transactions.value = rawTxs.map((raw) => new Transaction(raw, address.value!));
+
+      // Cache the last 20 transactions
+      const cacheData = rawTxs.slice(0, 20);
+      localStorage.setItem('peppool_transactions', JSON.stringify(cacheData));
     } catch (e) {
       console.error('Failed to fetch transactions', e);
     }
@@ -309,6 +321,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = null;
 
+    localStorage.removeItem('peppool_transactions');
     clearForms();
     await clearAutoLockAlarm();
   }

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { fetchTransaction } from '@/utils/api';
 import { Transaction } from '@/models/Transaction';
-import { truncateId } from '@/utils/constants';
 
 const { router, route, wallet: walletStore } = useApp();
 
@@ -11,9 +10,6 @@ const txid = route.params.txid as string;
 const txModel = ref<Transaction | null>(null);
 const isLoading = ref(true);
 const error = ref('');
-
-const txidStart = computed(() => truncateId(txid).start);
-const txidEnd = computed(() => truncateId(txid).end);
 
 onMounted(async () => {
   try {
@@ -92,39 +88,7 @@ function openExplorer() {
             </div>
           </PepCard>
 
-          <PepInputGroup
-            label="Transaction ID"
-            id="txid-value"
-            labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1"
-          >
-            <div class="flex items-center gap-2">
-              <div
-                class="flex h-[38px] flex-1 items-center overflow-hidden rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2"
-              >
-                <span class="inline-flex max-w-full min-w-0 font-mono text-[11px] text-slate-400">
-                  <span class="flex min-w-0">
-                    <span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{{
-                      txidStart
-                    }}</span>
-                  </span>
-                  <span class="whitespace-nowrap">{{ txidEnd }}</span>
-                </span>
-              </div>
-
-              <el-copyable id="txid-value" class="group inline-flex">
-                <span class="hidden">{{ txModel.txid }}</span>
-                <button
-                  type="button"
-                  command="--copy"
-                  commandfor="txid-value"
-                  class="text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
-                >
-                  <PepIcon name="copy" class="copied:hidden h-5 w-5" />
-                  <PepIcon name="check" class="copied:block hidden h-5 w-5" />
-                </button>
-              </el-copyable>
-            </div>
-          </PepInputGroup>
+          <PepCopyableId label="Transaction ID" :id="txModel.txid" />
 
           <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
         </div>

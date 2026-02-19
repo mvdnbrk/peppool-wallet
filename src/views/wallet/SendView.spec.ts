@@ -2,13 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import SendView from './SendView.vue';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
+import PepCopyableId from '@/components/ui/PepCopyableId.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import { useApp } from '@/composables/useApp';
 
 // Mock useApp
 const pushMock = vi.fn();
-vi.mock('@/composables/useApp', () => ({
-  useApp: vi.fn()
-}));
+vi.mock('@/composables/useApp');
 
 // Mock API
 const mockFetchUtxos = vi.fn();
@@ -23,7 +24,6 @@ vi.mock('@/utils/api', () => ({
 
 // Mock global components
 const stubs = {
-  PepPageHeader: { template: '<div><slot /></div>' },
   PepIcon: { template: '<div></div>' },
   PepInput: {
     template: '<div><slot name="prefix" /><slot /><slot name="suffix" /></div>',
@@ -32,7 +32,9 @@ const stubs = {
   },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepPasswordInput: { template: '<div><slot /></div>' },
-  PepInputGroup: { template: '<div><slot /></div>' }
+  PepInputGroup: { template: '<div><slot /></div>' },
+  PepLoadingButton: { template: '<button><slot /></button>' },
+  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' }
 };
 
 describe('SendView', () => {
@@ -46,7 +48,7 @@ describe('SendView', () => {
       selectedCurrency: 'USD',
       currencySymbol: '$',
       balance: 7,
-      prices: { USD: 1, EUR: 1 },
+      prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn(),
       openExplorerTx: vi.fn()
     };
@@ -58,16 +60,16 @@ describe('SendView', () => {
     });
   });
 
+  const global = {
+    stubs,
+    components: { PepAmountInput, PepCopyableId, PepMainLayout, PepPageHeader }
+  };
+
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
     mockFetchUtxos.mockResolvedValue([]);
     mockFetchRecommendedFees.mockResolvedValue({ fastestFee: 1000 });
 
-    const wrapper = mount(SendView, {
-      global: {
-        stubs,
-        components: { PepAmountInput }
-      }
-    });
+    const wrapper = mount(SendView, { global });
 
     await flushPromises();
 
@@ -89,11 +91,7 @@ describe('SendView', () => {
   });
 
   it('should correctly display the txid on the success screen (Step 3)', async () => {
-    const wrapper = mount(SendView, {
-      global: {
-        stubs
-      }
-    });
+    const wrapper = mount(SendView, { global });
 
     // Manually move to Step 3 and set a TXID
     // @ts-ignore
@@ -102,13 +100,10 @@ describe('SendView', () => {
     ui.txid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
 
     await wrapper.vm.$nextTick();
-
-    // @ts-ignore
-    expect(wrapper.vm.txidStart).toBe('f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b');
-    // @ts-ignore
-    expect(wrapper.vm.txidEnd).toBe('5f9ef3');
-
-    expect(wrapper.html()).toContain('sent-txid');
+    
+    const copyable = wrapper.findComponent(PepCopyableId);
+    expect(copyable.exists()).toBe(true);
+    expect(copyable.props('id')).toBe('f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3');
   });
 
   it('should only use confirmed UTXOs for spending', async () => {
@@ -138,11 +133,7 @@ describe('SendView', () => {
       minimumFee: 50
     });
 
-    const wrapper = mount(SendView, {
-      global: {
-        stubs
-      }
-    });
+    const wrapper = mount(SendView, { global });
 
     await flushPromises();
 
@@ -169,11 +160,7 @@ describe('SendView', () => {
       minimumFee: 50
     });
 
-    const wrapper = mount(SendView, {
-      global: {
-        stubs
-      }
-    });
+    const wrapper = mount(SendView, { global });
 
     await flushPromises();
 

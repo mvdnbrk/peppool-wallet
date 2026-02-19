@@ -15,6 +15,7 @@ vi.mock('vue-router', () => ({
 // Mock global components
 const stubs = {
   PepPageHeader: { template: '<div><slot /></div>' },
+  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' },
   PepCheckbox: {
     template:
       '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
@@ -23,6 +24,9 @@ const stubs = {
   PepButton: {
     template: '<button @click="$emit(\'click\')"><slot /></button>',
     props: ['disabled']
+  },
+  PepLoadingButton: {
+    template: '<button type="submit"><slot /></button>'
   }
 };
 
@@ -58,8 +62,8 @@ describe('ResetWalletView Feature', () => {
     // @ts-ignore
     expect(wrapper.vm.confirmedBackup).toBe(true);
 
-    // 3. Click reset
-    await button.trigger('click');
+    // 3. Trigger form submit
+    await wrapper.find('form').trigger('submit');
 
     // 4. VERIFY: wallet is reset and user redirected
     expect(resetSpy).toHaveBeenCalled();

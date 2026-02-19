@@ -3,9 +3,6 @@ import { useRouter } from 'vue-router';
 import { useWalletStore } from '@/stores/wallet';
 import { validateMnemonic, getInvalidMnemonicWords } from '@/utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '@/utils/form';
-import PepPasswordFields from '@/components/ui/form/PepPasswordFields.vue';
-import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
-import PepForm from '@/components/ui/form/PepForm.vue';
 import { UX_DELAY_SLOW } from '@/utils/constants';
 import { watch, computed, onMounted } from 'vue';
 
@@ -117,40 +114,38 @@ async function handleImport() {
 
     <div class="flex flex-1 flex-col pt-0">
       <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex flex-1 flex-col">
-        <div class="flex-1 space-y-6 overflow-y-auto pr-2">
-          <PepInputGroup
-            label="Secret phrase (12 or 24 words)"
+        <PepInputGroup
+          label="Secret phrase (12 or 24 words)"
+          id="mnemonic"
+          :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
+        >
+          <textarea
+            v-model="form.mnemonic"
             id="mnemonic"
-            :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
-          >
-            <textarea
-              v-model="form.mnemonic"
-              id="mnemonic"
-              rows="3"
-              placeholder="word1 word2 ..."
-              :disabled="form.isProcessing"
-              class="text-offwhite focus:outline-pep-green block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
-              :class="{
-                'outline-red-500/50 focus:outline-red-400':
-                  form.errors.mnemonic && invalidWords.length === 0
-              }"
-              @blur="onBlurMnemonic"
-            ></textarea>
+            rows="3"
+            placeholder="word1 word2 ..."
+            :disabled="form.isProcessing"
+            class="text-offwhite focus:outline-pep-green block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+            :class="{
+              'outline-red-500/50 focus:outline-red-400':
+                form.errors.mnemonic && invalidWords.length === 0
+            }"
+            @blur="onBlurMnemonic"
+          ></textarea>
 
-            <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
-              <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not
-              a valid seed phrase word
-            </p>
-          </PepInputGroup>
+          <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
+            <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not
+            a valid seed phrase word
+          </p>
+        </PepInputGroup>
 
-          <PepPasswordFields
-            v-model:password="form.password"
-            v-model:confirmPassword="form.confirmPassword"
-            :errors="form.errors"
-            @blur-password="onBlurPassword"
-            @blur-confirm="onBlurConfirmPassword"
-          />
-        </div>
+        <PepPasswordFields
+          v-model:password="form.password"
+          v-model:confirmPassword="form.confirmPassword"
+          :errors="form.errors"
+          @blur-password="onBlurPassword"
+          @blur-confirm="onBlurConfirmPassword"
+        />
 
         <template #actions>
           <PepLoadingButton

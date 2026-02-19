@@ -13,8 +13,6 @@ import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '@/utils
 import { decrypt as decryptMnemonic } from '@/utils/encryption';
 import { useForm } from '@/utils/form';
 import { SendTransaction } from '@/models/SendTransaction';
-import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
-import PepForm from '@/components/ui/form/PepForm.vue';
 import {
   RIBBITS_PER_PEP,
   MIN_SEND_PEP,
@@ -282,7 +280,7 @@ onMounted(async () => {
 
     <!-- Step 1 -->
     <div v-if="ui.step === 1" class="flex flex-1 flex-col pt-0">
-      <div class="flex-1 space-y-6">
+      <PepForm class="flex flex-1 flex-col" @submit="handleReview">
         <PepInput
           ref="recipientInput"
           v-model="form.recipient"
@@ -329,68 +327,70 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="pt-6">
-        <div class="mb-2 flex h-6 items-center justify-center">
-          <p
-            class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
-            :class="form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
-          >
-            {{ form.errors.general || form.errors.recipient }}
-          </p>
-        </div>
-        <PepLoadingButton
-          @click="handleReview"
-          :loading="form.isProcessing || ui.isLoadingRequirements"
-          :min-loading-ms="UX_DELAY_FAST"
-          :disabled="
-            !form.recipient || tx.amountRibbits <= 0 || form.hasError() || isInsufficientFunds
-          "
-          :variant="isInsufficientFunds ? 'danger' : 'primary'"
-          class="w-full"
-        >
-          {{ isInsufficientFunds ? 'Insufficient funds' : 'Next' }}
-        </PepLoadingButton>
-      </div>
+        <template #actions>
+          <div>
+            <div class="mb-2 flex h-6 items-center justify-center">
+              <p
+                class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
+                :class="
+                  form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'
+                "
+              >
+                {{ form.errors.general || form.errors.recipient }}
+              </p>
+            </div>
+            <PepLoadingButton
+              type="submit"
+              :loading="form.isProcessing || ui.isLoadingRequirements"
+              :min-loading-ms="UX_DELAY_FAST"
+              :disabled="
+                !form.recipient || tx.amountRibbits <= 0 || form.hasError() || isInsufficientFunds
+              "
+              :variant="isInsufficientFunds ? 'danger' : 'primary'"
+              class="w-full"
+            >
+              {{ isInsufficientFunds ? 'Insufficient funds' : 'Next' }}
+            </PepLoadingButton>
+          </div>
+        </template>
+      </PepForm>
     </div>
 
     <!-- Step 2 -->
     <div v-if="ui.step === 2" class="flex flex-1 flex-col pt-0">
       <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
-        <div class="flex-1 space-y-4">
-          <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
-            <div class="flex flex-col space-y-0.5">
-              <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
-                >Sending</span
-              >
-              <span class="text-offwhite text-xl font-bold">{{ tx.amountPep }} PEP</span>
-            </div>
-
-            <div class="flex flex-col space-y-0.5">
-              <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">To</span>
-              <span class="font-mono text-xs leading-relaxed break-all text-slate-300">{{
-                form.recipient
-              }}</span>
-            </div>
-
-            <div class="flex flex-col space-y-0.5">
-              <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
-                >Network Fee</span
-              >
-              <span class="text-sm font-bold text-slate-400">{{ displayFee }}</span>
-            </div>
+        <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
+          <div class="flex flex-col space-y-0.5">
+            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
+              >Sending</span
+            >
+            <span class="text-offwhite text-xl font-bold">{{ tx.amountPep }} PEP</span>
           </div>
 
-          <div v-if="!walletStore.isMnemonicLoaded" class="mt-4">
-            <PepPasswordInput
-              v-model="form.password"
-              id="confirm-password"
-              label="Enter Password to Confirm"
-              placeholder="Enter your password"
-              :error="form.errors.general"
-            />
+          <div class="flex flex-col space-y-0.5">
+            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">To</span>
+            <span class="font-mono text-xs leading-relaxed break-all text-slate-300">{{
+              form.recipient
+            }}</span>
           </div>
+
+          <div class="flex flex-col space-y-0.5">
+            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
+              >Network Fee</span
+            >
+            <span class="text-sm font-bold text-slate-400">{{ displayFee }}</span>
+          </div>
+        </div>
+
+        <div v-if="!walletStore.isMnemonicLoaded" class="mt-0">
+          <PepPasswordInput
+            v-model="form.password"
+            id="confirm-password"
+            label="Enter Password to Confirm"
+            placeholder="Enter your password"
+            :error="form.errors.general"
+          />
         </div>
 
         <template #actions>

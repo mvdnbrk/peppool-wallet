@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '@/stores/wallet';
-import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
 const router = useRouter();
@@ -22,7 +21,7 @@ async function handleReset() {
     <PepPageHeader title="Reset wallet" />
 
     <div class="flex flex-1 flex-col pt-0">
-      <div class="flex-1 space-y-8">
+      <PepForm @submit="handleReset" class="flex flex-1 flex-col">
         <div class="space-y-4 text-sm text-slate-400">
           <p class="text-offwhite font-bold">
             This will completely wipe your wallet data from this browser.
@@ -37,27 +36,27 @@ async function handleReset() {
           </div>
         </div>
 
-        <div class="pt-2">
+        <div class="pt-0">
           <PepCheckbox
             v-model="confirmedBackup"
             id="confirm-backup"
             label="I have backed up my secret phrase."
           />
         </div>
-      </div>
 
-      <div class="pt-6">
-        <PepLoadingButton
-          @click="handleReset"
-          :loading="isProcessing"
-          :min-loading-ms="UX_DELAY_NORMAL"
-          :disabled="!confirmedBackup"
-          variant="danger"
-          class="w-full"
-        >
-          Reset wallet
-        </PepLoadingButton>
-      </div>
+        <template #actions>
+          <PepLoadingButton
+            type="submit"
+            :loading="isProcessing"
+            :minLoadingMs="UX_DELAY_NORMAL"
+            :disabled="!confirmedBackup"
+            variant="danger"
+            class="w-full"
+          >
+            Reset wallet
+          </PepLoadingButton>
+        </template>
+      </PepForm>
     </div>
   </div>
 </template>

@@ -6,10 +6,10 @@ const router = useRouter();
 const walletStore = useWalletStore();
 
 const options = [
-  { label: '15 Minutes', val: 15 },
-  { label: '30 Minutes', val: 30 },
-  { label: '1 Hour', val: 60 },
-  { label: '3 Hours', val: 180 }
+  { label: '15 Minutes', value: 15 },
+  { label: '30 Minutes', value: 30 },
+  { label: '1 Hour', value: 60 },
+  { label: '3 Hours', value: 180 }
 ];
 
 function selectDuration(val: number) {
@@ -27,15 +27,12 @@ function selectDuration(val: number) {
         Select the desired duration before the extension locks.
       </p>
 
-      <PepList>
-        <PepListItem
-          v-for="opt in options"
-          :key="opt.val"
-          :label="opt.label"
-          :selected="walletStore.lockDuration === opt.val"
-          @click="selectDuration(opt.val)"
-        />
-      </PepList>
+      <PepRadioList
+        v-model="walletStore.lockDuration"
+        :options="options"
+        name="auto-lock"
+        @update:modelValue="selectDuration"
+      />
     </div>
   </div>
 </template>

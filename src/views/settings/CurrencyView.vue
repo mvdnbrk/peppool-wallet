@@ -6,8 +6,8 @@ const router = useRouter();
 const walletStore = useWalletStore();
 
 const options = [
-  { label: 'US DOLLAR', code: 'USD' },
-  { label: 'EURO', code: 'EUR' }
+  { label: 'US DOLLAR', value: 'USD' },
+  { label: 'EURO', value: 'EUR' }
 ] as const;
 
 function selectCurrency(code: 'USD' | 'EUR') {
@@ -25,15 +25,12 @@ function selectCurrency(code: 'USD' | 'EUR') {
         Select Currency
       </p>
 
-      <PepList>
-        <PepListItem
-          v-for="opt in options"
-          :key="opt.code"
-          :label="opt.label"
-          :selected="walletStore.selectedCurrency === opt.code"
-          @click="selectCurrency(opt.code)"
-        />
-      </PepList>
+      <PepRadioList
+        v-model="walletStore.selectedCurrency"
+        :options="options"
+        name="currency"
+        @update:modelValue="selectCurrency"
+      />
     </div>
   </div>
 </template>

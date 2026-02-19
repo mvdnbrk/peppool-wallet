@@ -7,9 +7,8 @@ const router = useRouter();
 const walletStore = useWalletStore();
 
 const options = Object.entries(EXPLORERS).map(([id, data]) => ({
-  id: id as ExplorerId,
-  name: data.name,
-  url: data.url
+  value: id as ExplorerId,
+  label: data.name
 }));
 
 function selectExplorer(id: ExplorerId) {
@@ -27,15 +26,12 @@ function selectExplorer(id: ExplorerId) {
         Select Explorer
       </p>
 
-      <PepList>
-        <PepListItem
-          v-for="opt in options"
-          :key="opt.id"
-          :label="opt.name"
-          :selected="walletStore.selectedExplorer === opt.id"
-          @click="selectExplorer(opt.id)"
-        />
-      </PepList>
+      <PepRadioList
+        v-model="walletStore.selectedExplorer"
+        :options="options"
+        name="explorer"
+        @update:modelValue="selectExplorer"
+      />
     </div>
   </div>
 </template>

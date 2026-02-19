@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepTransactionItem from './PepTransactionItem.vue';
-import { Transaction } from '../../models/Transaction';
+import { Transaction } from '../../../models/Transaction';
 
 // Mock PepListItem
 const stubs = {

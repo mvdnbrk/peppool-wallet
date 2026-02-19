@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Transaction } from '../../models/Transaction';
+import { Transaction } from '../../../models/Transaction';
 import PepListItem from './PepListItem.vue';
 
 interface Props {

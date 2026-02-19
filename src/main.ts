@@ -14,13 +14,13 @@ import PepMnemonicGrid from './components/ui/PepMnemonicGrid.vue';
 import PepCheckbox from './components/ui/form/PepCheckbox.vue';
 import PepIcon from './components/ui/PepIcon.vue';
 import PepFooter from './components/ui/PepFooter.vue';
-import PepList from './components/ui/PepList.vue';
-import PepListItem from './components/ui/PepListItem.vue';
+import PepList from './components/ui/list/PepList.vue';
+import PepListItem from './components/ui/list/PepListItem.vue';
 import PepCard from './components/ui/PepCard.vue';
 import PepInputGroup from './components/ui/form/PepInputGroup.vue';
 import PepSpinner from './components/ui/PepSpinner.vue';
 import PepAmountInput from './components/ui/form/PepAmountInput.vue';
-import PepTransactionItem from './components/ui/PepTransactionItem.vue';
+import PepTransactionItem from './components/ui/list/PepTransactionItem.vue';
 import * as constants from './utils/constants';
 
 const app = createApp(App);

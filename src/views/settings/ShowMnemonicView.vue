@@ -92,11 +92,11 @@ async function handleReveal() {
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col justify-center p-6">
+  <div class="relative flex min-h-full flex-col p-6">
     <PepPageHeader title="Secret phrase" />
 
     <!-- Step 1: Verify Password -->
-    <div v-if="step === 1" class="mt-12 space-y-8">
+    <div v-if="step === 1" class="flex flex-1 flex-col justify-center space-y-8">
       <p class="text-sm text-slate-400">Please enter your password to reveal your secret phrase.</p>
 
       <div class="space-y-6">
@@ -123,7 +123,7 @@ async function handleReveal() {
     </div>
 
     <!-- Step 2: Show Phrase -->
-    <div v-if="step === 2" class="mt-12 space-y-6">
+    <div v-if="step === 2" class="flex flex-1 flex-col justify-center space-y-6">
       <div class="rounded-lg border border-red-900/50 bg-red-900/20 p-3 text-xs text-red-400">
         <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this
         phrase can steal your funds.

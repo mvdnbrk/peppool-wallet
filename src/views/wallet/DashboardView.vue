@@ -80,32 +80,13 @@ function openDetail(txid: string) {
         <p class="text-sm">No transactions yet</p>
       </div>
 
-      <div v-else class="flex-1 space-y-2 overflow-y-auto pr-1 pb-4">
-        <div
+      <div v-else class="flex-1 overflow-y-auto pr-1 pb-4">
+        <PepTransactionItem
           v-for="tx in walletStore.transactions"
           :key="tx.txid"
+          :tx="tx"
           @click="openDetail(tx.txid)"
-          class="group flex cursor-pointer items-center justify-between rounded-xl border border-slate-700/50 bg-slate-800/30 p-3 transition-colors hover:bg-slate-800"
-        >
-          <div class="flex items-center space-x-3">
-            <div>
-              <p class="text-sm leading-tight font-bold" :class="tx.statusColor">
-                {{ tx.statusLabel }}
-              </p>
-              <p class="font-mono text-[10px] text-slate-500">
-                {{ tx.txidShort }}
-              </p>
-            </div>
-          </div>
-          <div class="text-right">
-            <p class="text-offwhite text-sm leading-tight font-bold">
-              {{ tx.formattedAmount }} PEP
-            </p>
-            <p class="text-[10px] text-slate-500">
-              {{ tx.isConfirmed ? 'Confirmed' : 'In Mempool' }}
-            </p>
-          </div>
-        </div>
+        />
       </div>
     </div>
 

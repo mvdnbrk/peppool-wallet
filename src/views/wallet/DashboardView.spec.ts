@@ -29,7 +29,12 @@ const stubs = {
   PepIcon: { template: '<div />' },
   PepCard: { template: '<div><slot /></div>' },
   PepInputGroup: { template: '<div><slot /></div>' },
-  PepSpinner: { template: '<div />' }
+  PepSpinner: { template: '<div />' },
+  PepTransactionItem: {
+    name: 'PepTransactionItem',
+    template: '<div class="tx-item-stub"><slot name="left" /><slot name="right" /></div>',
+    props: ['tx']
+  }
 };
 
 const mockRawTx = {
@@ -93,7 +98,7 @@ describe('Wallet Views Navigation', () => {
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 
-  it('Dashboard: should show status and color from Transaction model', async () => {
+  it('Dashboard: should render transaction items', async () => {
     const tx = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
 
     const wrapper = mount(DashboardView, {
@@ -112,8 +117,9 @@ describe('Wallet Views Navigation', () => {
       }
     });
 
-    const label = wrapper.find('.group.flex.cursor-pointer .font-bold');
-    expect(label.text()).toBe('Received');
-    expect(label.classes()).toContain('text-pep-green-light');
+    const item = wrapper.findComponent({ name: 'PepTransactionItem' });
+    expect(item.exists()).toBe(true);
+    // Use strict equality check for serialized objects
+    expect(JSON.stringify(item.props('tx'))).toBe(JSON.stringify(tx));
   });
 });

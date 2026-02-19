@@ -28,7 +28,8 @@ const stubs = {
   PepIcon: { template: '<div></div>' },
   PepInput: {
     template: '<div><slot name="prefix" /><slot /><slot name="suffix" /></div>',
-    props: ['modelValue']
+    props: ['modelValue'],
+    methods: { focus: () => {} }
   },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepPasswordInput: { template: '<div><slot /></div>' },
@@ -47,7 +48,7 @@ describe('SendView', () => {
     const wrapper = mount(SendView, {
       global: {
         stubs,
-        components: { PepAmountInput }, // Don't stub the component we want to test interaction with
+        components: { PepAmountInput },
         plugins: [
           createTestingPinia({
             initialState: {

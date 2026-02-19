@@ -74,4 +74,52 @@ describe('Transaction Model', () => {
     const tx = new Transaction(mockRawTx, userAddress);
     expect(tx.txidShort).toBe('12345678...90abcdef');
   });
+
+  describe('Status Display', () => {
+    it('should return correct label and color for confirmed outgoing', () => {
+      const tx = new Transaction(mockRawTx, userAddress);
+      expect(tx.statusLabel).toBe('Sent');
+      expect(tx.statusColor).toBe('text-offwhite');
+    });
+
+    it('should return correct label and color for unconfirmed outgoing', () => {
+      const raw = { ...mockRawTx, status: { confirmed: false } };
+      const tx = new Transaction(raw, userAddress);
+      expect(tx.statusLabel).toBe('Sending');
+      expect(tx.statusColor).toBe('text-yellow-500');
+    });
+
+    it('should return correct label and color for confirmed incoming', () => {
+      const raw = {
+        ...mockRawTx,
+        vin: [
+          {
+            txid: 'other',
+            vout: 0,
+            prevout: { scriptpubkey_address: 'other', value: 100000000 }
+          }
+        ]
+      };
+      const tx = new Transaction(raw, userAddress);
+      expect(tx.statusLabel).toBe('Received');
+      expect(tx.statusColor).toBe('text-pep-green-light');
+    });
+
+    it('should return correct label and color for unconfirmed incoming', () => {
+      const raw = {
+        ...mockRawTx,
+        status: { confirmed: false },
+        vin: [
+          {
+            txid: 'other',
+            vout: 0,
+            prevout: { scriptpubkey_address: 'other', value: 100000000 }
+          }
+        ]
+      };
+      const tx = new Transaction(raw, userAddress);
+      expect(tx.statusLabel).toBe('Receiving');
+      expect(tx.statusColor).toBe('text-yellow-500');
+    });
+  });
 });

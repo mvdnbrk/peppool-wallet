@@ -53,6 +53,19 @@ export class Transaction {
   get isConfirmed() {
     return this.raw.status.confirmed;
   }
+
+  get statusLabel() {
+    if (this.isConfirmed) {
+      return this.isOutgoing ? 'Sent' : 'Received';
+    }
+    return this.isOutgoing ? 'Sending' : 'Receiving';
+  }
+
+  get statusColor() {
+    if (!this.isConfirmed) return 'text-yellow-500';
+    return this.isOutgoing ? 'text-offwhite' : 'text-pep-green-light';
+  }
+
   get blockHeight() {
     return this.raw.status.block_height ?? null;
   }

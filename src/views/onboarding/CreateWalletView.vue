@@ -70,7 +70,6 @@ async function handleCreate() {
       title="Create wallet"
       :onBack="step === 2 ? () => (step = 1) : undefined"
       :backTo="step === 1 ? '/' : undefined"
-     
     />
 
     <!-- Step 1: Password -->
@@ -103,7 +102,7 @@ async function handleCreate() {
     <div v-if="step === 2" class="flex flex-1 flex-col pt-0">
       <PepForm :loading="form.isProcessing" @submit="handleCreate" class="flex flex-1 flex-col">
         <div class="flex-1">
-          <div class="pb-4 space-y-2 text-sm text-slate-400">
+          <div class="space-y-2 pb-4 text-sm text-slate-400">
             <p class="text-offwhite font-bold">Write down your secret phrase</p>
             <p>
               This phrase is the ONLY way to recover your wallet if you lose your device or

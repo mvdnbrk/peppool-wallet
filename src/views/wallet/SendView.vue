@@ -278,7 +278,6 @@ onMounted(async () => {
             ? handleCancel
             : undefined
       "
-     
     />
 
     <!-- Step 1 -->

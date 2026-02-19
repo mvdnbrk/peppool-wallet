@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, inject, type ComputedRef } from 'vue';
-import { MIN_PASSWORD_LENGTH } from '../../utils/constants';
+import { MIN_PASSWORD_LENGTH } from '../../../utils/constants';
 import {
   getPasswordStrength,
   getStrengthLabel,
   getStrengthColor,
   getStrengthBgColor,
   getStrengthWidth
-} from '../../utils/password';
+} from '../../../utils/password';
 import PepInput from './PepInput.vue';
 
 const props = defineProps<{

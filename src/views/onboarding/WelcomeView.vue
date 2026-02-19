@@ -5,7 +5,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useForm } from '../../utils/form';
 import { UX_DELAY_FAST } from '../../utils/constants';
 import PepLoadingButton from '../../components/ui/PepLoadingButton.vue';
-import PepForm from '../../components/ui/PepForm.vue';
+import PepForm from '../../components/ui/form/PepForm.vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();

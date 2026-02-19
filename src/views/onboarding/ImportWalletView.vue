@@ -8,9 +8,9 @@ import {
   usePasswordBlur,
   useMnemonicField
 } from '../../utils/form';
-import PepPasswordFields from '../../components/ui/PepPasswordFields.vue';
+import PepPasswordFields from '../../components/ui/form/PepPasswordFields.vue';
 import PepLoadingButton from '../../components/ui/PepLoadingButton.vue';
-import PepForm from '../../components/ui/PepForm.vue';
+import PepForm from '../../components/ui/form/PepForm.vue';
 import { UX_DELAY_SLOW } from '../../utils/constants';
 import { watch, computed, onMounted } from 'vue';
 

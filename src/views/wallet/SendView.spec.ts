@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import SendView from './SendView.vue';
-import PepAmountInput from '../../components/ui/PepAmountInput.vue';
+import PepAmountInput from '../../components/ui/form/PepAmountInput.vue';
 import { createTestingPinia } from '@pinia/testing';
 
 // Mock Router

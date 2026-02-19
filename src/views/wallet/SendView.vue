@@ -14,7 +14,7 @@ import { decrypt as decryptMnemonic } from '../../utils/encryption';
 import { useForm } from '../../utils/form';
 import { SendTransaction } from '../../models/SendTransaction';
 import PepLoadingButton from '../../components/ui/PepLoadingButton.vue';
-import PepForm from '../../components/ui/PepForm.vue';
+import PepForm from '../../components/ui/form/PepForm.vue';
 import {
   RIBBITS_PER_PEP,
   MIN_SEND_PEP,

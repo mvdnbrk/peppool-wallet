@@ -20,6 +20,7 @@ import {
   MIN_SEND_PEP,
   formatFiat,
   truncateId,
+  UX_DELAY_FAST,
   UX_DELAY_SLOW
 } from '../../utils/constants';
 
@@ -340,9 +341,10 @@ onMounted(async () => {
             {{ form.errors.general || form.errors.recipient }}
           </p>
         </div>
-        <PepButton
+        <PepLoadingButton
           @click="handleReview"
           :loading="form.isProcessing || ui.isLoadingRequirements"
+          :min-loading-ms="UX_DELAY_FAST"
           :disabled="
             !form.recipient || tx.amountRibbits <= 0 || form.hasError() || isInsufficientFunds
           "
@@ -350,7 +352,7 @@ onMounted(async () => {
           class="w-full"
         >
           {{ isInsufficientFunds ? 'Insufficient funds' : 'Next' }}
-        </PepButton>
+        </PepLoadingButton>
       </div>
     </div>
 

@@ -118,27 +118,25 @@ async function handleChangePassword() {
         @submit="handleChangePassword"
         class="flex flex-1 flex-col"
       >
-        <div class="flex-1 space-y-6">
-          <PepPasswordInput
-            v-model="form.oldPassword"
-            id="old-password"
-            label="Current password"
-            placeholder="Enter current password"
-            :error="oldPasswordError"
-            :disabled="isLockedOut"
-          />
+        <PepPasswordInput
+          v-model="form.oldPassword"
+          id="old-password"
+          label="Current password"
+          placeholder="Enter current password"
+          :error="oldPasswordError"
+          :disabled="isLockedOut"
+        />
 
-          <PepPasswordFields
-            v-model:password="form.password"
-            v-model:confirmPassword="form.confirmPassword"
-            :errors="form.errors"
-            :disabled="isLockedOut"
-            passwordLabel="New password"
-            confirmLabel="Confirm new password"
-            @blur-password="onBlurPassword"
-            @blur-confirm="onBlurConfirmPassword"
-          />
-        </div>
+        <PepPasswordFields
+          v-model:password="form.password"
+          v-model:confirmPassword="form.confirmPassword"
+          :errors="form.errors"
+          :disabled="isLockedOut"
+          passwordLabel="New password"
+          confirmLabel="Confirm new password"
+          @blur-password="onBlurPassword"
+          @blur-confirm="onBlurConfirmPassword"
+        />
 
         <template #actions>
           <PepLoadingButton

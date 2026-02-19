@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useWalletStore } from '@/stores/wallet';
 import { decrypt } from '@/utils/encryption';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 
 const router = useRouter();
 const walletStore = useWalletStore();

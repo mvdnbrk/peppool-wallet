@@ -20,7 +20,7 @@ const form = useForm({
 
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
-const successMsg = ref('');
+const isSuccess = ref(false);
 const now = ref(Date.now());
 let ticker: ReturnType<typeof setInterval> | null = null;
 
@@ -58,7 +58,6 @@ onUnmounted(() => {
 
 async function handleChangePassword() {
   if (isLockedOut.value) return;
-  successMsg.value = '';
 
   const errors = validatePasswordMatch(form.password, form.confirmPassword);
 
@@ -95,10 +94,7 @@ async function handleChangePassword() {
     const newEncrypted = await encrypt(mnemonic, form.password);
     walletStore.updateVault(newEncrypted);
 
-    successMsg.value = 'Password updated successfully!';
-    setTimeout(() => {
-      router.push('/settings');
-    }, 2000);
+    isSuccess.value = true;
   } catch (e) {
     if (!isLockedOut.value) {
       form.setError('oldPassword', 'Incorrect current password');
@@ -111,9 +107,12 @@ async function handleChangePassword() {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepPageHeader title="Change password" />
+    <PepPageHeader
+      :title="isSuccess ? 'Success' : 'Change password'"
+      :key="isSuccess ? 'success' : 'form'"
+    />
 
-    <div class="flex flex-1 flex-col pt-0">
+    <div v-if="!isSuccess" class="flex flex-1 flex-col pt-0">
       <PepForm
         :loading="form.isProcessing"
         @submit="handleChangePassword"
@@ -139,13 +138,6 @@ async function handleChangePassword() {
             @blur-password="onBlurPassword"
             @blur-confirm="onBlurConfirmPassword"
           />
-
-          <p
-            v-if="successMsg"
-            class="text-pep-green-light animate-pulse text-center text-sm font-bold"
-          >
-            {{ successMsg }}
-          </p>
         </div>
 
         <template #actions>
@@ -167,6 +159,23 @@ async function handleChangePassword() {
           </PepLoadingButton>
         </template>
       </PepForm>
+    </div>
+
+    <!-- Success State -->
+    <div v-else class="flex flex-1 flex-col items-center pt-12 text-center">
+      <div class="w-full flex-1 space-y-8">
+        <PepIcon name="checkmark-circle" size="80" class="text-pep-green-light mx-auto" />
+        <div class="space-y-2">
+          <h3 class="text-offwhite text-xl font-bold">Password Updated</h3>
+          <p class="text-sm text-slate-400">Your new password is now active.</p>
+        </div>
+      </div>
+
+      <div class="w-full pt-8">
+        <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
+          Close
+        </PepButton>
+      </div>
     </div>
   </div>
 </template>

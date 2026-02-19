@@ -7,7 +7,7 @@ defineProps<Props>();
 </script>
 
 <template>
-  <div class="grid grid-cols-3 gap-2 rounded-xl border border-slate-700 bg-slate-800 p-4">
+  <div class="grid grid-cols-3 gap-2 rounded-xl border border-slate-700 bg-slate-800 p-2">
     <div
       v-for="(word, index) in mnemonic.split(' ')"
       :key="index"

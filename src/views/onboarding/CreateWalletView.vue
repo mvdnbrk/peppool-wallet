@@ -102,8 +102,8 @@ async function handleCreate() {
     <!-- Step 2: Show Seed -->
     <div v-if="step === 2" class="flex flex-1 flex-col pt-4">
       <PepForm :loading="form.isProcessing" @submit="handleCreate" class="flex flex-1 flex-col">
-        <div class="flex-1 space-y-6">
-          <div class="space-y-2 text-sm text-slate-400">
+        <div class="flex-1">
+          <div class="pb-4 space-y-2 text-sm text-slate-400">
             <p class="text-offwhite font-bold">Write down your secret phrase</p>
             <p>
               This phrase is the ONLY way to recover your wallet if you lose your device or
@@ -113,7 +113,7 @@ async function handleCreate() {
 
           <PepMnemonicGrid :mnemonic="mnemonic" />
 
-          <div class="pt-2">
+          <div class="pt-4">
             <PepCheckbox
               v-model="confirmedSeed"
               id="confirm-seed"

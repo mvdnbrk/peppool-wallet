@@ -89,7 +89,7 @@ function openDetail(txid: string) {
         >
           <div class="flex items-center space-x-3">
             <div>
-              <p class="text-sm font-bold leading-tight" :class="tx.statusColor">
+              <p class="text-sm leading-tight font-bold" :class="tx.statusColor">
                 {{ tx.statusLabel }}
               </p>
               <p class="font-mono text-[10px] text-slate-500">

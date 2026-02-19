@@ -97,8 +97,7 @@ async function handleCreate() {
         <div class="space-y-2 pb-0 text-sm text-slate-400">
           <p class="text-offwhite font-bold">Write down your secret phrase</p>
           <p>
-            This phrase is the ONLY way to recover your wallet if you lose your device or
-            password.
+            This phrase is the ONLY way to recover your wallet if you lose your device or password.
           </p>
         </div>
 

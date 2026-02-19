@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useWalletStore } from '../../stores/wallet';
-import { formatFiat, formatAmount } from '../../utils/constants';
+import { useWalletStore } from '@/stores/wallet';
+import { formatFiat, formatAmount } from '@/utils/constants';
 import { useRouter } from 'vue-router';
 import { onMounted, onUnmounted, computed } from 'vue';
 

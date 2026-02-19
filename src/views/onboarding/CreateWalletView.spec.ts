@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import CreateWalletView from './CreateWalletView.vue';
-import { useWalletStore } from '../../stores/wallet';
+import { useWalletStore } from '@/stores/wallet';
 
 // Mock Router
 const pushMock = vi.fn();
@@ -12,13 +12,13 @@ vi.mock('vue-router', () => ({
 }));
 
 // Mock Store
-vi.mock('../../stores/wallet', () => ({
+vi.mock('@/stores/wallet', () => ({
   useWalletStore: vi.fn()
 }));
 
 // Mock Crypto Utils
-vi.mock('../../utils/crypto', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../utils/crypto')>();
+vi.mock('@/utils/crypto', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/crypto')>();
   return {
     ...actual,
     generateMnemonic: vi.fn().mockReturnValue('test mnemonic')

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import WelcomeView from './WelcomeView.vue';
-import { useWalletStore } from '../../stores/wallet';
+import { useWalletStore } from '@/stores/wallet';
 
 // Mock Router
 const pushMock = vi.fn();
@@ -12,7 +12,7 @@ vi.mock('vue-router', () => ({
 }));
 
 // Mock Store
-vi.mock('../../stores/wallet', () => ({
+vi.mock('@/stores/wallet', () => ({
   useWalletStore: vi.fn()
 }));
 

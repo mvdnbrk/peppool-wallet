@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import ResetWalletView from './ResetWalletView.vue';
 import { createTestingPinia } from '@pinia/testing';
-import { useWalletStore } from '../../stores/wallet';
+import { useWalletStore } from '@/stores/wallet';
 
 // Mock Router
 const pushMock = vi.fn();

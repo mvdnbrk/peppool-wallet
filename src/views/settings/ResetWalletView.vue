@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../../stores/wallet';
-import PepLoadingButton from '../../components/ui/PepLoadingButton.vue';
-import { UX_DELAY_NORMAL } from '../../utils/constants';
+import { useWalletStore } from '@/stores/wallet';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import { UX_DELAY_NORMAL } from '@/utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();

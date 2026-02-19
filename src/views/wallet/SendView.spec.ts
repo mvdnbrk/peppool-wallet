@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import SendView from './SendView.vue';
-import PepAmountInput from '../../components/ui/form/PepAmountInput.vue';
+import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import { createTestingPinia } from '@pinia/testing';
 
 // Mock Router
@@ -14,7 +14,7 @@ vi.mock('vue-router', () => ({
 // Mock API
 const mockFetchUtxos = vi.fn();
 const mockFetchRecommendedFees = vi.fn();
-vi.mock('../../utils/api', () => ({
+vi.mock('@/utils/api', () => ({
   fetchUtxos: (...args: any[]) => mockFetchUtxos(...args),
   fetchRecommendedFees: (...args: any[]) => mockFetchRecommendedFees(...args),
   broadcastTx: vi.fn(),

@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useWalletStore } from '../../stores/wallet';
+import { useWalletStore } from '@/stores/wallet';
 import {
   fetchUtxos,
   broadcastTx,
   fetchTxHex,
   validateAddress,
   fetchRecommendedFees
-} from '../../utils/api';
-import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '../../utils/crypto';
-import { decrypt as decryptMnemonic } from '../../utils/encryption';
-import { useForm } from '../../utils/form';
-import { SendTransaction } from '../../models/SendTransaction';
-import PepLoadingButton from '../../components/ui/PepLoadingButton.vue';
-import PepForm from '../../components/ui/form/PepForm.vue';
+} from '@/utils/api';
+import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '@/utils/crypto';
+import { decrypt as decryptMnemonic } from '@/utils/encryption';
+import { useForm } from '@/utils/form';
+import { SendTransaction } from '@/models/SendTransaction';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import PepForm from '@/components/ui/form/PepForm.vue';
 import {
   RIBBITS_PER_PEP,
   MIN_SEND_PEP,
@@ -22,7 +22,7 @@ import {
   truncateId,
   UX_DELAY_FAST,
   UX_DELAY_SLOW
-} from '../../utils/constants';
+} from '@/utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();

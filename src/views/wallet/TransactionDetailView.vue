@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useWalletStore } from '../../stores/wallet';
-import { fetchTransaction } from '../../utils/api';
-import { Transaction } from '../../models/Transaction';
-import { truncateId } from '../../utils/constants';
+import { useWalletStore } from '@/stores/wallet';
+import { fetchTransaction } from '@/utils/api';
+import { Transaction } from '@/models/Transaction';
+import { truncateId } from '@/utils/constants';
 
 const route = useRoute();
 const router = useRouter();

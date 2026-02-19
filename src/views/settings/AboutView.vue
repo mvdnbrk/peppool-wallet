@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { APP_VERSION } from '../../utils/constants';
+import { APP_VERSION } from '@/utils/constants';
 </script>
 
 <template>

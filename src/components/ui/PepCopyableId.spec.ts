@@ -4,7 +4,7 @@ import PepCopyableId from './PepCopyableId.vue';
 
 const stubs = {
   PepIcon: { template: '<div />' },
-  PepInputGroup: { 
+  PepInputGroup: {
     template: '<div><label>{{ label }}</label><slot /></div>',
     props: ['label']
   }

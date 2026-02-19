@@ -34,7 +34,9 @@ const stubs = {
   PepPasswordInput: { template: '<div><slot /></div>' },
   PepInputGroup: { template: '<div><slot /></div>' },
   PepLoadingButton: { template: '<button><slot /></button>' },
-  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' }
+  PepForm: {
+    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+  }
 };
 
 describe('SendView', () => {
@@ -100,10 +102,12 @@ describe('SendView', () => {
     ui.txid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
 
     await wrapper.vm.$nextTick();
-    
+
     const copyable = wrapper.findComponent(PepCopyableId);
     expect(copyable.exists()).toBe(true);
-    expect(copyable.props('id')).toBe('f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3');
+    expect(copyable.props('id')).toBe(
+      'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3'
+    );
   });
 
   it('should only use confirmed UTXOs for spending', async () => {

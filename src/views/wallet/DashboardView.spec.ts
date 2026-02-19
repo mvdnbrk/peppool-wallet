@@ -16,7 +16,8 @@ vi.mock('@/composables/useApp');
 // Mock global components
 const stubs = {
   PepMainLayout: {
-    template: '<div><slot name="header"><PepPageHeader v-bind="$attrs" /></slot><slot /><slot name="actions" /><slot name="footer" /></div>',
+    template:
+      '<div><slot name="header"><PepPageHeader v-bind="$attrs" /></slot><slot /><slot name="actions" /><slot name="footer" /></div>',
     inheritAttrs: false
   },
   PepFooter: { template: '<div></div>' },

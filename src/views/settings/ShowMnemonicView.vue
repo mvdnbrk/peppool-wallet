@@ -102,9 +102,7 @@ async function handleReveal() {
 
     <!-- Step 1: Verify Password -->
     <div v-if="step === 1" class="flex-1 space-y-8">
-      <p class="text-sm text-slate-400">
-        Please enter your password to reveal your secret phrase.
-      </p>
+      <p class="text-sm text-slate-400">Please enter your password to reveal your secret phrase.</p>
 
       <div class="space-y-6">
         <PepPasswordInput

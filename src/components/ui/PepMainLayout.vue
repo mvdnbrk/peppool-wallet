@@ -16,10 +16,7 @@ withDefaults(defineProps<Props>(), {
     </header>
 
     <!-- Main Content (scrolls) -->
-    <main
-      class="flex flex-1 flex-col overflow-y-auto"
-      :class="{ 'pt-4': !$slots.header }"
-    >
+    <main class="flex flex-1 flex-col overflow-y-auto" :class="{ 'pt-4': !$slots.header }">
       <slot />
     </main>
 

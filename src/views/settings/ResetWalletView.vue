@@ -26,7 +26,9 @@ async function handleReset() {
         <p class="text-offwhite font-bold">
           This will completely wipe your wallet data from this browser.
         </p>
-        <div class="rounded-lg border border-red-900/20 bg-red-900/10 p-3 font-semibold text-red-400">
+        <div
+          class="rounded-lg border border-red-900/20 bg-red-900/10 p-3 font-semibold text-red-400"
+        >
           <p>
             Ensure you have your secret phrase backed up. Without it, you will lose access to your
             funds permanently.

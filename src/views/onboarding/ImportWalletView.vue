@@ -134,8 +134,8 @@ async function handleImport() {
         ></textarea>
 
         <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
-          <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not
-          a valid seed phrase word
+          <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not a
+          valid seed phrase word
         </p>
       </PepInputGroup>
 

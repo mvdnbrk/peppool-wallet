@@ -50,29 +50,27 @@ const strength = computed(() => {
 
 <template>
   <div class="space-y-4">
-    <div class="space-y-4">
-      <PepInput
-        v-model="passwordValue"
-        id="new-password"
-        type="password"
-        :label="passwordLabel || 'New password'"
-        :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
-        :error="errors?.password"
-        :disabled="isDisabled"
-        @blur="emit('blur-password')"
-      />
+    <PepInput
+      v-model="passwordValue"
+      id="new-password"
+      type="password"
+      :label="passwordLabel || 'New password'"
+      :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
+      :error="errors?.password"
+      :disabled="isDisabled"
+      @blur="emit('blur-password')"
+    />
 
-      <PepInput
-        v-model="confirmPasswordValue"
-        id="confirm-password"
-        type="password"
-        :label="confirmLabel || 'Confirm password'"
-        placeholder="Repeat password"
-        :error="errors?.confirmPassword"
-        :disabled="isDisabled"
-        @blur="emit('blur-confirm')"
-      />
-    </div>
+    <PepInput
+      v-model="confirmPasswordValue"
+      id="confirm-password"
+      type="password"
+      :label="confirmLabel || 'Confirm password'"
+      placeholder="Repeat password"
+      :error="errors?.confirmPassword"
+      :disabled="isDisabled"
+      @blur="emit('blur-confirm')"
+    />
 
     <!-- Strength Meter -->
     <div

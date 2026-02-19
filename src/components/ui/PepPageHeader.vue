@@ -15,13 +15,9 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter();
 
 function handleBack() {
-  if (props.onBack) {
-    props.onBack();
-  } else if (props.backTo) {
-    router.push(props.backTo);
-  } else {
-    router.back();
-  }
+  if (props.onBack) return props.onBack();
+  if (props.backTo) return router.push(props.backTo);
+  router.back();
 }
 </script>
 

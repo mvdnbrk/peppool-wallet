@@ -32,10 +32,12 @@ function openExplorer() {
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col px-6 pt-4 pb-0">
-    <PepPageHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
+  <PepMainLayout showFooter>
+    <template #header>
+      <PepPageHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
+    </template>
 
-    <div class="mt-0 flex min-h-0 flex-1 flex-col">
+    <div class="flex min-h-0 flex-1 flex-col">
       <div v-if="isLoading" class="flex flex-1 flex-col items-center justify-center space-y-4">
         <PepSpinner size="32" class="text-pep-green" />
         <p class="text-sm font-bold tracking-widest text-slate-500 uppercase">Loading Details...</p>
@@ -109,18 +111,18 @@ function openExplorer() {
                 </span>
               </div>
 
-              <span class="inline-flex">
-                <el-copyable id="txid-value" class="hidden">{{ txModel.txid }}</el-copyable>
+              <el-copyable id="txid-value" class="group inline-flex">
+                <span class="hidden">{{ txModel.txid }}</span>
                 <button
                   type="button"
                   command="--copy"
                   commandfor="txid-value"
-                  class="group text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
+                  class="text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
                 >
                   <PepIcon name="copy" class="copied:hidden h-5 w-5" />
                   <PepIcon name="check" class="copied:block hidden h-5 w-5" />
                 </button>
-              </span>
+              </el-copyable>
             </div>
           </PepInputGroup>
 
@@ -128,6 +130,5 @@ function openExplorer() {
         </div>
       </div>
     </div>
-    <PepFooter />
-  </div>
+  </PepMainLayout>
 </template>

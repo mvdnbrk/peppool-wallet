@@ -8,8 +8,10 @@ const { router, wallet: walletStore } = useApp();
 </script>
 
 <template>
-  <div class="flex h-full flex-col p-6">
-    <PepPageHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" />
+    </template>
 
     <div class="flex flex-1 flex-col items-center justify-center space-y-8">
       <div class="rounded-2xl bg-white p-4 shadow-xl">
@@ -50,5 +52,5 @@ const { router, wallet: walletStore } = useApp();
     </div>
 
     <p class="mt-4 text-center text-xs text-slate-500">Only send Pepecoin (PEP) to this address.</p>
-  </div>
+  </PepMainLayout>
 </template>

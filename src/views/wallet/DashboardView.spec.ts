@@ -4,6 +4,7 @@ import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
 import TransactionDetailView from './TransactionDetailView.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import { createTestingPinia } from '@pinia/testing';
 import { Transaction } from '@/models/Transaction';
 import { useApp } from '@/composables/useApp';
@@ -14,6 +15,10 @@ vi.mock('@/composables/useApp');
 
 // Mock global components
 const stubs = {
+  PepMainLayout: {
+    template: '<div><slot name="header"><PepPageHeader v-bind="$attrs" /></slot><slot /><slot name="actions" /><slot name="footer" /></div>',
+    inheritAttrs: false
+  },
   PepFooter: { template: '<div></div>' },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' },

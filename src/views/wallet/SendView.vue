@@ -262,24 +262,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative flex min-h-full flex-col p-6">
-    <PepPageHeader
-      :title="ui.step === 3 ? 'Success' : 'Send PEP'"
-      :onBack="
-        ui.step === 2
-          ? () => {
-              ui.step = 1;
-              form.clearError();
-              form.password = '';
-            }
-          : ui.step === 1
-            ? handleCancel
-            : undefined
-      "
-    />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader
+        :title="ui.step === 3 ? 'Success' : 'Send PEP'"
+        :onBack="
+          ui.step === 2
+            ? () => {
+                ui.step = 1;
+                form.clearError();
+                form.password = '';
+              }
+            : ui.step === 1
+              ? handleCancel
+              : undefined
+        "
+      />
+    </template>
 
     <!-- Step 1 -->
-    <div v-if="ui.step === 1" class="flex flex-1 flex-col pt-0">
+    <div v-if="ui.step === 1" class="flex flex-1 flex-col">
       <PepForm class="flex flex-1 flex-col" @submit="handleReview">
         <PepInput
           ref="recipientInput"
@@ -343,7 +345,7 @@ onMounted(async () => {
             <PepLoadingButton
               type="submit"
               :loading="form.isProcessing || ui.isLoadingRequirements"
-              :min-loading-ms="UX_DELAY_FAST"
+              :minLoadingMs="UX_DELAY_FAST"
               :disabled="
                 !form.recipient || tx.amountRibbits <= 0 || form.hasError() || isInsufficientFunds
               "
@@ -358,7 +360,7 @@ onMounted(async () => {
     </div>
 
     <!-- Step 2 -->
-    <div v-if="ui.step === 2" class="flex flex-1 flex-col pt-0">
+    <div v-if="ui.step === 2" class="flex flex-1 flex-col">
       <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
         <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
           <div class="flex flex-col space-y-0.5">
@@ -411,7 +413,7 @@ onMounted(async () => {
             <PepLoadingButton
               type="submit"
               :loading="form.isProcessing"
-              :min-loading-ms="UX_DELAY_SLOW"
+              :minLoadingMs="UX_DELAY_SLOW"
               :disabled="form.hasError()"
               class="w-full"
             >
@@ -468,7 +470,7 @@ onMounted(async () => {
                 class="group text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
               >
                 <PepIcon name="copy" class="copied:hidden h-5 w-5" />
-                <PepIcon name="check" class="copied:block hidden h-5 w-5" />
+                <PepIcon name="check" class="copied:block h-5 w-5" />
               </button>
             </span>
           </div>
@@ -482,5 +484,5 @@ onMounted(async () => {
         </PepButton>
       </div>
     </div>
-  </div>
+  </PepMainLayout>
 </template>

@@ -108,56 +108,56 @@ async function handleImport() {
 </script>
 
 <template>
-  <div class="relative flex min-h-full flex-col p-6">
-    <PepPageHeader title="Import wallet" backTo="/" />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Import wallet" backTo="/" />
+    </template>
 
-    <div class="flex flex-1 flex-col pt-0">
-      <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex flex-1 flex-col">
-        <PepInputGroup
-          label="Secret phrase (12 or 24 words)"
+    <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex flex-1 flex-col">
+      <PepInputGroup
+        label="Secret phrase (12 or 24 words)"
+        id="mnemonic"
+        :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
+      >
+        <textarea
+          v-model="form.mnemonic"
           id="mnemonic"
-          :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
+          rows="3"
+          placeholder="word1 word2 ..."
+          :disabled="form.isProcessing"
+          class="text-offwhite focus:outline-pep-green block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+          :class="{
+            'outline-red-500/50 focus:outline-red-400':
+              form.errors.mnemonic && invalidWords.length === 0
+          }"
+          @blur="onBlurMnemonic"
+        ></textarea>
+
+        <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
+          <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not
+          a valid seed phrase word
+        </p>
+      </PepInputGroup>
+
+      <PepPasswordFields
+        v-model:password="form.password"
+        v-model:confirmPassword="form.confirmPassword"
+        :errors="form.errors"
+        @blur-password="onBlurPassword"
+        @blur-confirm="onBlurConfirmPassword"
+      />
+
+      <template #actions>
+        <PepLoadingButton
+          type="submit"
+          :loading="form.isProcessing"
+          :min-loading-ms="UX_DELAY_SLOW"
+          :disabled="!canImport"
+          class="w-full"
         >
-          <textarea
-            v-model="form.mnemonic"
-            id="mnemonic"
-            rows="3"
-            placeholder="word1 word2 ..."
-            :disabled="form.isProcessing"
-            class="text-offwhite focus:outline-pep-green block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
-            :class="{
-              'outline-red-500/50 focus:outline-red-400':
-                form.errors.mnemonic && invalidWords.length === 0
-            }"
-            @blur="onBlurMnemonic"
-          ></textarea>
-
-          <p v-if="invalidWords.length > 0" class="mt-2 text-xs text-red-400">
-            <span class="font-semibold">{{ invalidWords[invalidWords.length - 1] }}</span> is not a
-            valid seed phrase word
-          </p>
-        </PepInputGroup>
-
-        <PepPasswordFields
-          v-model:password="form.password"
-          v-model:confirmPassword="form.confirmPassword"
-          :errors="form.errors"
-          @blur-password="onBlurPassword"
-          @blur-confirm="onBlurConfirmPassword"
-        />
-
-        <template #actions>
-          <PepLoadingButton
-            type="submit"
-            :loading="form.isProcessing"
-            :min-loading-ms="UX_DELAY_SLOW"
-            :disabled="!canImport"
-            class="w-full"
-          >
-            Import wallet
-          </PepLoadingButton>
-        </template>
-      </PepForm>
-    </div>
-  </div>
+          Import wallet
+        </PepLoadingButton>
+      </template>
+    </PepForm>
+  </PepMainLayout>
 </template>

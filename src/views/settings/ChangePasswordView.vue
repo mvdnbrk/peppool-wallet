@@ -96,58 +96,59 @@ async function handleChangePassword() {
 </script>
 
 <template>
-  <div class="relative flex min-h-full flex-col p-6">
-    <PepPageHeader
-      :title="isSuccess ? 'Success' : 'Change password'"
-      :key="isSuccess ? 'success' : 'form'"
-    />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader
+        :title="isSuccess ? 'Success' : 'Change password'"
+        :key="isSuccess ? 'success' : 'form'"
+      />
+    </template>
 
-    <div v-if="!isSuccess" class="flex flex-1 flex-col pt-0">
-      <PepForm
-        :loading="form.isProcessing"
-        @submit="handleChangePassword"
-        class="flex flex-1 flex-col"
-      >
-        <PepPasswordInput
-          v-model="form.oldPassword"
-          id="old-password"
-          label="Current password"
-          placeholder="Enter current password"
-          :error="oldPasswordError"
-          :disabled="isLockedOut"
-        />
+    <PepForm
+      v-if="!isSuccess"
+      :loading="form.isProcessing"
+      @submit="handleChangePassword"
+      class="flex flex-1 flex-col"
+    >
+      <PepPasswordInput
+        v-model="form.oldPassword"
+        id="old-password"
+        label="Current password"
+        placeholder="Enter current password"
+        :error="oldPasswordError"
+        :disabled="isLockedOut"
+      />
 
-        <PepPasswordFields
-          v-model:password="form.password"
-          v-model:confirmPassword="form.confirmPassword"
-          :errors="form.errors"
-          :disabled="isLockedOut"
-          passwordLabel="New password"
-          confirmLabel="Confirm new password"
-          @blur-password="onBlurPassword"
-          @blur-confirm="onBlurConfirmPassword"
-        />
+      <PepPasswordFields
+        v-model:password="form.password"
+        v-model:confirmPassword="form.confirmPassword"
+        :errors="form.errors"
+        :disabled="isLockedOut"
+        passwordLabel="New password"
+        confirmLabel="Confirm new password"
+        @blur-password="onBlurPassword"
+        @blur-confirm="onBlurConfirmPassword"
+      />
 
-        <template #actions>
-          <PepLoadingButton
-            type="submit"
-            :loading="form.isProcessing"
-            :min-loading-ms="UX_DELAY_NORMAL"
-            :disabled="
-              isLockedOut ||
-              form.isProcessing ||
-              !form.oldPassword ||
-              !form.password ||
-              !form.confirmPassword ||
-              form.hasError()
-            "
-            class="w-full"
-          >
-            {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
-          </PepLoadingButton>
-        </template>
-      </PepForm>
-    </div>
+      <template #actions>
+        <PepLoadingButton
+          type="submit"
+          :loading="form.isProcessing"
+          :min-loading-ms="UX_DELAY_NORMAL"
+          :disabled="
+            isLockedOut ||
+            form.isProcessing ||
+            !form.oldPassword ||
+            !form.password ||
+            !form.confirmPassword ||
+            form.hasError()
+          "
+          class="w-full"
+        >
+          {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
+        </PepLoadingButton>
+      </template>
+    </PepForm>
 
     <!-- Success State -->
     <div v-else class="flex flex-1 flex-col items-center pt-12 text-center">
@@ -158,12 +159,12 @@ async function handleChangePassword() {
           <p class="text-sm text-slate-400">Your new password is now active.</p>
         </div>
       </div>
-
-      <div class="w-full pt-8">
-        <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
-          Close
-        </PepButton>
-      </div>
     </div>
-  </div>
+
+    <template v-if="isSuccess" #actions>
+      <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
+        Close
+      </PepButton>
+    </template>
+  </PepMainLayout>
 </template>

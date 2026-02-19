@@ -17,9 +17,10 @@ function selectDuration(val: number) {
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col p-6">
-    <PepPageHeader title="Auto-Lock" />
-
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Auto-Lock" />
+    </template>
     <div class="mt-0 flex-1 space-y-6">
       <p class="px-1 text-sm text-slate-400">
         Select the desired duration before the extension locks.
@@ -32,5 +33,5 @@ function selectDuration(val: number) {
         @update:modelValue="selectDuration"
       />
     </div>
-  </div>
+  </PepMainLayout>
 </template>

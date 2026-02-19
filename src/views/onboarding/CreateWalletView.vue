@@ -61,12 +61,14 @@ async function handleCreate() {
 </script>
 
 <template>
-  <div class="relative flex min-h-full flex-col p-6">
-    <PepPageHeader
-      title="Create wallet"
-      :onBack="step === 2 ? () => (step = 1) : undefined"
-      :backTo="step === 1 ? '/' : undefined"
-    />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader
+        title="Create wallet"
+        :onBack="step === 2 ? () => (step = 1) : undefined"
+        :backTo="step === 1 ? '/' : undefined"
+      />
+    </template>
 
     <!-- Step 1: Password -->
     <div v-if="step === 1" class="flex flex-1 flex-col pt-0">
@@ -128,5 +130,5 @@ async function handleCreate() {
         </template>
       </PepForm>
     </div>
-  </div>
+  </PepMainLayout>
 </template>

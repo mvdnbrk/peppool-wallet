@@ -3,8 +3,10 @@ import { APP_VERSION } from '@/utils/constants';
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col p-6">
-    <PepPageHeader title="About" />
+  <PepMainLayout showFooter>
+    <template #header>
+      <PepPageHeader title="About" />
+    </template>
 
     <div class="mt-0 flex-1 space-y-4">
       <PepList>
@@ -39,7 +41,5 @@ import { APP_VERSION } from '@/utils/constants';
         </div>
       </PepCard>
     </div>
-
-    <PepFooter />
-  </div>
+  </PepMainLayout>
 </template>

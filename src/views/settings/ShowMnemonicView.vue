@@ -95,60 +95,62 @@ async function handleReveal() {
 </script>
 
 <template>
-  <div class="relative flex min-h-full flex-col p-6">
-    <PepPageHeader title="Secret phrase" />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Secret phrase" />
+    </template>
 
     <!-- Step 1: Verify Password -->
-    <div v-if="step === 1" class="flex flex-1 flex-col pt-0">
-      <div class="flex-1 space-y-8">
-        <p class="text-sm text-slate-400">
-          Please enter your password to reveal your secret phrase.
-        </p>
+    <div v-if="step === 1" class="flex-1 space-y-8">
+      <p class="text-sm text-slate-400">
+        Please enter your password to reveal your secret phrase.
+      </p>
 
-        <div class="space-y-6">
-          <PepPasswordInput
-            v-model="password"
-            id="reveal-password"
-            label="Password"
-            placeholder="Enter your password"
-            :error="errorMessage"
-            :disabled="isLockedOut"
-            @keyup.enter="handleReveal"
-          />
-        </div>
-      </div>
-
-      <div class="pt-6">
-        <PepLoadingButton
-          @click="handleReveal"
-          :loading="isProcessing"
-          :minLoadingMs="UX_DELAY_NORMAL"
-          :disabled="isLockedOut || !password || !!errorMessage"
-          class="w-full"
-        >
-          {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}
-        </PepLoadingButton>
+      <div class="space-y-6">
+        <PepPasswordInput
+          v-model="password"
+          id="reveal-password"
+          label="Password"
+          placeholder="Enter your password"
+          :error="errorMessage"
+          :disabled="isLockedOut"
+          @keyup.enter="handleReveal"
+        />
       </div>
     </div>
 
     <!-- Step 2: Show Phrase -->
-    <div v-if="step === 2" class="flex flex-1 flex-col pt-0">
-      <div class="flex-1 space-y-6">
-        <div class="rounded-lg border border-red-900/50 bg-red-900/20 p-3 text-xs text-red-400">
-          <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this
-          phrase can steal your funds.
-        </div>
-
-        <div class="flex flex-1 flex-col justify-center pt-8">
-          <PepMnemonicGrid :mnemonic="mnemonic" />
-        </div>
+    <div v-if="step === 2" class="flex-1 space-y-6">
+      <div class="rounded-lg border border-red-900/50 bg-red-900/20 p-3 text-xs text-red-400">
+        <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this
+        phrase can steal your funds.
       </div>
 
-      <div class="pt-6">
-        <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
-          Close
-        </PepButton>
+      <div class="flex flex-1 flex-col justify-center pt-8">
+        <PepMnemonicGrid :mnemonic="mnemonic" />
       </div>
     </div>
-  </div>
+
+    <template #actions>
+      <PepLoadingButton
+        v-if="step === 1"
+        @click="handleReveal"
+        :loading="isProcessing"
+        :minLoadingMs="UX_DELAY_NORMAL"
+        :disabled="isLockedOut || !password || !!errorMessage"
+        class="w-full"
+      >
+        {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}
+      </PepLoadingButton>
+
+      <PepButton
+        v-if="step === 2"
+        @click="router.push('/dashboard')"
+        variant="secondary"
+        class="w-full"
+      >
+        Close
+      </PepButton>
+    </template>
+  </PepMainLayout>
 </template>

@@ -4,6 +4,7 @@ import ImportWalletView from './ImportWalletView.vue';
 import CreateWalletView from './CreateWalletView.vue';
 import ForgotPasswordView from './ForgotPasswordView.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import { useApp } from '@/composables/useApp';
 
 // Mock useApp
@@ -35,7 +36,7 @@ describe('Onboarding Navigation', () => {
 
   it('ImportWalletView: should have backTo prop set to /', () => {
     const wrapper = mount(ImportWalletView, {
-      global: { stubs, components: { PepPageHeader } }
+      global: { stubs, components: { PepPageHeader, PepMainLayout } }
     });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBe('/');
@@ -43,7 +44,7 @@ describe('Onboarding Navigation', () => {
 
   it('CreateWalletView: should have backTo prop set to / when at step 1', () => {
     const wrapper = mount(CreateWalletView, {
-      global: { stubs, components: { PepPageHeader } }
+      global: { stubs, components: { PepPageHeader, PepMainLayout } }
     });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBe('/');
@@ -52,7 +53,7 @@ describe('Onboarding Navigation', () => {
 
   it('ForgotPasswordView: should use default router.back()', () => {
     const wrapper = mount(ForgotPasswordView, {
-      global: { stubs, components: { PepPageHeader } }
+      global: { stubs, components: { PepPageHeader, PepMainLayout } }
     });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();

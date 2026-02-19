@@ -5,9 +5,10 @@ const { router } = useApp();
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col p-6">
-    <PepPageHeader title="Security" />
-
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Security" />
+    </template>
     <div class="mt-0 flex-1 space-y-2">
       <PepList>
         <PepListItem
@@ -32,5 +33,5 @@ const { router } = useApp();
         </PepButton>
       </div>
     </div>
-  </div>
+  </PepMainLayout>
 </template>

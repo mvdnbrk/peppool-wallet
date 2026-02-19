@@ -12,9 +12,10 @@ function getDurationLabel(val: number) {
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col p-6">
-    <PepPageHeader title="Preferences" />
-
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Preferences" />
+    </template>
     <div class="mt-0 flex-1 space-y-2">
       <PepList>
         <PepListItem
@@ -54,5 +55,5 @@ function getDurationLabel(val: number) {
         </PepListItem>
       </PepList>
     </div>
-  </div>
+  </PepMainLayout>
 </template>

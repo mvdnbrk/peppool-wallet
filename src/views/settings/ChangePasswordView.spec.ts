@@ -4,6 +4,8 @@ import ChangePasswordView from './ChangePasswordView.vue';
 import { useApp } from '@/composables/useApp';
 import { replaceMock, pushMock } from '@/composables/__mocks__/useApp';
 import * as encryption from '@/utils/encryption';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 
 // Mock useApp
 vi.mock('@/composables/useApp');
@@ -15,10 +17,6 @@ vi.mock('@/utils/encryption', () => ({
 }));
 
 const stubs = {
-  PepPageHeader: {
-    template: '<div>{{ title }}<slot /></div>',
-    props: ['title']
-  },
   PepForm: {
     template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },
@@ -68,7 +66,7 @@ describe('ChangePasswordView', () => {
     // In the actual component, requireUnlock() is called.
     const { requireUnlock } = useApp();
 
-    mount(ChangePasswordView, { global: { stubs } });
+    mount(ChangePasswordView, { global: { stubs, components: { PepMainLayout, PepPageHeader } } });
 
     expect(requireUnlock).toHaveBeenCalled();
   });
@@ -77,7 +75,7 @@ describe('ChangePasswordView', () => {
     mockWallet.unlock.mockResolvedValue(true);
 
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs }
+      global: { stubs, components: { PepMainLayout, PepPageHeader } }
     });
 
     // Fill form
@@ -99,7 +97,7 @@ describe('ChangePasswordView', () => {
     mockWallet.unlock.mockResolvedValue(true);
 
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs }
+      global: { stubs, components: { PepMainLayout, PepPageHeader } }
     });
 
     // Trigger success

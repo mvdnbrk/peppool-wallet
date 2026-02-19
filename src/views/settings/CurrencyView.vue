@@ -15,9 +15,10 @@ function selectCurrency(code: 'USD' | 'EUR') {
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col p-6">
-    <PepPageHeader title="Display currency" />
-
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Display currency" />
+    </template>
     <div class="mt-0 flex-1 space-y-2">
       <p class="mb-4 px-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
         Select Currency
@@ -30,5 +31,5 @@ function selectCurrency(code: 'USD' | 'EUR') {
         @update:modelValue="selectCurrency"
       />
     </div>
-  </div>
+  </PepMainLayout>
 </template>

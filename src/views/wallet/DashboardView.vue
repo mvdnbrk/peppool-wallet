@@ -37,8 +37,8 @@ function openDetail(txid: string) {
 </script>
 
 <template>
-  <div
-    class="flex h-full flex-col px-6 pt-4 pb-0"
+  <PepMainLayout
+    showFooter
     @mousedown="walletStore.resetLockTimer"
     @keydown="walletStore.resetLockTimer"
   >
@@ -87,7 +87,5 @@ function openDetail(txid: string) {
         />
       </div>
     </div>
-
-    <PepFooter />
-  </div>
+  </PepMainLayout>
 </template>

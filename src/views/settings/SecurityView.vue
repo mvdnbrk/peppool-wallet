@@ -8,7 +8,7 @@ const router = useRouter();
   <div class="relative flex h-full flex-col p-6">
     <PepPageHeader title="Security" />
 
-    <div class="mt-16 flex-1 space-y-2">
+    <div class="mt-0 flex-1 space-y-2">
       <PepList>
         <PepListItem
           label="Change password"

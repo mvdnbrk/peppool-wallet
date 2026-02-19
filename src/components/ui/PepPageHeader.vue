@@ -5,12 +5,9 @@ interface Props {
   title: string;
   backTo?: string;
   onBack?: () => void;
-  absolute?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  absolute: true
-});
+const props = defineProps<Props>();
 
 const router = useRouter();
 
@@ -22,7 +19,7 @@ function handleBack() {
 </script>
 
 <template>
-  <div class="z-20 flex items-center" :class="absolute ? 'absolute top-6 left-6' : 'mb-8'">
+  <div class="z-20 mb-8 flex items-center">
     <button
       @click="handleBack"
       class="mr-4 cursor-pointer text-slate-400 hover:text-white"

@@ -278,11 +278,11 @@ onMounted(async () => {
             ? handleCancel
             : undefined
       "
-      :absolute="false"
+     
     />
 
     <!-- Step 1 -->
-    <div v-if="ui.step === 1" class="flex flex-1 flex-col pt-4">
+    <div v-if="ui.step === 1" class="flex flex-1 flex-col pt-0">
       <div class="flex-1 space-y-6">
         <PepInput
           ref="recipientInput"
@@ -357,7 +357,7 @@ onMounted(async () => {
     </div>
 
     <!-- Step 2 -->
-    <div v-if="ui.step === 2" class="flex flex-1 flex-col pt-4">
+    <div v-if="ui.step === 2" class="flex flex-1 flex-col pt-0">
       <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
         <div class="flex-1 space-y-4">
           <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">

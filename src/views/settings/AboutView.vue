@@ -6,7 +6,7 @@ import { APP_VERSION } from '../../utils/constants';
   <div class="relative flex h-full flex-col p-6">
     <PepPageHeader title="About" />
 
-    <div class="mt-16 flex-1 space-y-4">
+    <div class="mt-0 flex-1 space-y-4">
       <PepList>
         <PepListItem
           label="Peppool.space"

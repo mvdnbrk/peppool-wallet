@@ -22,7 +22,7 @@ function selectDuration(val: number) {
   <div class="relative flex h-full flex-col p-6">
     <PepPageHeader title="Auto-Lock" />
 
-    <div class="mt-16 flex-1 space-y-6">
+    <div class="mt-0 flex-1 space-y-6">
       <p class="px-1 text-sm text-slate-400">
         Select the desired duration before the extension locks.
       </p>

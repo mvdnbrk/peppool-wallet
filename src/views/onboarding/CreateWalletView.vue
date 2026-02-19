@@ -70,11 +70,11 @@ async function handleCreate() {
       title="Create wallet"
       :onBack="step === 2 ? () => (step = 1) : undefined"
       :backTo="step === 1 ? '/' : undefined"
-      :absolute="false"
+     
     />
 
     <!-- Step 1: Password -->
-    <div v-if="step === 1" class="flex flex-1 flex-col pt-4">
+    <div v-if="step === 1" class="flex flex-1 flex-col pt-0">
       <PepForm @submit="handleNextToSeed" class="flex flex-1 flex-col">
         <div class="flex-1 space-y-8">
           <div class="space-y-2 text-sm text-slate-400">
@@ -100,7 +100,7 @@ async function handleCreate() {
     </div>
 
     <!-- Step 2: Show Seed -->
-    <div v-if="step === 2" class="flex flex-1 flex-col pt-4">
+    <div v-if="step === 2" class="flex flex-1 flex-col pt-0">
       <PepForm :loading="form.isProcessing" @submit="handleCreate" class="flex flex-1 flex-col">
         <div class="flex-1">
           <div class="pb-4 space-y-2 text-sm text-slate-400">

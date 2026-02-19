@@ -38,7 +38,7 @@ function openExplorer() {
   <div class="relative flex h-full flex-col px-6 pt-4 pb-0">
     <PepPageHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
 
-    <div class="mt-16 flex min-h-0 flex-1 flex-col">
+    <div class="mt-0 flex min-h-0 flex-1 flex-col">
       <div v-if="isLoading" class="flex flex-1 flex-col items-center justify-center space-y-4">
         <PepSpinner size="32" class="text-pep-green" />
         <p class="text-sm font-bold tracking-widest text-slate-500 uppercase">Loading Details...</p>

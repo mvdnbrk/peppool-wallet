@@ -1,11 +1,26 @@
 <script setup lang="ts">
 import { useWalletStore } from '../../stores/wallet';
-import { formatFiat } from '../../utils/constants';
+import { formatFiat, formatAmount } from '../../utils/constants';
 import { useRouter } from 'vue-router';
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, computed } from 'vue';
 
 const walletStore = useWalletStore();
 const router = useRouter();
+
+const balanceFontSize = computed(() => {
+  const len = formatAmount(walletStore.balance).length;
+
+  switch (true) {
+    case len > 16:
+      return 'text-xl';
+    case len > 12:
+      return 'text-2xl';
+    case len > 10:
+      return 'text-3xl';
+    default:
+      return 'text-4xl';
+  }
+});
 
 onMounted(async () => {
   if (walletStore.isUnlocked) {
@@ -35,9 +50,9 @@ function openDetail(txid: string) {
     >
       <p class="text-sm font-bold tracking-wider text-slate-400 uppercase">Total Balance</p>
       <div class="flex items-baseline justify-center space-x-2">
-        <span class="text-offwhite text-4xl font-bold">{{
-          parseFloat(walletStore.balance.toFixed(8))
-        }}</span>
+        <span class="text-offwhite font-bold transition-all duration-300" :class="balanceFontSize">
+          {{ formatAmount(walletStore.balance) }}
+        </span>
         <span class="text-pep-green-light font-bold">PEP</span>
       </div>
       <p class="text-sm font-bold text-slate-500">

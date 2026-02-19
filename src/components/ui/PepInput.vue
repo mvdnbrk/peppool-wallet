@@ -81,6 +81,7 @@ function handleClear() {
           :disabled="isDisabled"
           @mousedown.prevent="handleClear"
           class="cursor-pointer text-slate-500 transition-colors hover:text-slate-300 disabled:cursor-not-allowed"
+          tabindex="-1"
         >
           <PepIcon name="clear" size="16" />
         </button>

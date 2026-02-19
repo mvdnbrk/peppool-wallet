@@ -40,6 +40,7 @@ const showHeader = computed(() => {
           <button
             @click="router.push('/settings')"
             class="cursor-pointer p-1 text-slate-400 transition-colors hover:text-white"
+            tabindex="-1"
           >
             <PepIcon name="settings" />
           </button>

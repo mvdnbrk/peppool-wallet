@@ -24,17 +24,21 @@ vi.mock('@/utils/encryption', () => ({
 }));
 
 const stubs = {
-  PepPageHeader: { 
+  PepPageHeader: {
     template: '<div>{{ title }}<slot /></div>',
     props: ['title']
   },
-  PepForm: { template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>' },
+  PepForm: {
+    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+  },
   PepPasswordInput: {
-    template: '<input :id="id" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+    template:
+      '<input :id="id" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
     props: ['modelValue', 'id']
   },
   PepPasswordFields: {
-    template: '<div><input id="pwd" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
+    template:
+      '<div><input id="pwd" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
     props: ['password', 'confirmPassword']
   },
   PepLoadingButton: { template: '<button type="submit"><slot /></button>' },
@@ -55,7 +59,7 @@ describe('ChangePasswordView', () => {
         wallet: { isUnlocked: false }
       }
     });
-    
+
     mount(ChangePasswordView, {
       global: { stubs, plugins: [pinia] }
     });
@@ -89,13 +93,13 @@ describe('ChangePasswordView', () => {
 
     // Submit
     await wrapper.find('form').trigger('submit');
-    
+
     // Process async actions
     await flushPromises();
-    
+
     // Need to wait for isSuccess to be true
     await wrapper.vm.$nextTick();
-    
+
     expect(wrapper.text()).toContain('Password Updated');
     expect(walletStore.unlock).toHaveBeenCalledWith('old-pass');
     expect(walletStore.updateVault).toHaveBeenCalledWith('new-encrypted-mnemonic');
@@ -128,10 +132,10 @@ describe('ChangePasswordView', () => {
     await wrapper.find('form').trigger('submit');
     await flushPromises();
     await wrapper.vm.$nextTick();
-    
+
     expect(wrapper.text()).toContain('Password Updated');
 
-    const closeBtn = wrapper.findAll('button').find(b => b.text() === 'Close');
+    const closeBtn = wrapper.findAll('button').find((b) => b.text() === 'Close');
     await closeBtn?.trigger('click');
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard');

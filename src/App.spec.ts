@@ -21,7 +21,7 @@ const stubs = {
 describe('App Global Layout', () => {
   it('should HIDE the header on onboarding pages', () => {
     const onboardingPaths = ['/', '/create', '/import', '/reset-wallet', '/forgot-password'];
-    
+
     for (const path of onboardingPaths) {
       vi.mocked(useRoute).mockReturnValue({ path } as any);
       const wrapper = mount(App, { global: { stubs } });
@@ -31,7 +31,7 @@ describe('App Global Layout', () => {
 
   it('should SHOW the header on dashboard and settings', () => {
     const appPaths = ['/dashboard', '/settings', '/send', '/receive'];
-    
+
     for (const path of appPaths) {
       vi.mocked(useRoute).mockReturnValue({ path } as any);
       const wrapper = mount(App, { global: { stubs } });

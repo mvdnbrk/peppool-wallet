@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { ref, computed, onUnmounted } from 'vue';
+import { useApp } from '@/composables/useApp';
 import { encrypt } from '@/utils/encryption';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore, requireUnlock } = useApp();
+requireUnlock();
 
 const form = useForm({
   oldPassword: '',
@@ -38,16 +37,10 @@ const oldPasswordError = computed(() => {
   return form.errors.oldPassword;
 });
 
-// Require the wallet to be unlocked to change password
-onMounted(() => {
-  if (!walletStore.isUnlocked) {
-    router.replace('/');
-    return;
-  }
-  ticker = setInterval(() => {
-    now.value = Date.now();
-  }, 1000);
-});
+// Start ticker for lockout UI
+ticker = setInterval(() => {
+  now.value = Date.now();
+}, 1000);
 
 onUnmounted(() => {
   if (ticker) clearInterval(ticker);

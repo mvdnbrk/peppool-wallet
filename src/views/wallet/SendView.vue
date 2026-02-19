@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import {
   fetchUtxos,
   broadcastTx,
@@ -22,8 +22,8 @@ import {
   UX_DELAY_SLOW
 } from '@/utils/constants';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
+
 const recipientInput = ref<any>(null);
 
 // The logical object for the transaction

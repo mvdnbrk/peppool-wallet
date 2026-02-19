@@ -47,3 +47,10 @@ vi.mock('./utils/constants', async (importOriginal) => {
     UX_DELAY_SLOW: 0
   };
 });
+
+import { useApp as mockUseApp } from './composables/__mocks__/useApp';
+
+// Mock useApp globally
+vi.mock('@/composables/useApp', () => ({
+  useApp: mockUseApp
+}));

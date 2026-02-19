@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
+
 const confirmedBackup = ref(false);
 
 function handleReset() {

@@ -47,7 +47,7 @@ describe('App Global Layout', () => {
           components: { PepGlobalHeader }
         }
       });
-      expect(wrapper.find('header').exists()).toBe(true);
+      expect(wrapper.findComponent(PepGlobalHeader).exists()).toBe(true);
     }
   });
 });

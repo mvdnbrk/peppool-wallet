@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import { RIBBITS_PER_PEP, formatFiat } from '@/utils/constants';
 import PepInput from './PepInput.vue';
 import PepIcon from '../PepIcon.vue';
@@ -27,7 +28,8 @@ const emit = defineEmits<{
   'change-max': [isMax: boolean];
 }>();
 
-const walletStore = useWalletStore();
+const { wallet: walletStore } = useApp();
+
 const inputAmount = ref('');
 let isInternalSync = false;
 

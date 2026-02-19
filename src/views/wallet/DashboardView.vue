@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { useWalletStore } from '@/stores/wallet';
 import { formatFiat, formatAmount } from '@/utils/constants';
-import { useRouter } from 'vue-router';
+import { useApp } from '@/composables/useApp';
 import { onMounted, onUnmounted, computed } from 'vue';
 
-const walletStore = useWalletStore();
-const router = useRouter();
+const { router, wallet: walletStore } = useApp();
 
 const balanceFontSize = computed(() => {
   const len = formatAmount(walletStore.balance).length;

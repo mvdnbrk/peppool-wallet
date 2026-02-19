@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
 
 const options = [
   { label: '15 Minutes', value: 15 },

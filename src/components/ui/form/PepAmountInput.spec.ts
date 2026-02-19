@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepAmountInput from './PepAmountInput.vue';
-import { createTestingPinia } from '@pinia/testing';
+import { useApp } from '@/composables/useApp';
+
+// Mock useApp
+vi.mock('@/composables/useApp', () => ({
+  useApp: vi.fn(() => ({
+    wallet: {
+      selectedCurrency: 'USD'
+    }
+  }))
+}));
 
 // Mock components
 const stubs = {
@@ -22,8 +31,7 @@ describe('PepAmountInput UI Component', () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 0, price: 10, isFiatMode: false },
       global: {
-        stubs,
-        plugins: [createTestingPinia()]
+        stubs
       }
     });
 
@@ -37,8 +45,7 @@ describe('PepAmountInput UI Component', () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 0, price: 10, isFiatMode: true }, // 1 PEP = $10
       global: {
-        stubs,
-        plugins: [createTestingPinia()]
+        stubs
       }
     });
 
@@ -52,8 +59,7 @@ describe('PepAmountInput UI Component', () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 0, price: 10, isFiatMode: false },
       global: {
-        stubs,
-        plugins: [createTestingPinia()]
+        stubs
       }
     });
 
@@ -70,8 +76,7 @@ describe('PepAmountInput UI Component', () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 100, price: 10, isFiatMode: false },
       global: {
-        stubs,
-        plugins: [createTestingPinia()]
+        stubs
       }
     });
 

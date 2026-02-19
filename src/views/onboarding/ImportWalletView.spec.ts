@@ -1,20 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import ImportWalletView from './ImportWalletView.vue';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
+// Mock useApp
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock
-  }),
-  useRoute: () => ({ path: '/import' })
-}));
-
-// Mock Store
-vi.mock('@/stores/wallet', () => ({
-  useWalletStore: vi.fn()
+vi.mock('@/composables/useApp', () => ({
+  useApp: vi.fn()
 }));
 
 // Components
@@ -45,16 +37,28 @@ describe('ImportWalletView Logic', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = {
-      importWallet: vi.fn()
+      importWallet: vi.fn(),
+      isUnlocked: true,
+      errors: {}
     };
-    vi.mocked(useWalletStore).mockReturnValue(mockStore);
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      wallet: mockStore,
+      requireUnlock: vi.fn(),
+      route: { path: '/import' } as any
+    });
   });
 
   it('should call store.importWallet and navigate to dashboard on success', async () => {
     mockStore.importWallet.mockResolvedValue(undefined);
 
     const wrapper = mount(ImportWalletView, {
-      global: { stubs }
+      global: {
+        stubs: {
+          ...stubs,
+          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
+        }
+      }
     });
 
     // 1. Fill mnemonic

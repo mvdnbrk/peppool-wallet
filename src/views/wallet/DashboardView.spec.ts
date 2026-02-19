@@ -3,27 +3,17 @@ import { mount } from '@vue/test-utils';
 import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
 import TransactionDetailView from './TransactionDetailView.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import { createTestingPinia } from '@pinia/testing';
 import { Transaction } from '@/models/Transaction';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
+// Mock useApp
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock
-  }),
-  useRoute: () => ({
-    params: { txid: 'test-tx' }
-  })
-}));
+vi.mock('@/composables/useApp');
 
 // Mock global components
 const stubs = {
-  PepPageHeader: {
-    name: 'PepPageHeader',
-    template: '<div>{{ title }}</div>',
-    props: ['title', 'backTo', 'onBack']
-  },
   PepFooter: { template: '<div></div>' },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' },
@@ -50,26 +40,36 @@ const mockRawTx = {
 };
 
 describe('Wallet Views Navigation', () => {
+  let mockWallet: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWallet = {
+      isUnlocked: true,
+      balance: 0,
+      balanceFiat: 0,
+      currencySymbol: '$',
+      selectedCurrency: 'USD',
+      prices: { USD: 0, EUR: 0 },
+      transactions: [],
+      refreshBalance: vi.fn(),
+      startPolling: vi.fn(),
+      stopPolling: vi.fn(),
+      resetLockTimer: vi.fn(),
+      openExplorerTx: vi.fn()
+    };
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      wallet: mockWallet,
+      requireUnlock: vi.fn(),
+      route: { params: { txid: 'test-tx' } } as any
+    });
   });
 
   it('Dashboard: should navigate to send and receive', async () => {
     const wrapper = mount(DashboardView, {
       global: {
-        stubs,
-        plugins: [
-          createTestingPinia({
-            initialState: {
-              wallet: {
-                isUnlocked: true,
-                balance: 0,
-                prices: { USD: 0, EUR: 0 },
-                transactions: []
-              }
-            }
-          })
-        ]
+        stubs
       }
     });
 
@@ -84,36 +84,27 @@ describe('Wallet Views Navigation', () => {
 
   it('ReceiveView: should have a specific onBack callback to dashboard', () => {
     const wrapper = mount(ReceiveView, {
-      global: { stubs, plugins: [createTestingPinia()] }
+      global: { stubs, components: { PepPageHeader } }
     });
-    const header = wrapper.findComponent({ name: 'PepPageHeader' });
+    const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 
   it('TransactionDetailView: should have a specific onBack callback to dashboard', () => {
     const wrapper = mount(TransactionDetailView, {
-      global: { stubs, plugins: [createTestingPinia()] }
+      global: { stubs, components: { PepPageHeader } }
     });
-    const header = wrapper.findComponent({ name: 'PepPageHeader' });
+    const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 
   it('Dashboard: should render transaction items', async () => {
     const tx = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    mockWallet.transactions = [tx];
 
     const wrapper = mount(DashboardView, {
       global: {
-        stubs,
-        plugins: [
-          createTestingPinia({
-            initialState: {
-              wallet: {
-                isUnlocked: true,
-                transactions: [tx]
-              }
-            }
-          })
-        ]
+        stubs
       }
     });
 

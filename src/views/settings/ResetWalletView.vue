@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
+
 const confirmedBackup = ref(false);
 const isProcessing = ref(false);
 

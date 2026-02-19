@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import { EXPLORERS, type ExplorerId } from '@/utils/explorer';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
 
 const options = Object.entries(EXPLORERS).map(([id, data]) => ({
   value: id as ExplorerId,

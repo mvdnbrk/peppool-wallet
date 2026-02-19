@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useApp } from '@/composables/useApp';
 
 interface Props {
   title: string;
@@ -9,7 +9,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const router = useRouter();
+const { router } = useApp();
 
 function handleBack() {
   if (props.onBack) return props.onBack();

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import QrcodeVue from 'qrcode.vue';
 import logoUrl from '../../assets/p-icon.svg';
 
-const walletStore = useWalletStore();
-const router = useRouter();
+const { router, wallet: walletStore } = useApp();
 </script>
 
 <template>

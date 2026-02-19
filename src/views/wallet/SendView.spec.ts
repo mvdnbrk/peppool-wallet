@@ -2,13 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import SendView from './SendView.vue';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
-import { createTestingPinia } from '@pinia/testing';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn()
-  })
+// Mock useApp
+const pushMock = vi.fn();
+vi.mock('@/composables/useApp', () => ({
+  useApp: vi.fn()
 }));
 
 // Mock API
@@ -37,8 +36,26 @@ const stubs = {
 };
 
 describe('SendView', () => {
+  let mockWallet: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWallet = {
+      address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+      isMnemonicLoaded: true,
+      selectedCurrency: 'USD',
+      currencySymbol: '$',
+      balance: 7,
+      prices: { USD: 1, EUR: 1 },
+      refreshBalance: vi.fn(),
+      openExplorerTx: vi.fn()
+    };
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      wallet: mockWallet,
+      requireUnlock: vi.fn(),
+      route: { path: '/send' } as any
+    });
   });
 
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
@@ -48,19 +65,7 @@ describe('SendView', () => {
     const wrapper = mount(SendView, {
       global: {
         stubs,
-        components: { PepAmountInput },
-        plugins: [
-          createTestingPinia({
-            initialState: {
-              wallet: {
-                address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
-                isMnemonicLoaded: true,
-                selectedCurrency: 'USD',
-                prices: { USD: 10, EUR: 8 }
-              }
-            }
-          })
-        ]
+        components: { PepAmountInput }
       }
     });
 
@@ -86,17 +91,7 @@ describe('SendView', () => {
   it('should correctly display the txid on the success screen (Step 3)', async () => {
     const wrapper = mount(SendView, {
       global: {
-        stubs,
-        plugins: [
-          createTestingPinia({
-            initialState: {
-              wallet: {
-                address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
-                isMnemonicLoaded: true
-              }
-            }
-          })
-        ]
+        stubs
       }
     });
 
@@ -145,17 +140,7 @@ describe('SendView', () => {
 
     const wrapper = mount(SendView, {
       global: {
-        stubs,
-        plugins: [
-          createTestingPinia({
-            initialState: {
-              wallet: {
-                address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
-                isMnemonicLoaded: true
-              }
-            }
-          })
-        ]
+        stubs
       }
     });
 
@@ -186,19 +171,7 @@ describe('SendView', () => {
 
     const wrapper = mount(SendView, {
       global: {
-        stubs,
-        plugins: [
-          createTestingPinia({
-            initialState: {
-              wallet: {
-                address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
-                isMnemonicLoaded: true,
-                balance: 7,
-                prices: { USD: 1, EUR: 1 }
-              }
-            }
-          })
-        ]
+        stubs
       }
     });
 

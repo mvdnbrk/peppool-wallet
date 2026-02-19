@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import { EXPLORERS } from '@/utils/explorer';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
 
 function getDurationLabel(val: number) {
   if (val < 60) return `${val} Minutes`;

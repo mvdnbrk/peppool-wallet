@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
 import { fetchTransaction } from '@/utils/api';
 import { Transaction } from '@/models/Transaction';
 import { truncateId } from '@/utils/constants';
 
-const route = useRoute();
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, route, wallet: walletStore } = useApp();
 
 const txid = route.params.txid as string;
 const txModel = ref<Transaction | null>(null);

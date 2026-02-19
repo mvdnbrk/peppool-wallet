@@ -1,20 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepPageHeader from './PepPageHeader.vue';
-
-// Mock Router
-const pushMock = vi.fn();
-const backMock = vi.fn();
-vi.mock('vue-router', async () => {
-  const actual = await vi.importActual('vue-router');
-  return {
-    ...actual,
-    useRouter: () => ({
-      push: pushMock,
-      back: backMock
-    })
-  };
-});
+import { createTestingPinia } from '@pinia/testing';
+import { pushMock, backMock } from '@/composables/__mocks__/useApp';
 
 // Mock PepIcon
 const stubs = {
@@ -29,7 +17,7 @@ describe('PepPageHeader UI Component', () => {
   it('should call router.back() when no props provided', async () => {
     const wrapper = mount(PepPageHeader, {
       props: { title: 'Test Header' },
-      global: { stubs }
+      global: { stubs, plugins: [createTestingPinia()] }
     });
 
     await wrapper.find('button').trigger('click');
@@ -39,7 +27,7 @@ describe('PepPageHeader UI Component', () => {
   it('should call router.push() when backTo prop is provided', async () => {
     const wrapper = mount(PepPageHeader, {
       props: { title: 'Test Header', backTo: '/dashboard' },
-      global: { stubs }
+      global: { stubs, plugins: [createTestingPinia()] }
     });
 
     await wrapper.find('button').trigger('click');
@@ -50,11 +38,12 @@ describe('PepPageHeader UI Component', () => {
     const onBack = vi.fn();
     const wrapper = mount(PepPageHeader, {
       props: { title: 'Test Header', onBack },
-      global: { stubs }
+      global: { stubs, plugins: [createTestingPinia()] }
     });
 
     await wrapper.find('button').trigger('click');
     expect(onBack).toHaveBeenCalled();
+    // These mocks are from useApp, so they shouldn't be called if onBack is provided
     expect(backMock).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalled();
   });

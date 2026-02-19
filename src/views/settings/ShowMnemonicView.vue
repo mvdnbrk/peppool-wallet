@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { ref, computed, watch, onUnmounted } from 'vue';
+import { useApp } from '@/composables/useApp';
 import { decrypt } from '@/utils/encryption';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore, requireUnlock } = useApp();
+requireUnlock();
 
 const password = ref('');
 const mnemonic = ref('');
@@ -47,15 +46,10 @@ watch(isLockedOut, (locked) => {
   }
 });
 
-onMounted(() => {
-  if (!walletStore.isUnlocked) {
-    router.replace('/');
-    return;
-  }
-  ticker = setInterval(() => {
-    now.value = Date.now();
-  }, 1000);
-});
+// Start ticker for lockout UI
+ticker = setInterval(() => {
+  now.value = Date.now();
+}, 1000);
 
 // Clear sensitive data from memory when leaving this view
 onUnmounted(() => {

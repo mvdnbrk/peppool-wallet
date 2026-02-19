@@ -1,21 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import ChangePasswordView from './ChangePasswordView.vue';
-import { useWalletStore } from '@/stores/wallet';
-import { createTestingPinia } from '@pinia/testing';
+import { useApp } from '@/composables/useApp';
+import { replaceMock, pushMock } from '@/composables/__mocks__/useApp';
 import * as encryption from '@/utils/encryption';
 
-// Mock Router
-const pushMock = vi.fn();
-const replaceMock = vi.fn();
-const backMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock,
-    replace: replaceMock,
-    back: backMock
-  })
-}));
+// Mock useApp
+vi.mock('@/composables/useApp');
 
 // Mock Encryption
 vi.mock('@/utils/encryption', () => ({
@@ -47,43 +38,46 @@ const stubs = {
 };
 
 describe('ChangePasswordView', () => {
+  let mockWallet: any;
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
     vi.mocked(encryption.encrypt).mockResolvedValue('new-encrypted-mnemonic');
+
+    mockWallet = {
+      isUnlocked: true,
+      plaintextMnemonic: 'test mnemonic',
+      lockoutUntil: 0,
+      unlock: vi.fn(),
+      updateVault: vi.fn()
+    };
+
+    vi.mocked(useApp).mockReturnValue({
+      router: { replace: replaceMock, push: pushMock, back: vi.fn() } as any,
+      wallet: mockWallet,
+      requireUnlock: vi.fn(),
+      route: { path: '/change-password' } as any
+    });
   });
 
-  it('should redirect to home if wallet is locked on mount', () => {
-    const pinia = createTestingPinia({
-      initialState: {
-        wallet: { isUnlocked: false }
-      }
-    });
+  it('should redirect if wallet is locked', () => {
+    mockWallet.isUnlocked = false;
+    // We need to trigger the logic that would normally be in requireUnlock or the component
+    // But since we mock useApp, we check if the component behaves correctly.
+    // In the actual component, requireUnlock() is called.
+    const { requireUnlock } = useApp();
 
-    mount(ChangePasswordView, {
-      global: { stubs, plugins: [pinia] }
-    });
-    expect(replaceMock).toHaveBeenCalledWith('/');
+    mount(ChangePasswordView, { global: { stubs } });
+
+    expect(requireUnlock).toHaveBeenCalled();
   });
 
   it('should show success state after successful password change', async () => {
-    const pinia = createTestingPinia({
-      stubActions: true,
-      initialState: {
-        wallet: {
-          isUnlocked: true,
-          plaintextMnemonic: 'test mnemonic',
-          lockoutUntil: 0
-        }
-      }
-    });
-    const walletStore = useWalletStore();
-    walletStore.unlock.mockResolvedValue(true);
-    vi.spyOn(walletStore, 'plaintextMnemonic', 'get').mockReturnValue('test mnemonic');
-    vi.spyOn(walletStore, 'isUnlocked', 'get').mockReturnValue(true);
+    mockWallet.unlock.mockResolvedValue(true);
 
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs, plugins: [pinia] }
+      global: { stubs }
     });
 
     // Fill form
@@ -93,36 +87,19 @@ describe('ChangePasswordView', () => {
 
     // Submit
     await wrapper.find('form').trigger('submit');
-
-    // Process async actions
     await flushPromises();
-
-    // Need to wait for isSuccess to be true
     await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain('Password Updated');
-    expect(walletStore.unlock).toHaveBeenCalledWith('old-pass');
-    expect(walletStore.updateVault).toHaveBeenCalledWith('new-encrypted-mnemonic');
+    expect(mockWallet.unlock).toHaveBeenCalledWith('old-pass');
+    expect(mockWallet.updateVault).toHaveBeenCalledWith('new-encrypted-mnemonic');
   });
 
   it('should navigate to dashboard when Close is clicked on success screen', async () => {
-    const pinia = createTestingPinia({
-      stubActions: true,
-      initialState: {
-        wallet: {
-          isUnlocked: true,
-          plaintextMnemonic: 'test mnemonic',
-          lockoutUntil: 0
-        }
-      }
-    });
-    const walletStore = useWalletStore();
-    walletStore.unlock.mockResolvedValue(true);
-    vi.spyOn(walletStore, 'plaintextMnemonic', 'get').mockReturnValue('test mnemonic');
-    vi.spyOn(walletStore, 'isUnlocked', 'get').mockReturnValue(true);
+    mockWallet.unlock.mockResolvedValue(true);
 
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs, plugins: [pinia] }
+      global: { stubs }
     });
 
     // Trigger success
@@ -132,8 +109,6 @@ describe('ChangePasswordView', () => {
     await wrapper.find('form').trigger('submit');
     await flushPromises();
     await wrapper.vm.$nextTick();
-
-    expect(wrapper.text()).toContain('Password Updated');
 
     const closeBtn = wrapper.findAll('button').find((b) => b.text() === 'Close');
     await closeBtn?.trigger('click');

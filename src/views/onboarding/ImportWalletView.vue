@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
+
 import { validateMnemonic, getInvalidMnemonicWords } from '@/utils/crypto';
 import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '@/utils/form';
 import { UX_DELAY_SLOW } from '@/utils/constants';
 import { watch, computed, onMounted } from 'vue';
 
-const router = useRouter();
-const walletStore = useWalletStore();
+const { router, wallet: walletStore } = useApp();
 
 const SESSION_KEY = 'import_draft_mnemonic';
 const SESSION_TS_KEY = 'import_draft_ts';

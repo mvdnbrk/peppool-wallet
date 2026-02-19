@@ -3,24 +3,15 @@ import { mount } from '@vue/test-utils';
 import ImportWalletView from './ImportWalletView.vue';
 import CreateWalletView from './CreateWalletView.vue';
 import ForgotPasswordView from './ForgotPasswordView.vue';
-import { createTestingPinia } from '@pinia/testing';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
+// Mock useApp
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock
-  }),
-  useRoute: () => ({ path: '/import' })
-}));
+vi.mock('@/composables/useApp');
 
 // Mock global components
 const stubs = {
-  PepPageHeader: {
-    name: 'PepPageHeader',
-    template: '<div>{{ title }}</div>',
-    props: ['title', 'backTo', 'onBack']
-  },
   PepFooter: { template: '<div></div>' },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' },
@@ -34,30 +25,36 @@ const stubs = {
 describe('Onboarding Navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      wallet: { errors: {} } as any,
+      requireUnlock: vi.fn(),
+      route: { path: '/' } as any
+    });
   });
 
   it('ImportWalletView: should have backTo prop set to /', () => {
     const wrapper = mount(ImportWalletView, {
-      global: { stubs, plugins: [createTestingPinia()] }
+      global: { stubs, components: { PepPageHeader } }
     });
-    const header = wrapper.findComponent({ name: 'PepPageHeader' });
+    const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBe('/');
   });
 
   it('CreateWalletView: should have backTo prop set to / when at step 1', () => {
     const wrapper = mount(CreateWalletView, {
-      global: { stubs, plugins: [createTestingPinia()] }
+      global: { stubs, components: { PepPageHeader } }
     });
-    const header = wrapper.findComponent({ name: 'PepPageHeader' });
+    const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBe('/');
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('ForgotPasswordView: should use default router.back()', () => {
     const wrapper = mount(ForgotPasswordView, {
-      global: { stubs, plugins: [createTestingPinia()] }
+      global: { stubs, components: { PepPageHeader } }
     });
-    const header = wrapper.findComponent({ name: 'PepPageHeader' });
+    const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });

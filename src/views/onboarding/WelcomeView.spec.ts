@@ -1,19 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import WelcomeView from './WelcomeView.vue';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
+// Mock useApp
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock
-  })
-}));
-
-// Mock Store
-vi.mock('@/stores/wallet', () => ({
-  useWalletStore: vi.fn()
+vi.mock('@/composables/useApp', () => ({
+  useApp: vi.fn()
 }));
 
 // Components
@@ -43,13 +36,23 @@ describe('WelcomeView Logic', () => {
       lockoutUntil: 0,
       unlock: vi.fn()
     };
-    vi.mocked(useWalletStore).mockReturnValue(mockStore);
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      wallet: mockStore,
+      requireUnlock: vi.fn(),
+      route: { path: '/' } as any
+    });
   });
 
   it('should show create/import buttons when wallet is NOT created', async () => {
     mockStore.isCreated = false;
     const wrapper = mount(WelcomeView, {
-      global: { stubs }
+      global: {
+        stubs: {
+          ...stubs,
+          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
+        }
+      }
     });
 
     expect(wrapper.text()).toContain('Create new wallet');
@@ -59,7 +62,12 @@ describe('WelcomeView Logic', () => {
   it('should show password input and unlock button when wallet IS created', async () => {
     mockStore.isCreated = true;
     const wrapper = mount(WelcomeView, {
-      global: { stubs }
+      global: {
+        stubs: {
+          ...stubs,
+          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
+        }
+      }
     });
 
     expect(wrapper.find('input[type="password"]').exists()).toBe(true);
@@ -71,7 +79,12 @@ describe('WelcomeView Logic', () => {
     mockStore.unlock.mockResolvedValue(true);
 
     const wrapper = mount(WelcomeView, {
-      global: { stubs }
+      global: {
+        stubs: {
+          ...stubs,
+          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
+        }
+      }
     });
 
     await wrapper.find('input[type="password"]').setValue('password123');

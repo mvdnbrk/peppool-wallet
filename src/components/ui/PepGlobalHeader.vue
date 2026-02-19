@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router';
+import { useApp } from '@/composables/useApp';
 import { computed } from 'vue';
 
-const router = useRouter();
-const route = useRoute();
+const { router, route } = useApp();
 
 const shouldRender = computed(() => {
   return !['/', '/create', '/import', '/reset-wallet', '/forgot-password'].includes(route.path);

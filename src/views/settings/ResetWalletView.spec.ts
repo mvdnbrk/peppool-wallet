@@ -1,15 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import ResetWalletView from './ResetWalletView.vue';
-import { createTestingPinia } from '@pinia/testing';
-import { useWalletStore } from '@/stores/wallet';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
+// Mock useApp
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock
-  })
+vi.mock('@/composables/useApp', () => ({
+  useApp: vi.fn()
 }));
 
 // Mock global components
@@ -33,24 +30,30 @@ const stubs = {
 };
 
 describe('ResetWalletView Feature', () => {
+  let mockWallet: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWallet = {
+      resetWallet: vi.fn(),
+      isUnlocked: true
+    };
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      wallet: mockWallet,
+      requireUnlock: vi.fn(),
+      route: { path: '/reset-wallet' } as any
+    });
   });
 
   it('should call resetWallet and redirect to home on confirm', async () => {
     const wrapper = mount(ResetWalletView, {
       global: {
-        stubs,
-        plugins: [
-          createTestingPinia({
-            stubActions: false
-          })
-        ]
+        stubs
       }
     });
 
-    const walletStore = useWalletStore();
-    const resetSpy = vi.spyOn(walletStore, 'resetWallet');
+    const resetSpy = vi.spyOn(mockWallet, 'resetWallet');
 
     // 1. Initial state: button should be disabled
     const button = wrapper.find('button');

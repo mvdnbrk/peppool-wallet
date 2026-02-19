@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useApp } from '@/composables/useApp';
 
-const router = useRouter();
+const { router } = useApp();
 </script>
 
 <template>

@@ -5,7 +5,7 @@ import { computed } from 'vue';
 const route = useRoute();
 const router = useRouter();
 const showHeader = computed(() => {
-  return !['/', '/create', '/import', '/reset-wallet'].includes(route.path);
+  return !['/', '/create', '/import', '/reset-wallet', '/forgot-password'].includes(route.path);
 });
 </script>
 

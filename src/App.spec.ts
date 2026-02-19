@@ -31,7 +31,8 @@ describe('App Global Layout', () => {
           components: { PepGlobalHeader }
         }
       });
-      expect(wrapper.findComponent(PepGlobalHeader).exists()).toBe(false);
+      // The component exists in App.vue, but should not render its content
+      expect(wrapper.find('header').exists()).toBe(false);
     }
   });
 
@@ -46,7 +47,7 @@ describe('App Global Layout', () => {
           components: { PepGlobalHeader }
         }
       });
-      expect(wrapper.findComponent(PepGlobalHeader).exists()).toBe(true);
+      expect(wrapper.find('header').exists()).toBe(true);
     }
   });
 });

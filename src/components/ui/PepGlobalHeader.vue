@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { computed } from 'vue';
 
 const router = useRouter();
+const route = useRoute();
+
+const shouldRender = computed(() => {
+  return !['/', '/create', '/import', '/reset-wallet', '/forgot-password'].includes(route.path);
+});
 </script>
 
 <template>
-  <header class="relative">
+  <header v-if="shouldRender" class="relative">
     <div class="text-pep-green -mt-px h-4 w-full overflow-hidden">
       <svg
         xmlns="http://www.w3.org/2000/svg"

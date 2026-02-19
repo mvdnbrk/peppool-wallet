@@ -265,7 +265,7 @@ onMounted(async () => {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepHeader
+    <PepPageHeader
       :title="ui.step === 3 ? 'Success' : 'Send PEP'"
       :onBack="
         ui.step === 2

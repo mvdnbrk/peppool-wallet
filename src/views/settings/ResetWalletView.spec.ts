@@ -14,7 +14,7 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: { template: '<div><slot /></div>' },
+  PepPageHeader: { template: '<div><slot /></div>' },
   PepCheckbox: {
     template:
       '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',

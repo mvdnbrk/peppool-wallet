@@ -19,8 +19,8 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: {
-    name: 'PepHeader',
+  PepPageHeader: {
+    name: 'PepPageHeader',
     template: '<div>{{ title }}</div>',
     props: ['title', 'backTo', 'onBack']
   },
@@ -86,7 +86,7 @@ describe('Wallet Views Navigation', () => {
     const wrapper = mount(ReceiveView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 
@@ -94,7 +94,7 @@ describe('Wallet Views Navigation', () => {
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 

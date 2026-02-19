@@ -18,7 +18,7 @@ function selectCurrency(code: 'USD' | 'EUR') {
 
 <template>
   <div class="relative flex h-full flex-col p-6">
-    <PepHeader title="Display currency" />
+    <PepPageHeader title="Display currency" />
 
     <div class="mt-16 flex-1 space-y-2">
       <p class="mb-4 px-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">

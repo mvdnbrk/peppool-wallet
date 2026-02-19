@@ -118,7 +118,7 @@ async function handleImport() {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepHeader title="Import wallet" backTo="/" :absolute="false" />
+    <PepPageHeader title="Import wallet" backTo="/" :absolute="false" />
 
     <div class="flex flex-1 flex-col pt-4">
       <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex flex-1 flex-col">

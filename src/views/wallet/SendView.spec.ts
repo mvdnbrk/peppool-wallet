@@ -24,7 +24,7 @@ vi.mock('../../utils/api', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: { template: '<div><slot /></div>' },
+  PepPageHeader: { template: '<div><slot /></div>' },
   PepIcon: { template: '<div></div>' },
   PepInput: {
     template: '<div><slot name="prefix" /><slot /><slot name="suffix" /></div>',

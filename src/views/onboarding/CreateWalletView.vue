@@ -66,7 +66,7 @@ async function handleCreate() {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepHeader
+    <PepPageHeader
       title="Create wallet"
       :onBack="step === 2 ? () => (step = 1) : undefined"
       :backTo="step === 1 ? '/' : undefined"

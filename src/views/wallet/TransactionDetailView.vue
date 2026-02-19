@@ -36,7 +36,7 @@ function openExplorer() {
 
 <template>
   <div class="relative flex h-full flex-col px-6 pt-4 pb-0">
-    <PepHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
+    <PepPageHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
 
     <div class="mt-16 flex min-h-0 flex-1 flex-col">
       <div v-if="isLoading" class="flex flex-1 flex-col items-center justify-center space-y-4">

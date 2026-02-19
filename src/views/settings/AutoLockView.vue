@@ -20,7 +20,7 @@ function selectDuration(val: number) {
 
 <template>
   <div class="relative flex h-full flex-col p-6">
-    <PepHeader title="Auto-Lock" />
+    <PepPageHeader title="Auto-Lock" />
 
     <div class="mt-16 flex-1 space-y-6">
       <p class="px-1 text-sm text-slate-400">

@@ -19,7 +19,7 @@ async function handleReset() {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepHeader title="Reset wallet" :absolute="false" />
+    <PepPageHeader title="Reset wallet" :absolute="false" />
 
     <div class="flex flex-1 flex-col pt-4">
       <div class="flex-1 space-y-8">

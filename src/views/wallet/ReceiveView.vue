@@ -10,7 +10,7 @@ const router = useRouter();
 
 <template>
   <div class="flex h-full flex-col p-6">
-    <PepHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" :absolute="false" />
+    <PepPageHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" :absolute="false" />
 
     <div class="flex flex-1 flex-col items-center justify-center space-y-8">
       <div class="rounded-2xl bg-white p-4 shadow-xl">

@@ -27,7 +27,7 @@ vi.mock('../../utils/crypto', async (importOriginal) => {
 
 // Components
 const stubs = {
-  PepHeader: { template: '<div />' },
+  PepPageHeader: { template: '<div />' },
   PepForm: {
     template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },

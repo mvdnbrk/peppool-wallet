@@ -14,7 +14,7 @@ function getDurationLabel(val: number) {
 
 <template>
   <div class="relative flex h-full flex-col p-6">
-    <PepHeader title="Preferences" />
+    <PepPageHeader title="Preferences" />
 
     <div class="mt-16 flex-1 space-y-2">
       <PepList>

@@ -22,8 +22,8 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: {
-    name: 'PepHeader',
+  PepPageHeader: {
+    name: 'PepPageHeader',
     template: '<div>{{ title }}</div>',
     props: ['title', 'backTo', 'onBack']
   },
@@ -47,7 +47,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(SettingsView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBe('/dashboard');
   });
 
@@ -55,7 +55,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(AboutView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -64,7 +64,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(SecurityView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -73,7 +73,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(PreferencesView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -85,7 +85,7 @@ describe('Settings Views Navigation', () => {
         plugins: [createTestingPinia({ initialState: { wallet: { isUnlocked: true } } })]
       }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -94,7 +94,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(ResetWalletView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -106,7 +106,7 @@ describe('Settings Views Navigation', () => {
         plugins: [createTestingPinia({ initialState: { wallet: { isUnlocked: true } } })]
       }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -115,7 +115,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(AutoLockView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -124,7 +124,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(CurrencyView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -133,7 +133,7 @@ describe('Settings Views Navigation', () => {
     const wrapper = mount(PreferredExplorerView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });

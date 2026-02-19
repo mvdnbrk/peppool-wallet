@@ -16,8 +16,8 @@ vi.mock('vue-router', () => ({
 
 // Mock global components
 const stubs = {
-  PepHeader: {
-    name: 'PepHeader',
+  PepPageHeader: {
+    name: 'PepPageHeader',
     template: '<div>{{ title }}</div>',
     props: ['title', 'backTo', 'onBack']
   },
@@ -40,7 +40,7 @@ describe('Onboarding Navigation', () => {
     const wrapper = mount(ImportWalletView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBe('/');
   });
 
@@ -48,7 +48,7 @@ describe('Onboarding Navigation', () => {
     const wrapper = mount(CreateWalletView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBe('/');
     expect(header.props('onBack')).toBeUndefined();
   });
@@ -57,7 +57,7 @@ describe('Onboarding Navigation', () => {
     const wrapper = mount(ForgotPasswordView, {
       global: { stubs, plugins: [createTestingPinia()] }
     });
-    const header = wrapper.findComponent({ name: 'PepHeader' });
+    const header = wrapper.findComponent({ name: 'PepPageHeader' });
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });

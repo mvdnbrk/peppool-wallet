@@ -13,7 +13,7 @@ function handleLock() {
 
 <template>
   <div class="relative flex h-full flex-col p-6">
-    <PepHeader title="Settings" backTo="/dashboard" />
+    <PepPageHeader title="Settings" backTo="/dashboard" />
 
     <div class="mt-16 flex-1 space-y-2">
       <PepList>

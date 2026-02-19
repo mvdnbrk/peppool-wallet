@@ -111,7 +111,7 @@ async function handleChangePassword() {
 
 <template>
   <div class="relative flex min-h-full flex-col p-6">
-    <PepHeader title="Change password" :absolute="false" />
+    <PepPageHeader title="Change password" :absolute="false" />
 
     <div class="flex flex-1 flex-col pt-4">
       <PepForm

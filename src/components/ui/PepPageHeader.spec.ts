@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import PepHeader from './PepHeader.vue';
+import PepPageHeader from './PepPageHeader.vue';
 
 // Mock Router
 const pushMock = vi.fn();
@@ -21,13 +21,13 @@ const stubs = {
   PepIcon: { template: '<div />' }
 };
 
-describe('PepHeader UI Component', () => {
+describe('PepPageHeader UI Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should call router.back() when no props provided', async () => {
-    const wrapper = mount(PepHeader, {
+    const wrapper = mount(PepPageHeader, {
       props: { title: 'Test Header' },
       global: { stubs }
     });
@@ -37,7 +37,7 @@ describe('PepHeader UI Component', () => {
   });
 
   it('should call router.push() when backTo prop is provided', async () => {
-    const wrapper = mount(PepHeader, {
+    const wrapper = mount(PepPageHeader, {
       props: { title: 'Test Header', backTo: '/dashboard' },
       global: { stubs }
     });
@@ -48,7 +48,7 @@ describe('PepHeader UI Component', () => {
 
   it('should call onBack callback when provided', async () => {
     const onBack = vi.fn();
-    const wrapper = mount(PepHeader, {
+    const wrapper = mount(PepPageHeader, {
       props: { title: 'Test Header', onBack },
       global: { stubs }
     });

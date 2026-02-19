@@ -6,7 +6,7 @@ const router = useRouter();
 
 <template>
   <div class="relative flex h-full flex-col p-6">
-    <PepHeader title="Security" />
+    <PepPageHeader title="Security" />
 
     <div class="mt-16 flex-1 space-y-2">
       <PepList>

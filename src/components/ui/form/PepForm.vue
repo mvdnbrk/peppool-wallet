@@ -26,10 +26,12 @@ function handleSubmit(e: Event) {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="space-y-6">
-    <slot />
+  <form @submit.prevent="handleSubmit" class="flex flex-1 flex-col gap-6">
+    <div class="flex-1 space-y-6">
+      <slot />
+    </div>
 
-    <div v-if="$slots.actions" class="pt-6">
+    <div v-if="$slots.actions" class="pt-0">
       <slot name="actions" />
     </div>
   </form>

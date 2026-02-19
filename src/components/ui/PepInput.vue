@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, computed, type ComputedRef } from 'vue';
+import { inject, computed, type ComputedRef, ref } from 'vue';
 
 interface Props {
   modelValue: string | number | null;
@@ -28,6 +28,12 @@ const formDisabled = inject<ComputedRef<boolean>>(
 );
 const isDisabled = computed(() => props.disabled || formDisabled.value);
 
+const inputRef = ref<HTMLInputElement | null>(null);
+
+defineExpose({
+  focus: () => inputRef.value?.focus()
+});
+
 function handleClear() {
   if (isDisabled.value) return;
   emit('update:modelValue', '');
@@ -50,6 +56,7 @@ function handleClear() {
       </div>
       <input
         :id="id"
+        ref="inputRef"
         :type="type || 'text'"
         :value="modelValue"
         :autofocus="autofocus"

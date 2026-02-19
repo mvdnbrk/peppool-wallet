@@ -25,6 +25,7 @@ import {
 
 const router = useRouter();
 const walletStore = useWalletStore();
+const recipientInput = ref<any>(null);
 
 // The logical object for the transaction
 const tx = ref(new SendTransaction(walletStore.address!));
@@ -230,6 +231,11 @@ function openExplorer() {
 }
 
 onMounted(async () => {
+  // Manual autofocus only if empty
+  if (!form.recipient) {
+    setTimeout(() => recipientInput.value?.focus(), 50);
+  }
+
   // Sync persisted form data to tx object on mount
   if (form.recipient) tx.value.recipient = form.recipient;
 
@@ -278,6 +284,7 @@ onMounted(async () => {
     <div v-if="ui.step === 1" class="flex flex-1 flex-col pt-4">
       <div class="flex-1 space-y-6">
         <PepInput
+          ref="recipientInput"
           v-model="form.recipient"
           id="recipient"
           label="Recipient Address"

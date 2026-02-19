@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '@/stores/wallet';
 import { decrypt } from '@/utils/encryption';
+import { UX_DELAY_NORMAL } from '@/utils/constants';
 
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -11,6 +12,7 @@ const password = ref('');
 const mnemonic = ref('');
 const error = ref('');
 const step = ref(1); // 1: Password, 2: Show
+const isProcessing = ref(false);
 const now = ref(Date.now());
 let ticker: ReturnType<typeof setInterval> | null = null;
 
@@ -62,7 +64,9 @@ onUnmounted(() => {
 });
 
 async function handleReveal() {
-  if (isLockedOut.value) return;
+  if (isLockedOut.value || isProcessing.value) return;
+
+  isProcessing.value = true;
 
   try {
     // Use decrypt directly but through the store's unlock flow for lockout tracking
@@ -71,6 +75,7 @@ async function handleReveal() {
       if (!isLockedOut.value) {
         error.value = 'Incorrect password';
       }
+      isProcessing.value = false;
       return;
     }
 
@@ -81,12 +86,15 @@ async function handleReveal() {
       // Fallback: decrypt directly if session didn't cache it
       mnemonic.value = await decrypt(walletStore.encryptedMnemonic!, password.value);
     }
+
     step.value = 2;
     error.value = '';
   } catch (e) {
     if (!isLockedOut.value) {
       error.value = 'Incorrect password';
     }
+  } finally {
+    isProcessing.value = false;
   }
 }
 </script>
@@ -96,40 +104,56 @@ async function handleReveal() {
     <PepPageHeader title="Secret phrase" />
 
     <!-- Step 1: Verify Password -->
-    <div v-if="step === 1" class="flex flex-1 flex-col justify-center space-y-8">
-      <p class="text-sm text-slate-400">Please enter your password to reveal your secret phrase.</p>
+    <div v-if="step === 1" class="flex flex-1 flex-col pt-0">
+      <div class="flex-1 space-y-8">
+        <p class="text-sm text-slate-400">
+          Please enter your password to reveal your secret phrase.
+        </p>
 
-      <div class="space-y-6">
-        <PepPasswordInput
-          v-model="password"
-          id="reveal-password"
-          label="Password"
-          placeholder="Enter your password"
-          :error="errorMessage"
-          :disabled="isLockedOut"
-          @keyup.enter="handleReveal"
-        />
-
-        <div class="space-y-3">
-          <PepButton
-            @click="handleReveal"
-            :disabled="isLockedOut || !password || !!errorMessage"
-            class="w-full"
-          >
-            {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}
-          </PepButton>
+        <div class="space-y-6">
+          <PepPasswordInput
+            v-model="password"
+            id="reveal-password"
+            label="Password"
+            placeholder="Enter your password"
+            :error="errorMessage"
+            :disabled="isLockedOut"
+            @keyup.enter="handleReveal"
+          />
         </div>
+      </div>
+
+      <div class="pt-6">
+        <PepLoadingButton
+          @click="handleReveal"
+          :loading="isProcessing"
+          :minLoadingMs="UX_DELAY_NORMAL"
+          :disabled="isLockedOut || !password || !!errorMessage"
+          class="w-full"
+        >
+          {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}
+        </PepLoadingButton>
       </div>
     </div>
 
     <!-- Step 2: Show Phrase -->
-    <div v-if="step === 2" class="flex flex-1 flex-col justify-center space-y-6">
-      <div class="rounded-lg border border-red-900/50 bg-red-900/20 p-3 text-xs text-red-400">
-        <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this
-        phrase can steal your funds.
+    <div v-if="step === 2" class="flex flex-1 flex-col pt-0">
+      <div class="flex-1 space-y-6">
+        <div class="rounded-lg border border-red-900/50 bg-red-900/20 p-3 text-xs text-red-400">
+          <strong>SECURITY WARNING:</strong> Never share this phrase with anyone. Anyone with this
+          phrase can steal your funds.
+        </div>
+
+        <div class="flex flex-1 flex-col justify-center pt-8">
+          <PepMnemonicGrid :mnemonic="mnemonic" />
+        </div>
       </div>
 
-      <PepMnemonicGrid :mnemonic="mnemonic" />
+      <div class="pt-6">
+        <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
+          Close
+        </PepButton>
+      </div>
     </div>
   </div>
 </template>

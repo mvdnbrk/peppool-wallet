@@ -456,7 +456,7 @@ onMounted(async () => {
       <div v-if="ui.step === 3" class="w-full space-y-3">
         <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
         <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
-          Back to Dashboard
+          Close
         </PepButton>
       </div>
     </template>

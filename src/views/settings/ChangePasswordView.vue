@@ -86,8 +86,15 @@ async function handleChangePassword() {
       />
     </template>
 
+    <!-- Success State -->
+    <PepSuccessState
+      v-if="isSuccess"
+      title="Password updated!"
+      description="Your new password is now active."
+    />
+
     <PepForm
-      v-if="!isSuccess"
+      v-else
       :loading="form.isProcessing"
       @submit="handleChangePassword"
       class="flex flex-1 flex-col"
@@ -131,17 +138,6 @@ async function handleChangePassword() {
         </PepLoadingButton>
       </template>
     </PepForm>
-
-    <!-- Success State -->
-    <div v-else class="flex flex-1 flex-col items-center pt-12 text-center">
-      <div class="w-full flex-1 space-y-8">
-        <PepIcon name="checkmark-circle" size="80" class="text-pep-green-light mx-auto" />
-        <div class="space-y-2">
-          <h3 class="text-offwhite text-xl font-bold">Password Updated</h3>
-          <p class="text-sm text-slate-400">Your new password is now active.</p>
-        </div>
-      </div>
-    </div>
 
     <template v-if="isSuccess" #actions>
       <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">

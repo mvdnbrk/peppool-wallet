@@ -67,7 +67,7 @@ function openExplorer() {
                 class="text-xs font-bold tracking-wider uppercase"
                 :class="txModel.statusColor"
               >
-                {{ txModel.isConfirmed ? 'Confirmed' : 'In Mempool' }}
+                {{ txModel.confirmationLabel }}
               </span>
             </div>
             <div class="flex items-baseline justify-between border-t border-slate-700/30 pt-2">

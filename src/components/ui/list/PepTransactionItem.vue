@@ -23,8 +23,8 @@ defineProps<Props>();
     <template #right>
       <div class="text-right">
         <p class="text-offwhite text-sm leading-tight font-bold">{{ tx.formattedAmount }} PEP</p>
-        <p class="text-[10px] text-slate-500">
-          {{ tx.isConfirmed ? 'Confirmed' : 'In Mempool' }}
+        <p class="text-[10px]" :class="tx.statusColor">
+          {{ tx.confirmationLabel }}
         </p>
       </div>
     </template>

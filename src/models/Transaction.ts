@@ -54,6 +54,10 @@ export class Transaction {
     return this.raw.status.confirmed;
   }
 
+  get confirmationLabel() {
+    return this.isConfirmed ? 'Confirmed' : 'In mempool';
+  }
+
   get statusLabel() {
     if (this.isConfirmed) {
       return this.isOutgoing ? 'Sent' : 'Received';

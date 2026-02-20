@@ -121,7 +121,7 @@ describe('TransactionDetailView', () => {
     wrapper.vm.isLoading = false;
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain('Sending');
-    expect(wrapper.text()).toContain('In Mempool');
+    expect(wrapper.text()).toContain('In mempool');
 
     // 2. Receiving
     // @ts-ignore
@@ -132,7 +132,7 @@ describe('TransactionDetailView', () => {
     }, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain('Receiving');
-    expect(wrapper.text()).toContain('In Mempool');
+    expect(wrapper.text()).toContain('In mempool');
   });
 
   it('should call openExplorer with correct txid', async () => {

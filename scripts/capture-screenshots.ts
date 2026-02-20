@@ -20,6 +20,11 @@ async function capture() {
         configFile: false,
         root: join(__dirname, '..'),
         base: './',
+        resolve: {
+            alias: {
+                '@': join(__dirname, '../src')
+            }
+        },
         plugins: [
             vue({
                 template: {

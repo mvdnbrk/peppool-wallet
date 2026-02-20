@@ -118,29 +118,33 @@ async function handleChangePassword() {
         @blur-password="onBlurPassword"
         @blur-confirm="onBlurConfirmPassword"
       />
-
-      <template #actions>
-        <PepLoadingButton
-          type="submit"
-          :loading="form.isProcessing"
-          :min-loading-ms="UX_DELAY_NORMAL"
-          :disabled="
-            isLockedOut ||
-            form.isProcessing ||
-            !form.oldPassword ||
-            !form.password ||
-            !form.confirmPassword ||
-            form.hasError()
-          "
-          class="w-full"
-        >
-          {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
-        </PepLoadingButton>
-      </template>
     </PepForm>
 
-    <template v-if="isSuccess" #actions>
-      <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
+    <template #actions>
+      <PepLoadingButton
+        v-if="!isSuccess"
+        @click="handleChangePassword"
+        :loading="form.isProcessing"
+        :minLoadingMs="UX_DELAY_NORMAL"
+        :disabled="
+          isLockedOut ||
+          form.isProcessing ||
+          !form.oldPassword ||
+          !form.password ||
+          !form.confirmPassword ||
+          form.hasError()
+        "
+        class="w-full"
+      >
+        {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
+      </PepLoadingButton>
+
+      <PepButton
+        v-else
+        @click="router.push('/dashboard')"
+        variant="secondary"
+        class="w-full"
+      >
         Close
       </PepButton>
     </template>

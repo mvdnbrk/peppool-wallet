@@ -1,37 +1,22 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
-
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useLockout } from '@/composables/useLockout';
+import { ref, computed, watch } from 'vue';
 import { useForm } from '@/utils/form';
 import { UX_DELAY_FAST } from '@/utils/constants';
-import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
-import PepForm from '@/components/ui/form/PepForm.vue';
 
 const { router, wallet: walletStore } = useApp();
+const { isLockedOut: localIsLockedOut, lockoutError } = useLockout();
 
-const now = ref(Date.now());
-let ticker: any = null;
 const passwordInput = ref<any>(null);
 
 const form = useForm({
   password: ''
 });
 
-// Local reactivity for lockout
-const localIsLockedOut = computed(() => {
-  if (walletStore.lockoutUntil === 0) return false;
-  return walletStore.lockoutUntil > now.value;
-});
-
-const secondsRemaining = computed(() => {
-  if (!localIsLockedOut.value) return 0;
-  const diff = walletStore.lockoutUntil - now.value;
-  return Math.max(0, Math.ceil(diff / 1000));
-});
-
 const loginErrorMessage = computed(() => {
   if (localIsLockedOut.value) {
-    return `Too many failed attempts. Locked for ${secondsRemaining.value}s.`;
+    return lockoutError.value;
   }
   return form.errors.general;
 });
@@ -50,16 +35,6 @@ watch(localIsLockedOut, (isLocked) => {
     // Re-focus when lockout ends
     setTimeout(() => passwordInput.value?.focus(), 50);
   }
-});
-
-onMounted(() => {
-  ticker = setInterval(() => {
-    now.value = Date.now();
-  }, 1000);
-});
-
-onUnmounted(() => {
-  if (ticker) clearInterval(ticker);
 });
 
 async function handleUnlock() {

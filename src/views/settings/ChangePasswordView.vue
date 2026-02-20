@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
+import { useLockout } from '@/composables/useLockout';
 import { encrypt } from '@/utils/encryption';
 import { useForm, validatePasswordMatch, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
 const { router, wallet: walletStore, requireUnlock } = useApp();
 requireUnlock();
+
+const { isLockedOut, lockoutError } = useLockout();
 
 const form = useForm({
   oldPassword: '',
@@ -17,33 +20,12 @@ const form = useForm({
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 const isSuccess = ref(false);
-const now = ref(Date.now());
-let ticker: ReturnType<typeof setInterval> | null = null;
-
-const isLockedOut = computed(() => {
-  if (walletStore.lockoutUntil === 0) return false;
-  return walletStore.lockoutUntil > now.value;
-});
-
-const secondsRemaining = computed(() => {
-  if (!isLockedOut.value) return 0;
-  return Math.max(0, Math.ceil((walletStore.lockoutUntil - now.value) / 1000));
-});
 
 const oldPasswordError = computed(() => {
   if (isLockedOut.value) {
-    return `Too many failed attempts. Locked for ${secondsRemaining.value}s.`;
+    return lockoutError.value;
   }
   return form.errors.oldPassword;
-});
-
-// Start ticker for lockout UI
-ticker = setInterval(() => {
-  now.value = Date.now();
-}, 1000);
-
-onUnmounted(() => {
-  if (ticker) clearInterval(ticker);
 });
 
 async function handleChangePassword() {

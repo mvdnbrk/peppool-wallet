@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { useApp } from '@/composables/useApp';
+import { useLockout } from '@/composables/useLockout';
 import { decrypt } from '@/utils/encryption';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
@@ -8,27 +9,17 @@ import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 const { router, wallet: walletStore, requireUnlock } = useApp();
 requireUnlock();
 
+const { isLockedOut, lockoutError } = useLockout();
+
 const password = ref('');
 const mnemonic = ref('');
 const error = ref('');
 const step = ref(1); // 1: Password, 2: Show
 const isProcessing = ref(false);
-const now = ref(Date.now());
-let ticker: ReturnType<typeof setInterval> | null = null;
-
-const isLockedOut = computed(() => {
-  if (walletStore.lockoutUntil === 0) return false;
-  return walletStore.lockoutUntil > now.value;
-});
-
-const secondsRemaining = computed(() => {
-  if (!isLockedOut.value) return 0;
-  return Math.max(0, Math.ceil((walletStore.lockoutUntil - now.value) / 1000));
-});
 
 const errorMessage = computed(() => {
   if (isLockedOut.value) {
-    return `Too many failed attempts. Locked for ${secondsRemaining.value}s.`;
+    return lockoutError.value;
   }
   return error.value;
 });
@@ -46,16 +37,10 @@ watch(isLockedOut, (locked) => {
   }
 });
 
-// Start ticker for lockout UI
-ticker = setInterval(() => {
-  now.value = Date.now();
-}, 1000);
-
 // Clear sensitive data from memory when leaving this view
 onUnmounted(() => {
   mnemonic.value = '';
   password.value = '';
-  if (ticker) clearInterval(ticker);
 });
 
 async function handleReveal() {

@@ -63,10 +63,7 @@ function openExplorer() {
           <PepCard class="space-y-2 p-3">
             <div class="flex items-baseline justify-between">
               <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Status</span>
-              <span
-                class="text-xs font-bold tracking-wider uppercase"
-                :class="txModel.statusColor"
-              >
+              <span class="text-xs font-bold tracking-wider uppercase" :class="txModel.statusColor">
                 {{ txModel.confirmationLabel }}
               </span>
             </div>

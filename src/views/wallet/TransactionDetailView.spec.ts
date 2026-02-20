@@ -77,7 +77,10 @@ describe('TransactionDetailView', () => {
 
     // 2. Incoming
     // @ts-ignore
-    wrapper.vm.txModel = new Transaction({ ...mockRawTx, vin: [] }, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    wrapper.vm.txModel = new Transaction(
+      { ...mockRawTx, vin: [] },
+      'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+    );
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).not.toContain('Network Fee');
   });
@@ -88,11 +91,14 @@ describe('TransactionDetailView', () => {
     });
 
     // Address in vout matches userAddress
-    const incomingTx = new Transaction({ 
-      ...mockRawTx, 
-      vin: [],
-      vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }]
-    }, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const incomingTx = new Transaction(
+      {
+        ...mockRawTx,
+        vin: [],
+        vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }]
+      },
+      'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+    );
 
     // @ts-ignore
     wrapper.vm.txModel = incomingTx;
@@ -125,11 +131,14 @@ describe('TransactionDetailView', () => {
 
     // 2. Receiving
     // @ts-ignore
-    wrapper.vm.txModel = new Transaction({ 
-      ...unconfirmedRaw, 
-      vin: [],
-      vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }]
-    }, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    wrapper.vm.txModel = new Transaction(
+      {
+        ...unconfirmedRaw,
+        vin: [],
+        vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }]
+      },
+      'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+    );
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain('Receiving');
     expect(wrapper.text()).toContain('In mempool');

@@ -53,6 +53,22 @@ const isInsufficientFunds = computed(() => {
   return tx.value.balanceRibbits < needed;
 });
 
+const canReview = computed(() => {
+  return (
+    !ui.isLoadingRequirements &&
+    form.recipient &&
+    tx.value.amountRibbits > 0 &&
+    !form.hasError() &&
+    !isInsufficientFunds.value
+  );
+});
+
+const nextButtonLabel = computed(() => {
+  if (ui.isLoadingRequirements) return 'Loading...';
+  if (isInsufficientFunds.value) return 'Insufficient funds';
+  return 'Next';
+});
+
 // Strip whitespace from recipient as the user types (addresses never contain spaces)
 watch(
   () => form.recipient,
@@ -340,15 +356,13 @@ onMounted(async () => {
             </div>
             <PepLoadingButton
               type="submit"
-              :loading="form.isProcessing || ui.isLoadingRequirements"
+              :loading="form.isProcessing"
               :minLoadingMs="UX_DELAY_FAST"
-              :disabled="
-                !form.recipient || tx.amountRibbits <= 0 || form.hasError() || isInsufficientFunds
-              "
+              :disabled="!canReview"
               :variant="isInsufficientFunds ? 'danger' : 'primary'"
               class="w-full"
             >
-              {{ isInsufficientFunds ? 'Insufficient funds' : 'Next' }}
+              {{ nextButtonLabel }}
             </PepLoadingButton>
           </div>
         </template>

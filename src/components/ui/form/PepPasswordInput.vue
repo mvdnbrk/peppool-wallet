@@ -70,7 +70,7 @@ defineExpose({
           class="pointer-events-auto flex cursor-pointer items-center justify-center text-gray-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           tabindex="-1"
         >
-          <PepIcon :name="showPassword ? 'eye-slash' : 'eye'" size="16" />
+          <PepIcon :name="showPassword ? 'eye' : 'eye-slash'" size="16" />
         </button>
       </div>
     </div>

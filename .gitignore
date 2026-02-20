@@ -1,3 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build & Output
+dist/
+dist-ssr/
+screenshots/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log
@@ -7,35 +20,26 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# AI Agents
+.gemini/
+.agents/
+.claude/
+CLAUDE.md
+GEMINI.md
 
-# Editor directories and files
+# Editor & OS
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# OS and build
 Thumbs.db
 *.bak
 *.tmp
 *.temp
-.cache
-
-# Gemini & Agents
-.gemini/
-.agents/
-screenshots/
-
-# Environment
-.env
-.env.*
-!.env.example
+.cache/
+*.local

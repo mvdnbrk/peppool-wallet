@@ -38,7 +38,7 @@ function openDetail(txid: string) {
 
 <template>
   <PepMainLayout
-    showFooter
+   
     @mousedown="walletStore.resetLockTimer"
     @keydown="walletStore.resetLockTimer"
   >

@@ -28,7 +28,7 @@ function openExplorer() {
 </script>
 
 <template>
-  <PepMainLayout showFooter>
+  <PepMainLayout>
     <template #header>
       <PepPageHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
     </template>

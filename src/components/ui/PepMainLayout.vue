@@ -1,11 +1,4 @@
 <script setup lang="ts">
-interface Props {
-  showFooter?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
-  showFooter: false
-});
 </script>
 
 <template>
@@ -16,7 +9,10 @@ withDefaults(defineProps<Props>(), {
     </header>
 
     <!-- Main Content (scrolls) -->
-    <main class="flex flex-1 flex-col overflow-y-auto" :class="{ 'pt-4': !$slots.header }">
+    <main
+      class="flex flex-1 flex-col overflow-y-auto"
+      :class="{ 'pt-4': !$slots.header }"
+    >
       <slot />
     </main>
 
@@ -24,12 +20,5 @@ withDefaults(defineProps<Props>(), {
     <div v-if="$slots.actions" class="pt-6">
       <slot name="actions" />
     </div>
-
-    <!-- Footer Area -->
-    <footer v-if="$slots.footer || showFooter" class="pt-4">
-      <slot name="footer">
-        <PepFooter v-if="showFooter" />
-      </slot>
-    </footer>
   </div>
 </template>

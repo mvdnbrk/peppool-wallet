@@ -3,7 +3,7 @@ import { APP_VERSION } from '@/utils/constants';
 </script>
 
 <template>
-  <PepMainLayout showFooter>
+  <PepMainLayout>
     <template #header>
       <PepPageHeader title="About" />
     </template>

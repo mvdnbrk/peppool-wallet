@@ -17,10 +17,9 @@ vi.mock('@/composables/useApp');
 const stubs = {
   PepMainLayout: {
     template:
-      '<div><slot name="header"><PepPageHeader v-bind="$attrs" /></slot><slot /><slot name="actions" /><slot name="footer" /></div>',
+      '<div><slot name="header"><PepPageHeader v-bind="$attrs" /></slot><slot /><slot name="actions" /></div>',
     inheritAttrs: false
   },
-  PepFooter: { template: '<div></div>' },
   PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' },
   PepCard: { template: '<div><slot /></div>' },

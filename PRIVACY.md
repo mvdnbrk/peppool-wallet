@@ -1,6 +1,6 @@
 # Privacy policy
 
-**Effective Date:** February 15, 2026
+**Effective Date:** February 20, 2026
 
 Peppool Wallet is committed to protecting your privacy. The Pepecoin wallet for everyone. This policy explains how we handle information within our browser extension.
 

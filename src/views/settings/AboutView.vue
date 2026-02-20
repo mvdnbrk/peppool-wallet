@@ -17,6 +17,12 @@ import { APP_VERSION } from '@/utils/constants';
           icon="external-link"
         />
         <PepListItem
+          label="Terms of use"
+          href="https://github.com/mvdnbrk/peppool-wallet/blob/main/TERMS_OF_USE.md"
+          target="_blank"
+          icon="external-link"
+        />
+        <PepListItem
           label="Privacy policy"
           href="https://github.com/mvdnbrk/peppool-wallet/blob/main/PRIVACY.md"
           target="_blank"

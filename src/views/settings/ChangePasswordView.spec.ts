@@ -67,7 +67,9 @@ describe('ChangePasswordView', () => {
     // In the actual component, requireUnlock() is called.
     const { requireUnlock } = useApp();
 
-    mount(ChangePasswordView, { global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } } });
+    mount(ChangePasswordView, {
+      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
+    });
 
     expect(requireUnlock).toHaveBeenCalled();
   });

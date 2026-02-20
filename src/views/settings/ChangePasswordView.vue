@@ -143,12 +143,7 @@ async function handleChangePassword() {
         {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
       </PepLoadingButton>
 
-      <PepButton
-        v-else
-        @click="router.push('/dashboard')"
-        variant="secondary"
-        class="w-full"
-      >
+      <PepButton v-else @click="router.push('/dashboard')" variant="secondary" class="w-full">
         Close
       </PepButton>
     </template>

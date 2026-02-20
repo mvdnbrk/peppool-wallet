@@ -371,7 +371,9 @@ onMounted(async () => {
       <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
         <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
           <div class="flex flex-col space-y-0.5">
-            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Sending</span>
+            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
+              >Sending</span
+            >
             <span class="text-offwhite text-xl font-bold">{{ tx.amountPep }} PEP</span>
           </div>
 

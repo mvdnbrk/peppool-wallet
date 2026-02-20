@@ -89,10 +89,12 @@ function openExplorer() {
           </PepCard>
 
           <PepCopyableId label="Transaction ID" :id="txModel.txid" />
-
-          <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
         </div>
       </div>
     </div>
+
+    <template #actions>
+      <PepButton v-if="txModel" @click="openExplorer" class="w-full"> View on Explorer </PepButton>
+    </template>
   </PepMainLayout>
 </template>

@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment:**
  - Browser: [e.g. Chrome, Brave]
- - Extension Version: [e.g. 0.1.0-alpha.5]
+ - Extension Version: [e.g. 0.1.0-beta.3]
  - Operating System: [e.g. Windows, macOS]
 
 **Additional context**

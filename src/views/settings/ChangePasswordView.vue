@@ -54,6 +54,11 @@ async function handleChangePassword() {
     return;
   }
 
+  if (form.password === form.oldPassword) {
+    form.setError('password', 'Cannot use current password');
+    return;
+  }
+
   form.isProcessing = true;
   try {
     // Verify old password via unlock() — inherits escalating lockout

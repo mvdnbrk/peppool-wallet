@@ -49,7 +49,7 @@ function openExplorer() {
       <div v-else-if="txModel" class="flex-1 space-y-6 overflow-y-auto pr-1 pb-4 text-center">
         <div class="flex flex-col items-center space-y-1">
           <p class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase">
-            {{ txModel.isOutgoing ? 'Sent' : 'Received' }}
+            {{ txModel.statusLabel }}
           </p>
           <h3
             class="text-4xl font-bold"
@@ -65,7 +65,7 @@ function openExplorer() {
               <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Status</span>
               <span
                 class="text-xs font-bold tracking-wider uppercase"
-                :class="txModel.isConfirmed ? 'text-pep-green-light' : 'text-yellow-500'"
+                :class="txModel.statusColor"
               >
                 {{ txModel.isConfirmed ? 'Confirmed' : 'In Mempool' }}
               </span>
@@ -80,7 +80,10 @@ function openExplorer() {
                 txModel.blockHeight ?? '-'
               }}</span>
             </div>
-            <div class="flex items-baseline justify-between border-t border-slate-700/30 pt-2">
+            <div
+              v-if="txModel.isOutgoing"
+              class="flex items-baseline justify-between border-t border-slate-700/30 pt-2"
+            >
               <span class="text-xs font-bold tracking-wider text-slate-500 uppercase"
                 >Network Fee</span
               >
@@ -94,7 +97,9 @@ function openExplorer() {
     </div>
 
     <template #actions>
-      <PepButton v-if="txModel" @click="openExplorer" class="w-full"> View on Explorer </PepButton>
+      <PepButton v-if="txModel" id="view-on-explorer" @click="openExplorer" class="w-full">
+        View on Explorer
+      </PepButton>
     </template>
   </PepMainLayout>
 </template>

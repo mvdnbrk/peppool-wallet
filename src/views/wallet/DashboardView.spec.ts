@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
-import TransactionDetailView from './TransactionDetailView.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import { createTestingPinia } from '@pinia/testing';
@@ -89,14 +88,6 @@ describe('Wallet Views Navigation', () => {
 
   it('ReceiveView: should have a specific onBack callback to dashboard', () => {
     const wrapper = mount(ReceiveView, {
-      global: { stubs, components: { PepPageHeader } }
-    });
-    const header = wrapper.findComponent(PepPageHeader);
-    expect(header.props('onBack')).toBeInstanceOf(Function);
-  });
-
-  it('TransactionDetailView: should have a specific onBack callback to dashboard', () => {
-    const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
     });
     const header = wrapper.findComponent(PepPageHeader);

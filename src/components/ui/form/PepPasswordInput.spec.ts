@@ -8,25 +8,38 @@ const stubs = {
     template: '<div><label v-if="label">{{ label }}</label><slot /></div>',
     props: ['label']
   },
-  PepIcon: { template: '<div />' }
+  PepIcon: { 
+    template: '<div class="pep-icon-stub" :data-name="name" />',
+    props: ['name']
+  }
 };
 
 describe('PepPasswordInput UI Component', () => {
-  it('should toggle password visibility when eye icon clicked', async () => {
+  it('should toggle password visibility and icon name when button clicked', async () => {
     const wrapper = mount(PepPasswordInput, {
       props: { id: 'test', modelValue: 'secret' },
       global: { stubs }
     });
 
     const input = wrapper.find('input');
+    const icon = wrapper.find('.pep-icon-stub');
+    
+    // Initial: Hidden (***) -> eye-slash
     expect(input.attributes('type')).toBe('password');
+    expect(icon.attributes('data-name')).toBe('eye-slash');
 
     const toggleBtn = wrapper.find('button');
     await toggleBtn.trigger('click');
+    
+    // Click 1: Shown (text) -> eye
     expect(input.attributes('type')).toBe('text');
+    expect(icon.attributes('data-name')).toBe('eye');
 
     await toggleBtn.trigger('click');
+    
+    // Click 2: Hidden again -> eye-slash
     expect(input.attributes('type')).toBe('password');
+    expect(icon.attributes('data-name')).toBe('eye-slash');
   });
 
   it('should emit update:modelValue on input', async () => {

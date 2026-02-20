@@ -80,7 +80,7 @@ describe('SendView', () => {
     expect(amountInput.vm.isFiatMode).toBe(false);
 
     // Find and click swap button
-    const swapBtn = wrapper.find('button[title="Switch currency"]');
+    const swapBtn = wrapper.find('#amount-currency-toggle');
     expect(swapBtn.exists()).toBe(true);
 
     await swapBtn.trigger('click');

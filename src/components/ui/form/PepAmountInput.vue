@@ -121,10 +121,12 @@ function toggleMode() {
 
       <template #suffix>
         <button
+          :id="`${id}-currency-toggle`"
           type="button"
           @click="toggleMode"
           :disabled="disabled"
           class="hover:text-pep-green-light mr-1 shrink-0 cursor-pointer rounded p-1 text-slate-500 transition-colors disabled:cursor-not-allowed"
+          aria-label="Switch currency"
           title="Switch currency"
           tabindex="-1"
         >

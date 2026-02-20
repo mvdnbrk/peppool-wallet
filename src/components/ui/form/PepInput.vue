@@ -84,9 +84,11 @@ function handleClear() {
       >
         <button
           v-if="props.clearable && modelValue && !error"
+          :id="`${id}-clear`"
           type="button"
           :disabled="isDisabled"
           @mousedown.prevent="handleClear"
+          aria-label="Clear input"
           class="cursor-pointer text-slate-500 transition-colors hover:text-slate-300 disabled:cursor-not-allowed"
           tabindex="-1"
         >

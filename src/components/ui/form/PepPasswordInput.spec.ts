@@ -23,23 +23,26 @@ describe('PepPasswordInput UI Component', () => {
 
     const input = wrapper.find('input');
     const icon = wrapper.find('.pep-icon-stub');
+    const toggleBtn = wrapper.find('#test-toggle');
     
     // Initial: Hidden (***) -> eye-slash
     expect(input.attributes('type')).toBe('password');
     expect(icon.attributes('data-name')).toBe('eye-slash');
+    expect(toggleBtn.attributes('aria-label')).toBe('Show password');
 
-    const toggleBtn = wrapper.find('button');
     await toggleBtn.trigger('click');
     
     // Click 1: Shown (text) -> eye
     expect(input.attributes('type')).toBe('text');
     expect(icon.attributes('data-name')).toBe('eye');
+    expect(toggleBtn.attributes('aria-label')).toBe('Hide password');
 
     await toggleBtn.trigger('click');
     
     // Click 2: Hidden again -> eye-slash
     expect(input.attributes('type')).toBe('password');
     expect(icon.attributes('data-name')).toBe('eye-slash');
+    expect(toggleBtn.attributes('aria-label')).toBe('Show password');
   });
 
   it('should emit update:modelValue on input', async () => {

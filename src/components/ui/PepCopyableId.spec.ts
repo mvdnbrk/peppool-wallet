@@ -48,5 +48,8 @@ describe('PepCopyableId', () => {
     expect(copyable.exists()).toBe(true);
     expect(copyable.attributes('id')).toBe(TEST_ID);
     expect(copyable.find('.hidden').text()).toBe(TEST_ID);
+
+    const button = wrapper.find(`#${TEST_ID}-copy`);
+    expect(button.exists()).toBe(true);
   });
 });

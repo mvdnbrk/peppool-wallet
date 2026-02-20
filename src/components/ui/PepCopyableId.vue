@@ -32,9 +32,11 @@ const { start, end } = computed(() => truncateId(props.id)).value;
       <el-copyable :id="id" class="group inline-flex">
         <span class="hidden">{{ id }}</span>
         <button
+          :id="`${id}-copy`"
           type="button"
           command="--copy"
           :commandfor="id"
+          aria-label="Copy ID"
           class="text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
         >
           <PepIcon name="copy" class="copied:hidden h-5 w-5" />
@@ -59,9 +61,11 @@ const { start, end } = computed(() => truncateId(props.id)).value;
     <el-copyable :id="id" class="group inline-flex">
       <span class="hidden">{{ id }}</span>
       <button
+        :id="`${id}-copy`"
         type="button"
         command="--copy"
         :commandfor="id"
+        aria-label="Copy ID"
         class="text-offwhite copied:text-pep-green-light copied:hover:text-pep-green-light inline-flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-700 bg-slate-800 transition-colors hover:text-white"
       >
         <PepIcon name="copy" class="copied:hidden h-5 w-5" />

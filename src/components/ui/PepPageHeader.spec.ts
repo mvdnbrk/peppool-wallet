@@ -20,7 +20,7 @@ describe('PepPageHeader UI Component', () => {
       global: { stubs, plugins: [createTestingPinia()] }
     });
 
-    await wrapper.find('button').trigger('click');
+    await wrapper.find('#header-back-button').trigger('click');
     expect(backMock).toHaveBeenCalled();
   });
 
@@ -30,7 +30,7 @@ describe('PepPageHeader UI Component', () => {
       global: { stubs, plugins: [createTestingPinia()] }
     });
 
-    await wrapper.find('button').trigger('click');
+    await wrapper.find('#header-back-button').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
   });
 
@@ -41,7 +41,7 @@ describe('PepPageHeader UI Component', () => {
       global: { stubs, plugins: [createTestingPinia()] }
     });
 
-    await wrapper.find('button').trigger('click');
+    await wrapper.find('#header-back-button').trigger('click');
     expect(onBack).toHaveBeenCalled();
     // These mocks are from useApp, so they shouldn't be called if onBack is provided
     expect(backMock).not.toHaveBeenCalled();

@@ -64,9 +64,11 @@ defineExpose({
 
         <button
           v-else
+          :id="`${id}-toggle`"
           type="button"
           @click="showPassword = !showPassword"
           :disabled="isDisabled"
+          :aria-label="showPassword ? 'Hide password' : 'Show password'"
           class="pointer-events-auto flex cursor-pointer items-center justify-center text-gray-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           tabindex="-1"
         >

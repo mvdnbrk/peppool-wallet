@@ -444,23 +444,21 @@ onMounted(async () => {
     </div>
 
     <!-- Step 3 -->
-    <div v-if="ui.step === 3" class="flex flex-1 flex-col items-center pt-12 text-center">
-      <div class="w-full flex-1 space-y-8">
-        <PepIcon name="checkmark-circle" size="80" class="text-pep-green-light mx-auto" />
-        <div class="space-y-2">
-          <h3 class="text-offwhite text-xl font-bold">Transaction sent!</h3>
-          <p class="text-sm text-slate-400">Your PEP is on its way.</p>
-        </div>
+    <PepSuccessState
+      v-if="ui.step === 3"
+      title="Transaction sent!"
+      description="Your PEP is on its way."
+    >
+      <PepCopyableId label="Transaction ID" :id="ui.txid" />
+    </PepSuccessState>
 
-        <PepCopyableId label="Transaction ID" :id="ui.txid" />
-      </div>
-
-      <div class="w-full space-y-3 pt-8">
+    <template #actions>
+      <div v-if="ui.step === 3" class="w-full space-y-3">
         <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
         <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
           Back to Dashboard
         </PepButton>
       </div>
-    </div>
+    </template>
   </PepMainLayout>
 </template>

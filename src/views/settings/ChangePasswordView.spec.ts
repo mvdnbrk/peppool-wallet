@@ -6,6 +6,7 @@ import { replaceMock, pushMock } from '@/composables/__mocks__/useApp';
 import * as encryption from '@/utils/encryption';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import PepSuccessState from '@/components/ui/PepSuccessState.vue';
 
 // Mock useApp
 vi.mock('@/composables/useApp');
@@ -66,7 +67,7 @@ describe('ChangePasswordView', () => {
     // In the actual component, requireUnlock() is called.
     const { requireUnlock } = useApp();
 
-    mount(ChangePasswordView, { global: { stubs, components: { PepMainLayout, PepPageHeader } } });
+    mount(ChangePasswordView, { global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } } });
 
     expect(requireUnlock).toHaveBeenCalled();
   });
@@ -75,7 +76,7 @@ describe('ChangePasswordView', () => {
     mockWallet.unlock.mockResolvedValue(true);
 
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs, components: { PepMainLayout, PepPageHeader } }
+      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
     });
 
     // Fill form
@@ -88,7 +89,7 @@ describe('ChangePasswordView', () => {
     await flushPromises();
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.text()).toContain('Password Updated');
+    expect(wrapper.text()).toContain('Password updated!');
     expect(mockWallet.unlock).toHaveBeenCalledWith('old-pass');
     expect(mockWallet.updateVault).toHaveBeenCalledWith('new-encrypted-mnemonic');
   });
@@ -97,7 +98,7 @@ describe('ChangePasswordView', () => {
     mockWallet.unlock.mockResolvedValue(true);
 
     const wrapper = mount(ChangePasswordView, {
-      global: { stubs, components: { PepMainLayout, PepPageHeader } }
+      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
     });
 
     // Trigger success

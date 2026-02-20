@@ -5,6 +5,7 @@ import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import PepCopyableId from '@/components/ui/PepCopyableId.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import PepSuccessState from '@/components/ui/PepSuccessState.vue';
 import { useApp } from '@/composables/useApp';
 
 // Mock useApp
@@ -64,7 +65,7 @@ describe('SendView', () => {
 
   const global = {
     stubs,
-    components: { PepAmountInput, PepCopyableId, PepMainLayout, PepPageHeader }
+    components: { PepAmountInput, PepCopyableId, PepMainLayout, PepPageHeader, PepSuccessState }
   };
 
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {

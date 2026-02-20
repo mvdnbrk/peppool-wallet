@@ -342,29 +342,26 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="mt-2 flex h-6 items-center justify-center">
+          <p
+            class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
+            :class="form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
+          >
+            {{ form.errors.general || form.errors.recipient }}
+          </p>
+        </div>
+
         <template #actions>
-          <div>
-            <div class="mb-2 flex h-6 items-center justify-center">
-              <p
-                class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
-                :class="
-                  form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'
-                "
-              >
-                {{ form.errors.general || form.errors.recipient }}
-              </p>
-            </div>
-            <PepLoadingButton
-              type="submit"
-              :loading="form.isProcessing"
-              :minLoadingMs="UX_DELAY_FAST"
-              :disabled="!canReview"
-              :variant="isInsufficientFunds ? 'danger' : 'primary'"
-              class="w-full"
-            >
-              {{ nextButtonLabel }}
-            </PepLoadingButton>
-          </div>
+          <PepLoadingButton
+            type="submit"
+            :loading="form.isProcessing"
+            :minLoadingMs="UX_DELAY_FAST"
+            :disabled="!canReview"
+            :variant="isInsufficientFunds ? 'danger' : 'primary'"
+            class="w-full"
+          >
+            {{ nextButtonLabel }}
+          </PepLoadingButton>
         </template>
       </PepForm>
     </div>
@@ -374,9 +371,7 @@ onMounted(async () => {
       <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
         <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
           <div class="flex flex-col space-y-0.5">
-            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
-              >Sending</span
-            >
+            <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Sending</span>
             <span class="text-offwhite text-xl font-bold">{{ tx.amountPep }} PEP</span>
           </div>
 
@@ -405,21 +400,17 @@ onMounted(async () => {
           />
         </div>
 
+        <div v-if="walletStore.isMnemonicLoaded" class="mt-2 flex h-6 items-center justify-center">
+          <p
+            class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
+            :class="form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
+          >
+            {{ form.errors.general }}
+          </p>
+        </div>
+
         <template #actions>
           <div class="space-y-3">
-            <div
-              v-if="walletStore.isMnemonicLoaded"
-              class="mb-2 flex h-6 items-center justify-center"
-            >
-              <p
-                class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
-                :class="
-                  form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'
-                "
-              >
-                {{ form.errors.general }}
-              </p>
-            </div>
             <PepLoadingButton
               type="submit"
               :loading="form.isProcessing"

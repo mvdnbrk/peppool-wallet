@@ -21,6 +21,17 @@ const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 const isSuccess = ref(false);
 
+const canSubmit = computed(() => {
+  return (
+    !isLockedOut.value &&
+    !form.isProcessing &&
+    form.oldPassword &&
+    form.password &&
+    form.confirmPassword &&
+    !form.hasError()
+  );
+});
+
 const oldPasswordError = computed(() => {
   if (isLockedOut.value) {
     return lockoutError.value;
@@ -126,14 +137,7 @@ async function handleChangePassword() {
         @click="handleChangePassword"
         :loading="form.isProcessing"
         :minLoadingMs="UX_DELAY_NORMAL"
-        :disabled="
-          isLockedOut ||
-          form.isProcessing ||
-          !form.oldPassword ||
-          !form.password ||
-          !form.confirmPassword ||
-          form.hasError()
-        "
+        :disabled="!canSubmit"
         class="w-full"
       >
         {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}

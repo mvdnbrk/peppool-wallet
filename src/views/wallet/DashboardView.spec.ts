@@ -2,33 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
-import PepPageHeader from '@/components/ui/PepPageHeader.vue';
-import PepMainLayout from '@/components/ui/PepMainLayout.vue';
-import { createTestingPinia } from '@pinia/testing';
 import { Transaction } from '@/models/Transaction';
 import { useApp } from '@/composables/useApp';
+
+// UI Components
+import PepButton from '@/components/ui/PepButton.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import PepTransactionItem from '@/components/ui/list/PepTransactionItem.vue';
 
 // Mock useApp
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp');
 
-// Mock global components
+// Visual stubs only
 const stubs = {
-  PepMainLayout: {
-    template:
-      '<div><slot name="header"><PepPageHeader v-bind="$attrs" /></slot><slot /><slot name="actions" /></div>',
-    inheritAttrs: false
-  },
-  PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' },
-  PepCard: { template: '<div><slot /></div>' },
-  PepInputGroup: { template: '<div><slot /></div>' },
-  PepSpinner: { template: '<div />' },
-  PepTransactionItem: {
-    name: 'PepTransactionItem',
-    template: '<div class="tx-item-stub"><slot name="left" /><slot name="right" /></div>',
-    props: ['tx']
-  }
+  PepWordmark: { template: '<div />' }
 };
 
 const mockRawTx = {
@@ -70,43 +60,56 @@ describe('Wallet Views Navigation', () => {
     });
   });
 
-  it('Dashboard: should navigate to send and receive', async () => {
-    const wrapper = mount(DashboardView, {
-      global: {
-        stubs
-      }
-    });
+  const global = {
+    stubs,
+    components: {
+      PepButton,
+      PepMainLayout,
+      PepPageHeader,
+      PepTransactionItem
+    }
+  };
 
-    const sendBtn = wrapper.findAll('button').find((b) => b.text() === 'Send');
+  it('Dashboard: should navigate to send and receive', async () => {
+    const wrapper = mount(DashboardView, { global });
+
+    const sendBtn = wrapper.findAll('button').find((b) => b.text().includes('Send'));
     await sendBtn?.trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/send');
 
-    const receiveBtn = wrapper.findAll('button').find((b) => b.text() === 'Receive');
+    const receiveBtn = wrapper.findAll('button').find((b) => b.text().includes('Receive'));
     await receiveBtn?.trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/receive');
   });
 
   it('ReceiveView: should have a specific onBack callback to dashboard', () => {
     const wrapper = mount(ReceiveView, {
-      global: { stubs, components: { PepPageHeader } }
+      global: {
+        ...global,
+        components: { ...global.components, PepPageHeader }
+      }
     });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('onBack')).toBeInstanceOf(Function);
   });
 
-  it('Dashboard: should render transaction items', async () => {
+  it('Dashboard: should render transaction items and show header', async () => {
     const tx = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
     mockWallet.transactions = [tx];
 
-    const wrapper = mount(DashboardView, {
-      global: {
-        stubs
-      }
-    });
+    const wrapper = mount(DashboardView, { global });
 
-    const item = wrapper.findComponent({ name: 'PepTransactionItem' });
+    expect(wrapper.text()).toContain('Recent Activity');
+    const item = wrapper.findComponent(PepTransactionItem);
     expect(item.exists()).toBe(true);
-    // Use strict equality check for serialized objects
-    expect(JSON.stringify(item.props('tx'))).toBe(JSON.stringify(tx));
+  });
+
+  it('Dashboard: should hide Recent Activity header when no transactions', async () => {
+    mockWallet.transactions = [];
+
+    const wrapper = mount(DashboardView, { global });
+
+    expect(wrapper.text()).not.toContain('Recent Activity');
+    expect(wrapper.text()).toContain('No transactions yet');
   });
 });

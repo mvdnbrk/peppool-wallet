@@ -62,19 +62,15 @@ function openDetail(txid: string) {
     </div>
 
     <!-- Recent Activity -->
-    <div class="flex min-h-0 flex-1 flex-col space-y-3 overflow-hidden">
+    <div
+      v-if="walletStore.transactions.length > 0"
+      class="flex min-h-0 flex-1 flex-col space-y-3 overflow-hidden"
+    >
       <h3 class="ml-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
         Recent Activity
       </h3>
 
-      <div
-        v-if="walletStore.transactions.length === 0"
-        class="flex flex-1 flex-col items-center justify-center text-slate-600"
-      >
-        <p class="text-sm">No transactions yet</p>
-      </div>
-
-      <div v-else class="flex-1 overflow-y-auto pr-1 pb-4">
+      <div class="flex-1 overflow-y-auto pr-1 pb-4">
         <PepTransactionItem
           v-for="tx in walletStore.transactions"
           :key="tx.txid"
@@ -82,6 +78,13 @@ function openDetail(txid: string) {
           @click="openDetail(tx.txid)"
         />
       </div>
+    </div>
+
+    <div
+      v-else
+      class="flex flex-1 flex-col items-center justify-center text-slate-600"
+    >
+      <p class="text-sm">No transactions yet</p>
     </div>
   </PepMainLayout>
 </template>

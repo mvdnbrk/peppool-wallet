@@ -66,7 +66,10 @@ describe('WelcomeView Logic', () => {
     const wrapper = mount(WelcomeView, { global });
 
     expect(wrapper.find('input[type="password"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Unlock');
+    const unlockBtn = wrapper.findComponent(PepLoadingButton);
+    expect(unlockBtn.exists()).toBe(true);
+    expect(unlockBtn.text()).toContain('Unlock');
+    expect(unlockBtn.attributes('form')).toBe('welcome-unlock-form');
   });
 
   it('should call store.unlock and navigate to dashboard on success', async () => {

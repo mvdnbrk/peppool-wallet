@@ -99,30 +99,29 @@ async function handleUnlock() {
           :disabled="localIsLockedOut"
           autofocus
         />
-
-        <template #actions>
-          <div class="space-y-4">
-            <PepLoadingButton
-              type="submit"
-              :loading="form.isProcessing"
-              :min-loading-ms="UX_DELAY_FAST"
-              :disabled="!canUnlock"
-              class="w-full"
-            >
-              {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
-            </PepLoadingButton>
-
-            <button
-              type="button"
-              @click="router.push('/forgot-password')"
-              class="w-full cursor-pointer text-xs text-slate-500 underline transition-colors hover:text-white hover:no-underline"
-              tabindex="-1"
-            >
-              Forgot your password?
-            </button>
-          </div>
-        </template>
       </PepForm>
+
+      <div class="mt-8 space-y-4">
+        <PepLoadingButton
+          type="submit"
+          form="welcome-unlock-form"
+          :loading="form.isProcessing"
+          :min-loading-ms="UX_DELAY_FAST"
+          :disabled="!canUnlock"
+          class="w-full"
+        >
+          {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
+        </PepLoadingButton>
+
+        <button
+          type="button"
+          @click="router.push('/forgot-password')"
+          class="w-full cursor-pointer text-xs text-slate-500 underline transition-colors hover:text-white hover:no-underline"
+          tabindex="-1"
+        >
+          Forgot your password?
+        </button>
+      </div>
     </div>
 
     <div v-else class="w-full space-y-4">

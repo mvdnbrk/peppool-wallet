@@ -104,18 +104,19 @@ async function handleImport() {
         @blur-password="onBlurPassword"
         @blur-confirm="onBlurConfirmPassword"
       />
-
-      <template #actions>
-        <PepLoadingButton
-          type="submit"
-          :loading="form.isProcessing"
-          :min-loading-ms="UX_DELAY_SLOW"
-          :disabled="!canImport"
-          class="w-full"
-        >
-          Import wallet
-        </PepLoadingButton>
-      </template>
     </PepForm>
+
+    <template #actions>
+      <PepLoadingButton
+        type="submit"
+        form="import-wallet-form"
+        :loading="form.isProcessing"
+        :min-loading-ms="UX_DELAY_SLOW"
+        :disabled="!canImport"
+        class="w-full"
+      >
+        Import wallet
+      </PepLoadingButton>
+    </template>
   </PepMainLayout>
 </template>

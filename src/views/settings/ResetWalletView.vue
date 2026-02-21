@@ -43,19 +43,20 @@ async function handleReset() {
           label="I have backed up my secret phrase."
         />
       </div>
-
-      <template #actions>
-        <PepLoadingButton
-          type="submit"
-          :loading="isProcessing"
-          :minLoadingMs="UX_DELAY_NORMAL"
-          :disabled="!confirmedBackup"
-          variant="danger"
-          class="w-full"
-        >
-          Reset wallet
-        </PepLoadingButton>
-      </template>
     </PepForm>
+
+    <template #actions>
+      <PepLoadingButton
+        type="submit"
+        form="reset-wallet-form"
+        :loading="isProcessing"
+        :minLoadingMs="UX_DELAY_NORMAL"
+        :disabled="!confirmedBackup"
+        variant="danger"
+        class="w-full"
+      >
+        Reset wallet
+      </PepLoadingButton>
+    </template>
   </PepMainLayout>
 </template>

@@ -5,7 +5,7 @@ import CreateWalletView from '../views/onboarding/CreateWalletView.vue';
 import ImportWalletView from '../views/onboarding/ImportWalletView.vue';
 import DashboardView from '../views/wallet/DashboardView.vue';
 import ReceiveView from '../views/wallet/ReceiveView.vue';
-import SendView from '../views/wallet/SendView.vue';
+import SendView from '../views/wallet/send/SendView.vue';
 import ShowMnemonicView from '../views/settings/ShowMnemonicView.vue';
 import SettingsView from '../views/settings/SettingsView.vue';
 import ChangePasswordView from '../views/settings/ChangePasswordView.vue';

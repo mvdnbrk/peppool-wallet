@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { ref } from 'vue';
-import SendView from './SendView.vue';
+import SendView from './send/SendView.vue';
 import { isValidAddress } from '@/utils/crypto';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import PepCopyableId from '@/components/ui/PepCopyableId.vue';
@@ -150,11 +150,11 @@ describe('SendView', () => {
   it('should correctly display the txid on the success screen (Step 3)', async () => {
     const wrapper = mount(SendView, { global });
 
-    // Manually move to Step 3 and set a TXID
+    // Manually move to Step 3 and set a TXID in the persisted form
     // @ts-ignore
     wrapper.vm.form.step = 3;
-    mockSendTransaction.txid.value =
-      'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
+    // @ts-ignore
+    wrapper.vm.form.txid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
 
     await wrapper.vm.$nextTick();
 
@@ -230,5 +230,27 @@ describe('SendView', () => {
     expect(wrapper.vm.form.errors.recipient).toBe('Invalid address format');
 
     spy.mockRestore();
+  });
+
+  it('should reset form when back button is clicked on success screen', async () => {
+    const wrapper = mount(SendView, { global });
+
+    // 1. Move to step 3
+    // @ts-ignore
+    wrapper.vm.form.step = 3;
+    // @ts-ignore
+    wrapper.vm.form.recipient = 'some-address';
+    await wrapper.vm.$nextTick();
+
+    // 2. Find and click back button in header
+    const backBtn = wrapper.find('#header-back-button');
+    await backBtn.trigger('click');
+
+    // 3. Verify form was reset (step back to 1, recipient empty)
+    // @ts-ignore
+    expect(wrapper.vm.form.step).toBe(1);
+    // @ts-ignore
+    expect(wrapper.vm.form.recipient).toBe('');
+    expect(pushMock).toHaveBeenCalledWith('/dashboard');
   });
 });

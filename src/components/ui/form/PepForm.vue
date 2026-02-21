@@ -31,9 +31,5 @@ function handleSubmit(e: Event) {
     <div class="flex-1 space-y-6">
       <slot />
     </div>
-
-    <div v-if="$slots.actions" class="pt-0">
-      <slot name="actions" />
-    </div>
   </form>
 </template>

@@ -75,10 +75,6 @@ async function handleCreate() {
           @blur-password="onBlurPassword"
           @blur-confirm="onBlurConfirmPassword"
         />
-
-        <template #actions>
-          <PepButton type="submit" :disabled="!canProceed" class="w-full"> Next </PepButton>
-        </template>
       </PepForm>
     </div>
 
@@ -111,19 +107,31 @@ async function handleCreate() {
         <p v-if="form.errors.general" class="mt-0 text-sm text-red-400">
           {{ form.errors.general }}
         </p>
-
-        <template #actions>
-          <PepLoadingButton
-            type="submit"
-            :loading="form.isProcessing"
-            :min-loading-ms="UX_DELAY_SLOW"
-            :disabled="!confirmedSeed"
-            class="w-full"
-          >
-            Create wallet
-          </PepLoadingButton>
-        </template>
       </PepForm>
     </div>
+
+    <template #actions>
+      <PepButton
+        v-if="step === 1"
+        type="submit"
+        form="create-wallet-password-form"
+        :disabled="!canProceed"
+        class="w-full"
+      >
+        Next
+      </PepButton>
+
+      <PepLoadingButton
+        v-if="step === 2"
+        type="submit"
+        form="create-wallet-confirm-form"
+        :loading="form.isProcessing"
+        :min-loading-ms="UX_DELAY_SLOW"
+        :disabled="!confirmedSeed"
+        class="w-full"
+      >
+        Create wallet
+      </PepLoadingButton>
+    </template>
   </PepMainLayout>
 </template>

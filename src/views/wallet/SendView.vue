@@ -321,6 +321,8 @@ onMounted(async () => {
                 <span class="text-slate-500">Available:</span>
                 <span class="text-slate-300">{{ displayBalance }}</span>
                 <button
+                  id="send-max-button"
+                  type="button"
                   @click="setMax"
                   :disabled="form.isProcessing || ui.isLoadingRequirements"
                   class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"

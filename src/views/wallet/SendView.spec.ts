@@ -6,6 +6,7 @@ import PepCopyableId from '@/components/ui/PepCopyableId.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepSuccessState from '@/components/ui/PepSuccessState.vue';
+import PepForm from '@/components/ui/form/PepForm.vue';
 import { useApp } from '@/composables/useApp';
 
 // Mock useApp
@@ -65,7 +66,14 @@ describe('SendView', () => {
 
   const global = {
     stubs,
-    components: { PepAmountInput, PepCopyableId, PepMainLayout, PepPageHeader, PepSuccessState }
+    components: {
+      PepAmountInput,
+      PepCopyableId,
+      PepMainLayout,
+      PepPageHeader,
+      PepSuccessState,
+      PepForm
+    }
   };
 
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
@@ -171,5 +179,29 @@ describe('SendView', () => {
 
     // @ts-ignore
     expect(wrapper.vm.displayBalance).toBe('5 PEP');
+  });
+
+  it('should have a MAX button of type="button" that does not trigger form submit', async () => {
+    mockFetchUtxos.mockResolvedValue([]);
+    mockFetchRecommendedFees.mockResolvedValue({ fastestFee: 1000 });
+
+    const wrapper = mount(SendView, { global });
+    await flushPromises();
+
+    // Find the MAX button
+    const maxButton = wrapper.find('#send-max-button');
+
+    expect(maxButton.exists()).toBe(true);
+    expect(maxButton.attributes('type')).toBe('button');
+
+    // Find the form
+    const form = wrapper.findComponent(PepForm);
+    expect(form.exists()).toBe(true);
+
+    // Click the MAX button
+    await maxButton.trigger('click');
+
+    // Verify form was not submitted
+    expect(form.emitted('submit')).toBeUndefined();
   });
 });

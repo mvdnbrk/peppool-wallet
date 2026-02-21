@@ -128,8 +128,12 @@ export interface ApiUtxo {
   };
 }
 
-export async function fetchTransactions(address: string): Promise<RawTransaction[]> {
-  const data = await request<unknown[]>(`/address/${encodeURIComponent(address)}/txs`);
+export async function fetchTransactions(
+  address: string,
+  afterTxid?: string
+): Promise<RawTransaction[]> {
+  const query = afterTxid ? `?after_txid=${afterTxid}` : '';
+  const data = await request<unknown[]>(`/address/${encodeURIComponent(address)}/txs${query}`);
   return data.map((tx) => v.parse(RawTransactionSchema, tx));
 }
 

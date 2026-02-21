@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { formatFiat, formatAmount } from '@/utils/constants';
 import { useApp } from '@/composables/useApp';
-import { onMounted, onUnmounted, computed } from 'vue';
+import { onMounted, onUnmounted, computed, ref } from 'vue';
 
 const { router, wallet: walletStore } = useApp();
+
+const isLoadingMore = ref(false);
 
 const balanceFontSize = computed(() => {
   const len = formatAmount(walletStore.balance).length;
@@ -33,6 +35,18 @@ onUnmounted(() => {
 
 function openDetail(txid: string) {
   router.push(`/tx/${txid}`);
+}
+
+async function handleLoadMore() {
+  if (isLoadingMore.value) return;
+  isLoadingMore.value = true;
+  try {
+    await walletStore.fetchMoreTransactions();
+  } catch (e) {
+    // Error handled in store
+  } finally {
+    isLoadingMore.value = false;
+  }
 }
 </script>
 
@@ -71,12 +85,25 @@ function openDetail(txid: string) {
       </h3>
 
       <div class="flex-1 overflow-y-auto pr-1 pb-4">
-        <PepTransactionItem
-          v-for="tx in walletStore.transactions"
-          :key="tx.txid"
-          :tx="tx"
-          @click="openDetail(tx.txid)"
-        />
+        <div class="space-y-2">
+          <PepTransactionItem
+            v-for="tx in walletStore.transactions"
+            :key="tx.txid"
+            :tx="tx"
+            @click="openDetail(tx.txid)"
+          />
+        </div>
+
+        <div v-if="walletStore.canLoadMore" class="mt-4 flex justify-center">
+          <button
+            type="button"
+            @click="handleLoadMore"
+            :disabled="isLoadingMore"
+            class="text-pep-green-light hover:text-pep-green cursor-pointer text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {{ isLoadingMore ? 'Loading...' : 'Load more' }}
+          </button>
+        </div>
       </div>
     </div>
 

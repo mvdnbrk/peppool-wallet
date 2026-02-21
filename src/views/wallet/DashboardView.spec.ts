@@ -46,6 +46,7 @@ describe('Wallet Views Navigation', () => {
       selectedCurrency: 'USD',
       prices: { USD: 0, EUR: 0 },
       transactions: [],
+      canLoadMore: true,
       refreshBalance: vi.fn(),
       startPolling: vi.fn(),
       stopPolling: vi.fn(),
@@ -111,5 +112,21 @@ describe('Wallet Views Navigation', () => {
 
     expect(wrapper.text()).not.toContain('Recent Activity');
     expect(wrapper.text()).toContain('No transactions yet');
+  });
+
+  it('Dashboard: should show load more button when transactions exist', async () => {
+    const tx = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    mockWallet.transactions = [tx];
+    mockWallet.fetchMoreTransactions = vi.fn().mockResolvedValue(true);
+
+    const wrapper = mount(DashboardView, { global });
+
+    const buttons = wrapper.findAll('button');
+    const loadMore = buttons.find((b) => b.text().includes('Load more'));
+
+    expect(loadMore?.exists()).toBe(true);
+
+    await loadMore?.trigger('click');
+    expect(mockWallet.fetchMoreTransactions).toHaveBeenCalled();
   });
 });

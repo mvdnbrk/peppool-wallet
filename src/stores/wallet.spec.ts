@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
 
+import { Transaction } from '../models/Transaction';
+
 // Mock the API and Crypto utils
 let tipHeight = 0;
 vi.mock('../utils/api', () => ({
@@ -25,6 +27,7 @@ describe('Wallet Store', () => {
     const store = useWalletStore();
     expect(store.isCreated).toBe(false);
     expect(store.isUnlocked).toBe(false);
+    expect(store.canLoadMore).toBe(true);
   });
 
   it('should create a wallet and persist it', async () => {
@@ -243,6 +246,34 @@ describe('Wallet Store', () => {
 
       store.resetWallet();
       expect(localStorage.getItem('peppool_transactions')).toBeNull();
+    });
+
+    it('should fetch more transactions and append them uniquely', async () => {
+      const api = await import('../utils/api');
+      const store = useWalletStore();
+      store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+
+      // Setup initial transactions
+      const tx1 = { ...mockTx, txid: 'tx1' };
+      store.transactions = [new Transaction(tx1, store.address)];
+
+      // Mock API to return a new unique transaction
+      const tx2 = { ...mockTx, txid: 'tx2' };
+      vi.mocked(api.fetchTransactions).mockResolvedValue([tx2] as any);
+
+      const hasMore = await store.fetchMoreTransactions();
+
+      expect(hasMore).toBe(true);
+      expect(store.transactions).toHaveLength(2);
+      expect(store.transactions[1].txid).toBe('tx2');
+      expect(api.fetchTransactions).toHaveBeenCalledWith(store.address, 'tx1');
+      expect(store.canLoadMore).toBe(true);
+
+      // Mock API to return nothing (end of list)
+      vi.mocked(api.fetchTransactions).mockResolvedValue([]);
+      const hasNoMore = await store.fetchMoreTransactions();
+      expect(hasNoMore).toBe(false);
+      expect(store.canLoadMore).toBe(false);
     });
   });
 });

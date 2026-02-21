@@ -91,6 +91,17 @@ describe('API Utils', () => {
     expect(txs[0]!.txid).toBe('abc123');
   });
 
+  it('should fetch transactions with after_txid correctly', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse([]));
+
+    await fetchTransactions('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh', 'last-txid');
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('after_txid=last-txid'),
+      expect.anything()
+    );
+  });
+
   it('should broadcast a transaction and return the raw txid string', async () => {
     const mockTxid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
     (vi.mocked(fetch) as any).mockResolvedValue({

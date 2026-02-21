@@ -4,7 +4,7 @@ import { generateMnemonic, deriveAddress } from '../utils/crypto';
 import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
 import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } from '../utils/api';
 import { Transaction } from '../models/Transaction';
-import { RIBBITS_PER_PEP } from '../utils/constants';
+import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '../utils/constants';
 import { EXPLORERS, type ExplorerId, pepeExplorer } from '../utils/explorer';
 
 // ── Background worker messaging ────────────────────────────────────────────
@@ -82,6 +82,7 @@ export const useWalletStore = defineStore('wallet', () => {
     : [];
 
   const transactions = ref<Transaction[]>(initialTransactions);
+  const canLoadMore = ref(true);
   let lockTimer: ReturnType<typeof setTimeout> | null = null;
 
   const isCreated = computed(() => !!encryptedMnemonic.value);
@@ -165,12 +166,37 @@ export const useWalletStore = defineStore('wallet', () => {
     try {
       const rawTxs = await fetchTransactions(address.value);
       transactions.value = rawTxs.map((raw) => new Transaction(raw, address.value!));
+      canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
 
       // Cache the last 20 transactions
       const cacheData = rawTxs.slice(0, 20);
       localStorage.setItem('peppool_transactions', JSON.stringify(cacheData));
     } catch (e) {
       console.error('Failed to fetch transactions', e);
+    }
+  }
+
+  async function fetchMoreTransactions() {
+    if (!address.value || transactions.value.length === 0) return;
+
+    const lastTx = transactions.value[transactions.value.length - 1];
+    if (!lastTx) return false;
+
+    try {
+      const rawTxs = await fetchTransactions(address.value, lastTx.txid);
+      const newTxs = rawTxs.map((raw) => new Transaction(raw, address.value!));
+
+      // Avoid duplicates (in case the API overlaps)
+      const existingIds = new Set(transactions.value.map((t) => t.txid));
+      const uniqueNewTxs = newTxs.filter((t) => !existingIds.has(t.txid));
+
+      canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
+
+      transactions.value = [...transactions.value, ...uniqueNewTxs];
+      return uniqueNewTxs.length > 0;
+    } catch (e) {
+      console.error('Failed to fetch more transactions', e);
+      return false;
     }
   }
 
@@ -393,6 +419,7 @@ export const useWalletStore = defineStore('wallet', () => {
     lockDuration,
     prices,
     transactions,
+    canLoadMore,
     setCurrency,
     setExplorer,
     openExplorerTx,
@@ -403,6 +430,7 @@ export const useWalletStore = defineStore('wallet', () => {
     importWallet,
     refreshBalance,
     refreshTransactions,
+    fetchMoreTransactions,
     resetLockTimer,
     startPolling,
     stopPolling,

@@ -10,6 +10,7 @@ export const APP_VERSION = pkg.version;
 export const RECOMMENDED_FEE_RATE = 1000;
 export const MIN_SEND_PEP = 0.01;
 export const MIN_PASSWORD_LENGTH = 8;
+export const TXS_PER_PAGE = 25;
 
 export const UX_DELAY_FAST = 1000;
 export const UX_DELAY_NORMAL = 2000;

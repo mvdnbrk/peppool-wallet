@@ -189,4 +189,47 @@ describe('WelcomeView Logic', () => {
     expect(wrapper.text()).toContain('Incorrect password');
     vi.useRealTimers();
   });
+
+  it('should clear password and error when lockout starts', async () => {
+    const { useLockout } = await import('@/composables/useLockout');
+    const isLockedOut = ref(false);
+    vi.mocked(useLockout).mockReturnValue({
+      isLockedOut,
+      lockoutError: ref('Locked')
+    } as any);
+
+    mockStore.isCreated = true;
+    const wrapper = mount(WelcomeView, { global });
+
+    // @ts-ignore
+    wrapper.vm.form.password = 'some-text';
+    // @ts-ignore
+    wrapper.vm.form.setError('general', 'Previous error');
+
+    // Trigger lockout
+    isLockedOut.value = true;
+    await nextTick();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.password).toBe('');
+    // @ts-ignore
+    expect(wrapper.vm.form.hasError()).toBe(false);
+  });
+
+  it('should handle generic errors in handleUnlock', async () => {
+    const { useLockout } = await import('@/composables/useLockout');
+    vi.mocked(useLockout).mockReturnValue({
+      isLockedOut: ref(false),
+      lockoutError: ref('')
+    } as any);
+
+    mockStore.isCreated = true;
+    mockStore.unlock.mockRejectedValue(new Error('Boom'));
+
+    const wrapper = mount(WelcomeView, { global });
+    // @ts-ignore
+    await wrapper.vm.handleUnlock();
+
+    expect(wrapper.text()).toContain('Incorrect password');
+  });
 });

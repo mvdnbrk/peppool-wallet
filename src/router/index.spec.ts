@@ -70,4 +70,33 @@ describe('Router Logic', () => {
     expect(walletStore.checkSession).toHaveBeenCalled();
     expect(router.currentRoute.value.path).toBe('/dashboard');
   });
+
+  it('should auto-restore last route if persistent and unlocked', async () => {
+    localStorage.setItem('peppool_last_route', '/send');
+    walletStore.isUnlocked = true;
+    resetSessionCheck();
+
+    // Trigger navigation to root which should trigger restore
+    await router.push('/');
+    expect(router.currentRoute.value.path).toBe('/send');
+  });
+
+  it('should NOT auto-restore if route is NOT persistent', async () => {
+    localStorage.setItem('peppool_last_route', '/settings'); // settings has no persist:true
+    walletStore.isUnlocked = true;
+    resetSessionCheck();
+
+    await router.push('/');
+    expect(router.currentRoute.value.path).toBe('/dashboard');
+    expect(localStorage.getItem('peppool_last_route')).toBeNull();
+  });
+
+  it('should auto-restore public persistent routes even if locked', async () => {
+    localStorage.setItem('peppool_last_route', '/import'); // /import has persist:true
+    walletStore.isUnlocked = false;
+    resetSessionCheck();
+
+    await router.push('/');
+    expect(router.currentRoute.value.path).toBe('/import');
+  });
 });

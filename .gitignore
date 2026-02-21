@@ -27,6 +27,7 @@ lerna-debug.log*
 .claude/
 CLAUDE.md
 GEMINI.md
+*.skill
 
 # Editor & OS
 .vscode/*

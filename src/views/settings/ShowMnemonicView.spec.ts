@@ -98,7 +98,7 @@ describe('ShowMnemonicView Integration', () => {
   it('should disable reveal button when error is present', async () => {
     mockShowMnemonic.error.value = 'Some error';
     const wrapper = mount(ShowMnemonicView, { global });
-    
+
     const button = wrapper.findComponent(PepLoadingButton);
     expect(button.props('disabled')).toBe(true);
   });
@@ -106,11 +106,11 @@ describe('ShowMnemonicView Integration', () => {
   it('should clear error message when user starts typing', async () => {
     mockShowMnemonic.error.value = 'Incorrect password';
     const wrapper = mount(ShowMnemonicView, { global });
-    
+
     expect(wrapper.text()).toContain('Incorrect password');
-    
+
     await wrapper.find('input[type="password"]').setValue('new-char');
-    
+
     expect(mockShowMnemonic.error.value).toBe('');
     expect(wrapper.text()).not.toContain('Incorrect password');
   });

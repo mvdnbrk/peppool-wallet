@@ -1,4 +1,4 @@
-import { ref, computed, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 
 /**
@@ -6,25 +6,12 @@ import { useWalletStore } from '@/stores/wallet';
  */
 export function useLockout() {
   const wallet = useWalletStore();
-  const now = ref(Date.now());
 
-  // Update the 'now' timestamp every second to drive the computed properties
-  const ticker = setInterval(() => {
-    now.value = Date.now();
-  }, 1000);
-
-  onUnmounted(() => {
-    clearInterval(ticker);
-  });
-
-  const isLockedOut = computed(() => {
-    if (wallet.lockoutUntil === 0) return false;
-    return wallet.lockoutUntil > now.value;
-  });
+  const isLockedOut = computed(() => wallet.isLockedOut);
 
   const secondsRemaining = computed(() => {
-    if (!isLockedOut.value) return 0;
-    return Math.max(0, Math.ceil((wallet.lockoutUntil - now.value) / 1000));
+    if (!wallet.lockoutUntil) return 0;
+    return Math.max(0, Math.ceil((wallet.lockoutUntil - Date.now()) / 1000));
   });
 
   const lockoutError = computed(() => {

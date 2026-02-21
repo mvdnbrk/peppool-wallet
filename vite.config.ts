@@ -19,6 +19,18 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./src/vitest-setup.ts'],
+        coverage: {
+            include: ['src/**/*.{ts,vue}'],
+            exclude: [
+                'src/main.ts',
+                'src/background.ts',
+                'src/**/*.spec.ts',
+                'src/**/*.d.ts',
+                'src/assets/**',
+                'src/composables/__mocks__/**',
+            ],
+            reporter: ['text', 'lcov'],
+        }
     },
     plugins: [
         crx({ manifest }),

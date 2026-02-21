@@ -118,7 +118,7 @@ describe('WelcomeView Logic', () => {
   it('should show create/import buttons when wallet is NOT created', () => {
     mockStore.isCreated = false;
     const wrapper = mount(WelcomeView, { global });
-    
+
     expect(wrapper.text()).toContain('Create new wallet');
     expect(wrapper.text()).toContain('Import secret phrase');
   });
@@ -128,7 +128,7 @@ describe('WelcomeView Logic', () => {
     const wrapper = mount(WelcomeView, { global });
 
     const buttons = wrapper.findAllComponents(PepButton);
-    
+
     await buttons[0].trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/create');
 
@@ -140,7 +140,9 @@ describe('WelcomeView Logic', () => {
     mockStore.isCreated = true;
     const wrapper = mount(WelcomeView, { global });
 
-    const forgotBtn = wrapper.findAll('button').find(b => b.text().includes('Forgot your password?'));
+    const forgotBtn = wrapper
+      .findAll('button')
+      .find((b) => b.text().includes('Forgot your password?'));
     await forgotBtn?.trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/forgot-password');
   });
@@ -157,7 +159,7 @@ describe('WelcomeView Logic', () => {
 
     const wrapper = mount(WelcomeView, { global });
     await wrapper.find('input[type="password"]').setValue('password123');
-    
+
     await wrapper.find('#welcome-unlock-form').trigger('submit');
     await flushPromises();
 
@@ -178,9 +180,9 @@ describe('WelcomeView Logic', () => {
 
     const wrapper = mount(WelcomeView, { global });
     await wrapper.find('input[type="password"]').setValue('wrong');
-    
+
     wrapper.find('#welcome-unlock-form').trigger('submit');
-    
+
     await vi.advanceTimersByTimeAsync(UX_DELAY_FAST);
     await flushPromises();
 

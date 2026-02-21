@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { router } from './index';
+import { router, resetSessionCheck } from './index';
 import { useWalletStore } from '../stores/wallet';
 import { setActivePinia, createPinia } from 'pinia';
 
@@ -14,6 +14,9 @@ describe('Router Logic', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+
+    // Reset sessionChecked internal state
+    resetSessionCheck();
 
     // Default locked state
     walletStore = {
@@ -54,5 +57,17 @@ describe('Router Logic', () => {
       await router.push(path);
       expect(router.currentRoute.value.path).toBe('/');
     }
+  });
+
+  it('should auto-unlock if checkSession returns true', async () => {
+    walletStore.isUnlocked = false;
+    walletStore.checkSession.mockImplementation(async () => {
+      walletStore.isUnlocked = true;
+      return true;
+    });
+
+    await router.push('/dashboard');
+    expect(walletStore.checkSession).toHaveBeenCalled();
+    expect(router.currentRoute.value.path).toBe('/dashboard');
   });
 });

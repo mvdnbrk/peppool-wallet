@@ -45,7 +45,11 @@ export const router = createRouter({
   routes
 });
 
-let sessionChecked = false;
+export let sessionChecked = false;
+
+export function resetSessionCheck() {
+  sessionChecked = false;
+}
 
 router.beforeEach(async (to, _from, next) => {
   const walletStore = useWalletStore();

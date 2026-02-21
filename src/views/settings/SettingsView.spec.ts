@@ -14,6 +14,7 @@ import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepListItem from '@/components/ui/list/PepListItem.vue';
 import PepList from '@/components/ui/list/PepList.vue';
+import PepButton from '@/components/ui/PepButton.vue';
 import { useApp } from '@/composables/useApp';
 
 // Mock useApp
@@ -31,6 +32,7 @@ describe('Settings Views Navigation', () => {
       selectedCurrency: 'USD',
       selectedExplorer: 'peppool',
       lockDuration: 15,
+      lock: vi.fn(),
       resetWallet: vi.fn(),
       openExplorerTx: vi.fn(),
       openExplorerAddress: vi.fn()
@@ -72,6 +74,15 @@ describe('Settings Views Navigation', () => {
 
     await wrapper.find('#settings-about-item').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/settings/about');
+  });
+
+  it('SettingsView: should lock wallet and redirect', async () => {
+    const wrapper = mount(SettingsView, { global });
+
+    await wrapper.findComponent(PepButton).trigger('click');
+
+    expect(mockWallet.lock).toHaveBeenCalled();
+    expect(pushMock).toHaveBeenCalledWith('/');
   });
 
   it('AboutView: should use default router.back()', () => {

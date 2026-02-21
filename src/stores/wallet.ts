@@ -83,11 +83,17 @@ export const useWalletStore = defineStore('wallet', () => {
 
   const transactions = ref<Transaction[]>(initialTransactions);
   const canLoadMore = ref(true);
+  const now = ref(Date.now());
   let lockTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Update 'now' every second to drive reactive lockout check
+  setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
 
   const isCreated = computed(() => !!encryptedMnemonic.value);
   const isMnemonicLoaded = computed(() => !!plaintextMnemonic.value);
-  const isLockedOut = computed(() => lockoutUntil.value > Date.now());
+  const isLockedOut = computed(() => lockoutUntil.value > now.value);
   const attemptsRemaining = computed(() => {
     // Find the next tier the user is approaching
     const nextTier = FAILURE_TIERS.find((t) => failedAttempts.value < t.threshold);

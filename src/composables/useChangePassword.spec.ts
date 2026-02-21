@@ -40,24 +40,32 @@ describe('useChangePassword Composable', () => {
 
   it('should throw error if passwords do not match', async () => {
     const { performChange } = useChangePassword();
-    await expect(performChange('old', 'new-pass-123', 'mismatch')).rejects.toThrow('Passwords do not match');
+    await expect(performChange('old', 'new-pass-123', 'mismatch')).rejects.toThrow(
+      'Passwords do not match'
+    );
   });
 
   it('should throw error if new password is same as old', async () => {
     const { performChange } = useChangePassword();
-    await expect(performChange('same-pass', 'same-pass', 'same-pass')).rejects.toThrow('Cannot use current password');
+    await expect(performChange('same-pass', 'same-pass', 'same-pass')).rejects.toThrow(
+      'Cannot use current password'
+    );
   });
 
   it('should throw error if current password is incorrect', async () => {
     mockWallet.unlock.mockResolvedValue(false);
     const { performChange } = useChangePassword();
-    await expect(performChange('wrong', 'new-pass-12345678', 'new-pass-12345678')).rejects.toThrow('Incorrect current password');
+    await expect(performChange('wrong', 'new-pass-12345678', 'new-pass-12345678')).rejects.toThrow(
+      'Incorrect current password'
+    );
   });
 
   it('should throw error if mnemonic is missing from store', async () => {
     mockWallet.unlock.mockResolvedValue(true);
     mockWallet.plaintextMnemonic = null;
     const { performChange } = useChangePassword();
-    await expect(performChange('old', 'new-pass-12345678', 'new-pass-12345678')).rejects.toThrow('Could not access wallet data');
+    await expect(performChange('old', 'new-pass-12345678', 'new-pass-12345678')).rejects.toThrow(
+      'Could not access wallet data'
+    );
   });
 });

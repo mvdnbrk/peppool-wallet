@@ -7,7 +7,8 @@ import { defineComponent } from 'vue';
 // Mock dependencies
 vi.mock('@/composables/useApp');
 
-const VALID_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+const VALID_MNEMONIC =
+  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 
 describe('useImportWallet Composable', () => {
   let mockWallet: any;
@@ -73,7 +74,7 @@ describe('useImportWallet Composable', () => {
 
   it('should validate mnemonic and word list', () => {
     const { mnemonic, isValid, invalidWords } = useImportWallet();
-    
+
     // Invalid word
     mnemonic.value = 'notaword ';
     expect(invalidWords.value).toContain('notaword');
@@ -106,6 +107,8 @@ describe('useImportWallet Composable', () => {
     const { mnemonic, importAction } = useImportWallet();
     mnemonic.value = VALID_MNEMONIC;
 
-    await expect(importAction('Password123!', 'mismatch-long-enough')).rejects.toThrow('Passwords do not match');
+    await expect(importAction('Password123!', 'mismatch-long-enough')).rejects.toThrow(
+      'Passwords do not match'
+    );
   });
 });

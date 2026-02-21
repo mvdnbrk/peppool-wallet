@@ -25,24 +25,26 @@ const { onBlurMnemonic } = useMnemonicField(form, validateMnemonic);
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
 // Sync form mnemonic with composable mnemonic
-watch(mnemonicRef, (val) => {
-  if (form.mnemonic !== val) form.mnemonic = val;
-}, { immediate: true });
+watch(
+  mnemonicRef,
+  (val) => {
+    if (form.mnemonic !== val) form.mnemonic = val;
+  },
+  { immediate: true }
+);
 
-watch(() => form.mnemonic, (val) => {
-  if (mnemonicRef.value !== val) {
-    mnemonicRef.value = val;
-    sanitizeMnemonic();
+watch(
+  () => form.mnemonic,
+  (val) => {
+    if (mnemonicRef.value !== val) {
+      mnemonicRef.value = val;
+      sanitizeMnemonic();
+    }
   }
-});
+);
 
 const canImport = computed(() => {
-  return (
-    isMnemonicValid.value &&
-    form.password &&
-    form.confirmPassword &&
-    !form.hasError()
-  );
+  return isMnemonicValid.value && form.password && form.confirmPassword && !form.hasError();
 });
 
 async function handleImport() {

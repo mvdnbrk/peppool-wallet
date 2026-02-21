@@ -20,7 +20,10 @@ export function useChangePassword() {
   async function performChange(oldPassword: string, newPassword: string, confirmPassword: string) {
     const passwordErrors = validatePasswordMatch(newPassword, confirmPassword);
     if (passwordErrors.password) {
-      throw new ChangePasswordError('password', passwordErrors.password.replace('Password', 'New password'));
+      throw new ChangePasswordError(
+        'password',
+        passwordErrors.password.replace('Password', 'New password')
+      );
     }
     if (passwordErrors.confirmPassword) {
       throw new ChangePasswordError('password', passwordErrors.confirmPassword);

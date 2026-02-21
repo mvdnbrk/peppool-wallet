@@ -80,10 +80,7 @@ function openDetail(txid: string) {
       </div>
     </div>
 
-    <div
-      v-else
-      class="flex flex-1 flex-col items-center justify-center text-slate-600"
-    >
+    <div v-else class="flex flex-1 flex-col items-center justify-center text-slate-600">
       <p class="text-sm">No transactions yet</p>
     </div>
   </PepMainLayout>

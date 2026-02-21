@@ -199,17 +199,19 @@ describe('SendView', () => {
     // The useForm hook in SendView.vue will restore from localStorage before component setup
     // But since we are testing, we can just mock the useForm return or set it up.
     // However, SendView.vue uses useForm internally.
-    
+
     // We can use a custom wrapper setup if needed, but let's try to see if we can trigger it.
     // Actually, in the test environment, localStorage might have state.
-    
+
     // Simpler: Check if handleAddressBlur is called or if error appears when we mock isValidAddress to return false.
     vi.mocked(isValidAddress).mockReturnValue(false);
-    
+
     // We need to make sure form.recipient is set BEFORE onMounted runs or during initialization.
     // In our test setup, SendView calls useForm.
     // If we want to simulate restored data, we could mock localStorage.getItem
-    const spy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(JSON.stringify({ recipient: 'invalid-addr' }));
+    const spy = vi
+      .spyOn(Storage.prototype, 'getItem')
+      .mockReturnValue(JSON.stringify({ recipient: 'invalid-addr' }));
 
     const wrapper = mount(SendView, { global });
     await flushPromises();
@@ -217,7 +219,7 @@ describe('SendView', () => {
     // The error should be present because onMounted calls handleAddressBlur
     // @ts-ignore
     expect(wrapper.vm.form.errors.recipient).toBe('Invalid address format');
-    
+
     spy.mockRestore();
   });
 });

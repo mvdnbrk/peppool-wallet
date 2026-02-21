@@ -25,7 +25,8 @@ function handleNextToSeed() {
 
   if (!result.success && result.errors) {
     if (result.errors.password) form.setError('password', result.errors.password);
-    if (result.errors.confirmPassword) form.setError('confirmPassword', result.errors.confirmPassword);
+    if (result.errors.confirmPassword)
+      form.setError('confirmPassword', result.errors.confirmPassword);
     return;
   }
 

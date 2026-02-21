@@ -59,7 +59,9 @@ describe('useSendTransaction Composable', () => {
 
   it('should calculate display balance correctly', async () => {
     const { tx, displayBalance } = useSendTransaction();
-    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }] as any;
+    tx.value.utxos = [
+      { txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }
+    ] as any;
 
     expect(displayBalance(false)).toBe('5 PEP');
     expect(displayBalance(true)).toBe('$50.00 USD');
@@ -67,7 +69,9 @@ describe('useSendTransaction Composable', () => {
 
   it('should validate step 1 inputs', async () => {
     const { validateStep1, tx } = useSendTransaction();
-    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 10_000_000_000, status: { confirmed: true } }] as any;
+    tx.value.utxos = [
+      { txid: 'c1', vout: 0, value: 10_000_000_000, status: { confirmed: true } }
+    ] as any;
     tx.value.fees = { fastestFee: 1000 } as any;
 
     vi.mocked(crypto.isValidAddress).mockReturnValue(true);
@@ -80,15 +84,21 @@ describe('useSendTransaction Composable', () => {
     expect(result).toBe(true);
 
     // Invalid amount
-    await expect(validateStep1('recipient', 0)).rejects.toThrow('Please enter a valid address and amount');
+    await expect(validateStep1('recipient', 0)).rejects.toThrow(
+      'Please enter a valid address and amount'
+    );
 
     // Own address
-    await expect(validateStep1(mockWallet.address, 500_000_000)).rejects.toThrow('Cannot send to your own address');
+    await expect(validateStep1(mockWallet.address, 500_000_000)).rejects.toThrow(
+      'Cannot send to your own address'
+    );
   });
 
   it('should send transaction and return txid', async () => {
     const { tx, send } = useSendTransaction();
-    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }] as any;
+    tx.value.utxos = [
+      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
+    ] as any;
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 500_000_000;
 

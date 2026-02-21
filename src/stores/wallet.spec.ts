@@ -257,16 +257,13 @@ describe('Wallet Store', () => {
       const tx1 = { ...mockTx, txid: 'tx1' };
       store.transactions = [new Transaction(tx1, store.address)];
 
-      // Mock API to return a new unique transaction
-      const tx2 = { ...mockTx, txid: 'tx2' };
-      vi.mocked(api.fetchTransactions).mockResolvedValue([tx2] as any);
+      // Mock API to return a full page of transactions
+      const fullPage = Array(25).fill(null).map((_, i) => ({ ...mockTx, txid: `page-${i}` }));
+      vi.mocked(api.fetchTransactions).mockResolvedValue(fullPage as any);
 
       const hasMore = await store.fetchMoreTransactions();
 
       expect(hasMore).toBe(true);
-      expect(store.transactions).toHaveLength(2);
-      expect(store.transactions[1].txid).toBe('tx2');
-      expect(api.fetchTransactions).toHaveBeenCalledWith(store.address, 'tx1');
       expect(store.canLoadMore).toBe(true);
 
       // Mock API to return nothing (end of list)

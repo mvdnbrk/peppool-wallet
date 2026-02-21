@@ -13,7 +13,9 @@ vi.mock('@/composables/useApp', () => ({
 const stubs = {
   PepPageHeader: { template: '<div><slot /></div>' },
   PepForm: {
-    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+    props: ['id'],
+    template:
+      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },
   PepCheckbox: {
     template:
@@ -68,7 +70,7 @@ describe('ResetWalletView Feature', () => {
     expect(wrapper.vm.confirmedBackup).toBe(true);
 
     // 3. Trigger form submit
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#reset-wallet-form').trigger('submit');
 
     // 4. VERIFY: wallet is reset and user redirected
     expect(resetSpy).toHaveBeenCalled();

@@ -37,7 +37,8 @@ const stubs = {
   PepInputGroup: { template: '<div><slot /></div>' },
   PepLoadingButton: { template: '<button><slot /></button>' },
   PepForm: {
-    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+    props: ['id'],
+    template: '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   }
 };
 

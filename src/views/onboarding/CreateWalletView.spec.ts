@@ -22,7 +22,9 @@ vi.mock('@/utils/crypto', async (importOriginal) => {
 const stubs = {
   PepPageHeader: { template: '<div />' },
   PepForm: {
-    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+    props: ['id'],
+    template:
+      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },
   PepPasswordFields: {
     template:
@@ -78,7 +80,7 @@ describe('CreateWalletView Logic', () => {
     await wrapper.find('#conf').setValue(STRONG_PWD);
 
     // Trigger form submit directly
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#create-wallet-password-form').trigger('submit');
     await wrapper.vm.$nextTick();
 
     // Should now show mnemonic grid stub
@@ -100,12 +102,12 @@ describe('CreateWalletView Logic', () => {
     // 1. Step 1
     await wrapper.find('#pwd').setValue(STRONG_PWD);
     await wrapper.find('#conf').setValue(STRONG_PWD);
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#create-wallet-password-form').trigger('submit');
     await wrapper.vm.$nextTick();
 
     // 2. Step 2
     await wrapper.find('input[type="checkbox"]').setValue(true);
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#create-wallet-confirm-form').trigger('submit');
 
     expect(mockStore.importWallet).toHaveBeenCalled();
     expect(pushMock).toHaveBeenCalledWith('/dashboard');

@@ -19,7 +19,9 @@ vi.mock('@/utils/encryption', () => ({
 
 const stubs = {
   PepForm: {
-    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+    props: ['id'],
+    template:
+      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },
   PepPasswordInput: {
     template:
@@ -84,7 +86,7 @@ describe('ChangePasswordView', () => {
     await wrapper.find('#conf').setValue('new-pass-12345678');
 
     // Submit
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#change-password-form').trigger('submit');
     await flushPromises();
     await wrapper.vm.$nextTick();
 
@@ -103,7 +105,7 @@ describe('ChangePasswordView', () => {
     await wrapper.find('#pwd').setValue('same-pass');
     await wrapper.find('#conf').setValue('same-pass');
 
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#change-password-form').trigger('submit');
     await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain('Cannot use current password');
@@ -122,7 +124,7 @@ describe('ChangePasswordView', () => {
     await wrapper.find('#old-password').setValue('old-pass');
     await wrapper.find('#pwd').setValue('new-pass-12345678');
     await wrapper.find('#conf').setValue('new-pass-12345678');
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#change-password-form').trigger('submit');
     await flushPromises();
     await wrapper.vm.$nextTick();
 

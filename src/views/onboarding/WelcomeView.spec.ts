@@ -13,7 +13,9 @@ vi.mock('@/composables/useApp', () => ({
 const stubs = {
   PepWordmark: { template: '<div />' },
   PepForm: {
-    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+    props: ['id'],
+    template:
+      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },
   PepPasswordInput: {
     name: 'PepPasswordInput',
@@ -88,7 +90,7 @@ describe('WelcomeView Logic', () => {
     });
 
     await wrapper.find('input[type="password"]').setValue('password123');
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#welcome-unlock-form').trigger('submit');
 
     expect(mockStore.unlock).toHaveBeenCalledWith('password123');
     expect(pushMock).toHaveBeenCalledWith('/dashboard');

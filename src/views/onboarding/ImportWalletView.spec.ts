@@ -13,7 +13,9 @@ vi.mock('@/composables/useApp', () => ({
 const stubs = {
   PepPageHeader: { template: '<div />' },
   PepForm: {
-    template: '<form @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
+    props: ['id'],
+    template:
+      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
   },
   PepInputGroup: {
     template: '<div><label>{{ label }}</label><slot /></div>',
@@ -69,7 +71,7 @@ describe('ImportWalletView Logic', () => {
     await wrapper.find('#conf').setValue('Password123!');
 
     // 3. Trigger import
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#import-wallet-form').trigger('submit');
 
     expect(mockStore.importWallet).toHaveBeenCalledWith(VALID_MNEMONIC, 'Password123!');
     expect(pushMock).toHaveBeenCalledWith('/dashboard');

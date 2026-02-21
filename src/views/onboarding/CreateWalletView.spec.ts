@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import CreateWalletView from './CreateWalletView.vue';
 import { useApp } from '@/composables/useApp';
+import { useCreateWallet } from '@/composables/useCreateWallet';
 
 // UI Components
 import PepForm from '@/components/ui/form/PepForm.vue';
@@ -17,6 +19,20 @@ import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp', () => ({
   useApp: vi.fn()
+}));
+
+// Mock useCreateWallet
+const mockCreateWallet = {
+  step: ref(1),
+  mnemonic: ref('test mnemonic'),
+  confirmedSeed: ref(false),
+  prepareMnemonic: vi.fn().mockReturnValue({ success: true }),
+  createWallet: vi.fn().mockResolvedValue(true),
+  backToPassword: vi.fn()
+};
+
+vi.mock('@/composables/useCreateWallet', () => ({
+  useCreateWallet: () => mockCreateWallet
 }));
 
 // Mock Crypto Utils
@@ -40,6 +56,11 @@ describe('CreateWalletView Logic', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Reset mock state
+    mockCreateWallet.step.value = 1;
+    mockCreateWallet.confirmedSeed.value = false;
+
     mockStore = {
       importWallet: vi.fn(),
       isUnlocked: true,
@@ -76,6 +97,9 @@ describe('CreateWalletView Logic', () => {
 
     // Trigger form submit directly
     await wrapper.find('#create-wallet-password-form').trigger('submit');
+
+    // Simulate composable state change
+    mockCreateWallet.step.value = 2;
     await wrapper.vm.$nextTick();
 
     // Should now show mnemonic grid
@@ -83,21 +107,25 @@ describe('CreateWalletView Logic', () => {
   });
 
   it('should call store.importWallet and navigate to dashboard on step 2 success', async () => {
-    mockStore.importWallet.mockResolvedValue(undefined);
-
     const wrapper = mount(CreateWalletView, { global });
 
     // 1. Step 1
     await wrapper.find('input#new-password').setValue(STRONG_PWD);
     await wrapper.find('input#confirm-password').setValue(STRONG_PWD);
     await wrapper.find('#create-wallet-password-form').trigger('submit');
+
+    // Simulate moving to step 2
+    mockCreateWallet.step.value = 2;
     await wrapper.vm.$nextTick();
 
     // 2. Step 2
     await wrapper.find('input[type="checkbox"]').setValue(true);
+    // Simulate composable state change
+    mockCreateWallet.confirmedSeed.value = true;
+
     await wrapper.find('#create-wallet-confirm-form').trigger('submit');
 
-    expect(mockStore.importWallet).toHaveBeenCalled();
+    expect(mockCreateWallet.createWallet).toHaveBeenCalledWith(STRONG_PWD);
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
   });
 });

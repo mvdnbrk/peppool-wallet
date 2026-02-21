@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useApp } from '@/composables/useApp';
-
-import { generateMnemonic } from '@/utils/crypto';
-import { useForm, validatePasswordMatch, usePasswordBlur } from '@/utils/form';
+import { useCreateWallet } from '@/composables/useCreateWallet';
+import { useForm, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_SLOW } from '@/utils/constants';
 
-const { router, wallet: walletStore } = useApp();
-
-const step = ref(1); // 1: Password, 2: Show Seed
-const mnemonic = ref('');
-const confirmedSeed = ref(false);
+const { router } = useApp();
+const { step, mnemonic, confirmedSeed, prepareMnemonic, createWallet, backToPassword } =
+  useCreateWallet();
 
 const form = useForm({
   password: '',
@@ -24,36 +21,24 @@ const canProceed = computed(() => {
 });
 
 function handleNextToSeed() {
-  const errors = validatePasswordMatch(form.password, form.confirmPassword);
+  const result = prepareMnemonic(form.password, form.confirmPassword);
 
-  if (errors.password) {
-    form.setError('password', errors.password);
+  if (!result.success && result.errors) {
+    if (result.errors.password) form.setError('password', result.errors.password);
+    if (result.errors.confirmPassword) form.setError('confirmPassword', result.errors.confirmPassword);
     return;
   }
 
-  if (errors.confirmPassword) {
-    form.setError('confirmPassword', errors.confirmPassword);
-    return;
-  }
-
-  mnemonic.value = generateMnemonic();
   form.clearError();
-  step.value = 2;
 }
 
 async function handleCreate() {
-  if (!confirmedSeed.value) {
-    form.setError('general', 'Please confirm backup');
-    return;
-  }
-
   form.isProcessing = true;
   try {
-    await walletStore.importWallet(mnemonic.value, form.password);
+    await createWallet(form.password);
     router.push('/dashboard');
-  } catch (e) {
-    form.setError('general', 'Failed to create wallet');
-    console.error('Failed to create wallet:', (e as Error).message);
+  } catch (e: any) {
+    form.setError('general', e.message || 'Failed to create wallet');
   } finally {
     form.isProcessing = false;
   }
@@ -65,7 +50,7 @@ async function handleCreate() {
     <template #header>
       <PepPageHeader
         title="Create wallet"
-        :onBack="step === 2 ? () => (step = 1) : undefined"
+        :onBack="step === 2 ? backToPassword : undefined"
         :backTo="step === 1 ? '/' : undefined"
       />
     </template>

@@ -4,9 +4,9 @@
 
 The Pepecoin wallet for everyone. This is the source of the Peppool Wallet browser extension.
 
-## Project status: Alpha (in development)
+## Project status: Beta
 
-This project is currently in an early alpha phase and under active development. Features may change frequently, and breaking changes can occur without notice. Expect rapid iterations, incomplete features, and occasional instability while we build out the best Pepecoin wallet experience.
+This project is currently in beta. Core features are implemented and the wallet is functional, but we are still in active development. Features may change and you should still expect frequent updates as we polish the experience.
 
 ## Development Stack
 

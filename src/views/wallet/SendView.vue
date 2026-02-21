@@ -1,32 +1,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useApp } from '@/composables/useApp';
-
-import {
-  fetchUtxos,
-  broadcastTx,
-  fetchTxHex,
-  validateAddress,
-  fetchRecommendedFees
-} from '@/utils/api';
-import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '@/utils/crypto';
-import { decrypt as decryptMnemonic } from '@/utils/encryption';
+import { useSendTransaction } from '@/composables/useSendTransaction';
+import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
-import { SendTransaction } from '@/models/SendTransaction';
-import {
-  RIBBITS_PER_PEP,
-  MIN_SEND_PEP,
-  formatFiat,
-  UX_DELAY_FAST,
-  UX_DELAY_SLOW
-} from '@/utils/constants';
+import { UX_DELAY_FAST, UX_DELAY_SLOW } from '@/utils/constants';
 
 const { router, wallet: walletStore } = useApp();
+const {
+  tx,
+  txid,
+  isLoadingRequirements,
+  currentPrice,
+  isInsufficientFunds,
+  displayBalance,
+  displayFee,
+  loadRequirements,
+  validateStep1,
+  send
+} = useSendTransaction();
 
 const recipientInput = ref<any>(null);
-
-// The logical object for the transaction
-const tx = ref(new SendTransaction(walletStore.address!));
 
 const form = useForm(
   {
@@ -40,22 +34,12 @@ const form = useForm(
 );
 
 const ui = reactive({
-  step: 1,
-  txid: '',
-  isLoadingRequirements: true
-});
-
-const currentPrice = computed(() => walletStore.prices[walletStore.selectedCurrency]);
-
-const isInsufficientFunds = computed(() => {
-  if (ui.isLoadingRequirements || tx.value.amountRibbits <= 0) return false;
-  const needed = tx.value.amountRibbits + tx.value.estimatedFeeRibbits;
-  return tx.value.balanceRibbits < needed;
+  step: 1
 });
 
 const canReview = computed(() => {
   return (
-    !ui.isLoadingRequirements &&
+    !isLoadingRequirements.value &&
     form.recipient &&
     tx.value.amountRibbits > 0 &&
     !form.hasError() &&
@@ -64,12 +48,12 @@ const canReview = computed(() => {
 });
 
 const nextButtonLabel = computed(() => {
-  if (ui.isLoadingRequirements) return 'Loading...';
+  if (isLoadingRequirements.value) return 'Loading...';
   if (isInsufficientFunds.value) return 'Insufficient funds';
   return 'Next';
 });
 
-// Strip whitespace from recipient as the user types (addresses never contain spaces)
+// Strip whitespace from recipient as the user types
 watch(
   () => form.recipient,
   (val) => {
@@ -88,23 +72,7 @@ watch(
   { immediate: true }
 );
 
-// Show spendable balance (confirmed UTXOs only), not the full wallet balance
-const displayBalance = computed(() => {
-  const spendable = tx.value.balancePep;
-  if (form.isFiatMode) {
-    const fiatValue = spendable * currentPrice.value;
-    return `${walletStore.currencySymbol}${formatFiat(fiatValue)} ${walletStore.selectedCurrency}`;
-  }
-  return `${parseFloat(spendable.toFixed(8))} PEP`;
-});
-
-const displayFee = computed(() => {
-  const feePep = tx.value.estimatedFeeRibbits / RIBBITS_PER_PEP;
-  return `${parseFloat(feePep.toFixed(8))} PEP`;
-});
-
 function setMax() {
-  // Set the canonical ribbits amount directly — no precision loss
   form.isMax = true;
   form.amountRibbits = tx.value.maxRibbits;
 }
@@ -119,52 +87,16 @@ async function handleAddressBlur() {
     form.setError('recipient', 'Invalid address format');
     return;
   }
-
-  try {
-    const validation = await validateAddress(form.recipient);
-    if (!validation.isvalid) {
-      form.setError('recipient', 'Invalid Pepecoin address');
-    }
-  } catch (e) {
-    form.clearError('recipient');
-  }
+  form.clearError('recipient');
 }
 
 async function handleReview() {
-  if (!form.recipient || tx.value.amountRibbits <= 0) {
-    form.setError('general', 'Please enter a valid address and amount');
-    return;
-  }
-
-  if (tx.value.amountRibbits < Math.round(MIN_SEND_PEP * RIBBITS_PER_PEP)) {
-    form.setError('general', `Minimum amount to send is ${MIN_SEND_PEP} PEP`);
-    return;
-  }
-
-  if (form.hasError()) return;
-
   form.isProcessing = true;
   form.clearError('general');
   const startTime = Date.now();
 
   try {
-    if (!isValidAddress(form.recipient)) {
-      form.setError('recipient', 'Invalid address format');
-      form.isProcessing = false;
-      return;
-    }
-
-    if (form.recipient === walletStore.address) {
-      form.setError('recipient', 'Cannot send to your own address');
-      form.isProcessing = false;
-      return;
-    }
-
-    if (!tx.value.isValid) {
-      form.setError('general', 'Insufficient balance');
-      form.isProcessing = false;
-      return;
-    }
+    await validateStep1(form.recipient, form.amountRibbits);
 
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
@@ -182,44 +114,8 @@ async function handleSend() {
   const startTime = Date.now();
 
   try {
-    let mnemonic = walletStore.plaintextMnemonic;
-    if (!mnemonic) {
-      if (!form.password) {
-        form.setError('general', 'Password required');
-        form.isProcessing = false;
-        return;
-      }
-      try {
-        mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, form.password);
-        walletStore.cacheMnemonic(mnemonic);
-      } catch (e) {
-        form.setError('general', 'Incorrect password');
-        form.isProcessing = false;
-        return;
-      }
-    }
+    await send(form.password, form.isMax);
 
-    const { selectedUtxos } = tx.value.selectUtxos(form.isMax);
-    const usedUtxosWithHex: UTXO[] = [];
-
-    for (const utxo of selectedUtxos) {
-      const rawHex = await fetchTxHex(utxo.txid);
-      usedUtxosWithHex.push({ ...utxo, rawHex });
-    }
-
-    const amountRibbits = tx.value.amountRibbits;
-    const signer = deriveSigner(mnemonic);
-    const signedHex = await createSignedTx(
-      signer,
-      form.recipient,
-      amountRibbits,
-      usedUtxosWithHex,
-      tx.value.estimatedFeeRibbits
-    );
-    const result = await broadcastTx(signedHex);
-    ui.txid = result;
-
-    await walletStore.refreshBalance(true);
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
 
@@ -238,7 +134,7 @@ function handleCancel() {
 }
 
 function openExplorer() {
-  walletStore.openExplorerTx(ui.txid);
+  walletStore.openExplorerTx(txid.value);
 }
 
 onMounted(async () => {
@@ -248,27 +144,15 @@ onMounted(async () => {
   }
 
   // Sync persisted form data to tx object on mount
-  if (form.recipient) tx.value.recipient = form.recipient;
+  if (form.recipient) {
+    tx.value.recipient = form.recipient;
+    handleAddressBlur();
+  }
 
   try {
-    const [fees, utxos] = await Promise.all([
-      fetchRecommendedFees(),
-      fetchUtxos(walletStore.address!)
-    ]);
-
-    tx.value.fees = fees;
-    // Only use confirmed UTXOs for spending — unconfirmed outputs could be
-    // invalidated if the parent transaction is dropped from the mempool.
-    tx.value.utxos = utxos.filter((u) => u.status.confirmed);
-
-    // If we were in MAX state, recalculate it now that fees/utxos are fresh
-    if (form.isMax) {
-      setMax();
-    }
+    await loadRequirements(form.isMax);
   } catch (e) {
-    console.error('Failed to load transaction requirements', e);
-  } finally {
-    ui.isLoadingRequirements = false;
+    // Error handled in composable
   }
 });
 </script>
@@ -302,7 +186,7 @@ onMounted(async () => {
           label="Recipient Address"
           placeholder="Enter address"
           :error="form.errors.recipient"
-          :disabled="form.isProcessing || ui.isLoadingRequirements"
+          :disabled="form.isProcessing || isLoadingRequirements"
           clearable
           autofocus
           @blur="handleAddressBlur"
@@ -313,18 +197,18 @@ onMounted(async () => {
             v-model:ribbits="form.amountRibbits"
             v-model:isFiatMode="form.isFiatMode"
             :price="currentPrice"
-            :disabled="form.isProcessing || ui.isLoadingRequirements"
+            :disabled="form.isProcessing || isLoadingRequirements"
             @change-max="form.isMax = $event"
           >
             <template #extra>
               <div class="flex items-center space-x-2 text-sm font-bold tracking-wider uppercase">
                 <span class="text-slate-500">Available:</span>
-                <span class="text-slate-300">{{ displayBalance }}</span>
+                <span class="text-slate-300">{{ displayBalance(form.isFiatMode) }}</span>
                 <button
                   id="send-max-button"
                   type="button"
                   @click="setMax"
-                  :disabled="form.isProcessing || ui.isLoadingRequirements"
+                  :disabled="form.isProcessing || isLoadingRequirements"
                   class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   tabindex="-1"
                 >
@@ -349,7 +233,7 @@ onMounted(async () => {
             class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
             :class="form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
           >
-            {{ form.errors.general || form.errors.recipient }}
+            {{ form.errors.general }}
           </p>
         </div>
 
@@ -449,7 +333,7 @@ onMounted(async () => {
       title="Transaction sent!"
       description="Your PEP is on its way."
     >
-      <PepCopyableId label="Transaction ID" :id="ui.txid" />
+      <PepCopyableId label="Transaction ID" :id="txid" />
     </PepSuccessState>
 
     <template #actions>

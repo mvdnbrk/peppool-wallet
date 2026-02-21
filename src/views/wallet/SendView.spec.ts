@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { ref } from 'vue';
 import SendView from './SendView.vue';
+import { isValidAddress } from '@/utils/crypto';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import PepCopyableId from '@/components/ui/PepCopyableId.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
@@ -13,10 +15,39 @@ import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 import PepInputGroup from '@/components/ui/form/PepInputGroup.vue';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 import { useApp } from '@/composables/useApp';
+import { useSendTransaction } from '@/composables/useSendTransaction';
 
 // Mock useApp
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp');
+
+// Mock useSendTransaction
+const mockTx = {
+  amountPep: '0',
+  recipient: '',
+  amountRibbits: 0,
+  maxRibbits: 0,
+  isValid: false,
+  utxos: [] as any[],
+  fees: null as any
+};
+
+const mockSendTransaction = {
+  tx: ref(mockTx),
+  txid: ref(''),
+  isLoadingRequirements: ref(false),
+  currentPrice: ref(10),
+  isInsufficientFunds: ref(false),
+  displayBalance: vi.fn().mockReturnValue('0 PEP'),
+  displayFee: ref('0.001 PEP'),
+  loadRequirements: vi.fn(),
+  validateStep1: vi.fn(),
+  send: vi.fn()
+};
+
+vi.mock('@/composables/useSendTransaction', () => ({
+  useSendTransaction: () => mockSendTransaction
+}));
 
 // Mock API
 const mockFetchUtxos = vi.fn();
@@ -29,6 +60,14 @@ vi.mock('@/utils/api', () => ({
   validateAddress: vi.fn()
 }));
 
+vi.mock('@/utils/crypto', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/crypto')>();
+  return {
+    ...actual,
+    isValidAddress: vi.fn().mockReturnValue(true)
+  };
+});
+
 // Mock global components
 const stubs = {
   PepIcon: { template: '<div></div>' }
@@ -39,6 +78,14 @@ describe('SendView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Reset mock implementation state
+    mockSendTransaction.tx.value = { ...mockTx };
+    mockSendTransaction.txid.value = '';
+    mockSendTransaction.isLoadingRequirements.value = false;
+    mockSendTransaction.isInsufficientFunds.value = false;
+    mockSendTransaction.displayBalance.mockReturnValue('0 PEP');
+
     mockWallet = {
       address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
       isMnemonicLoaded: true,
@@ -76,9 +123,6 @@ describe('SendView', () => {
   };
 
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
-    mockFetchUtxos.mockResolvedValue([]);
-    mockFetchRecommendedFees.mockResolvedValue({ fastestFee: 1000 });
-
     const wrapper = mount(SendView, { global });
 
     await flushPromises();
@@ -107,7 +151,8 @@ describe('SendView', () => {
     // @ts-ignore
     const ui = wrapper.vm.ui;
     ui.step = 3;
-    ui.txid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
+    mockSendTransaction.txid.value =
+      'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
 
     await wrapper.vm.$nextTick();
 
@@ -118,72 +163,17 @@ describe('SendView', () => {
     );
   });
 
-  it('should only use confirmed UTXOs for spending', async () => {
-    const mixedUtxos = [
-      {
-        txid: 'confirmed-1',
-        vout: 0,
-        value: 500_000_000,
-        status: { confirmed: true, block_height: 100 }
-      },
-      { txid: 'unconfirmed-1', vout: 0, value: 200_000_000, status: { confirmed: false } },
-      {
-        txid: 'confirmed-2',
-        vout: 1,
-        value: 300_000_000,
-        status: { confirmed: true, block_height: 101 }
-      },
-      { txid: 'unconfirmed-2', vout: 0, value: 100_000_000, status: { confirmed: false } }
-    ];
-
-    mockFetchUtxos.mockResolvedValue(mixedUtxos);
-    mockFetchRecommendedFees.mockResolvedValue({
-      fastestFee: 1000,
-      halfHourFee: 500,
-      hourFee: 250,
-      economyFee: 100,
-      minimumFee: 50
-    });
+  it('should display available balance from the composable', async () => {
+    mockSendTransaction.displayBalance.mockReturnValue('5 PEP');
 
     const wrapper = mount(SendView, { global });
 
     await flushPromises();
 
-    // @ts-ignore - access internal tx object
-    const txUtxos = wrapper.vm.tx.utxos;
-
-    // Only confirmed UTXOs should be present
-    expect(txUtxos).toHaveLength(2);
-    expect(txUtxos.every((u: any) => u.status.confirmed)).toBe(true);
-    expect(txUtxos.map((u: any) => u.txid)).toEqual(['confirmed-1', 'confirmed-2']);
-  });
-
-  it('should display available balance from confirmed UTXOs only', async () => {
-    // 5 PEP confirmed + 2 PEP unconfirmed = 7 PEP total, but only 5 spendable
-    mockFetchUtxos.mockResolvedValue([
-      { txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true, block_height: 100 } },
-      { txid: 'u1', vout: 0, value: 200_000_000, status: { confirmed: false } }
-    ]);
-    mockFetchRecommendedFees.mockResolvedValue({
-      fastestFee: 1000,
-      halfHourFee: 500,
-      hourFee: 250,
-      economyFee: 100,
-      minimumFee: 50
-    });
-
-    const wrapper = mount(SendView, { global });
-
-    await flushPromises();
-
-    // @ts-ignore
-    expect(wrapper.vm.displayBalance).toBe('5 PEP');
+    expect(wrapper.text()).toContain('Available:5 PEP');
   });
 
   it('should have a MAX button of type="button" that does not trigger form submit', async () => {
-    mockFetchUtxos.mockResolvedValue([]);
-    mockFetchRecommendedFees.mockResolvedValue({ fastestFee: 1000 });
-
     const wrapper = mount(SendView, { global });
     await flushPromises();
 
@@ -202,5 +192,32 @@ describe('SendView', () => {
 
     // Verify form was not submitted
     expect(form.emitted('submit')).toBeUndefined();
+  });
+
+  it('should validate address on mount if recipient is present', async () => {
+    // We need to simulate the form having data restored from storage
+    // The useForm hook in SendView.vue will restore from localStorage before component setup
+    // But since we are testing, we can just mock the useForm return or set it up.
+    // However, SendView.vue uses useForm internally.
+    
+    // We can use a custom wrapper setup if needed, but let's try to see if we can trigger it.
+    // Actually, in the test environment, localStorage might have state.
+    
+    // Simpler: Check if handleAddressBlur is called or if error appears when we mock isValidAddress to return false.
+    vi.mocked(isValidAddress).mockReturnValue(false);
+    
+    // We need to make sure form.recipient is set BEFORE onMounted runs or during initialization.
+    // In our test setup, SendView calls useForm.
+    // If we want to simulate restored data, we could mock localStorage.getItem
+    const spy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(JSON.stringify({ recipient: 'invalid-addr' }));
+
+    const wrapper = mount(SendView, { global });
+    await flushPromises();
+
+    // The error should be present because onMounted calls handleAddressBlur
+    // @ts-ignore
+    expect(wrapper.vm.form.errors.recipient).toBe('Invalid address format');
+    
+    spy.mockRestore();
   });
 });

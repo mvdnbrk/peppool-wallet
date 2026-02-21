@@ -22,6 +22,7 @@ function handleBack() {
   <div class="z-20 mb-8 flex items-center">
     <button
       id="header-back-button"
+      type="button"
       @click="handleBack"
       class="mr-4 cursor-pointer text-slate-400 hover:text-white"
       aria-label="Go back"

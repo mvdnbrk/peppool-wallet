@@ -38,6 +38,7 @@ const shouldRender = computed(() => {
 
         <button
           id="app-settings-button"
+          type="button"
           @click="router.push('/settings')"
           class="cursor-pointer p-1 text-slate-400 transition-colors hover:text-white"
           aria-label="Settings"

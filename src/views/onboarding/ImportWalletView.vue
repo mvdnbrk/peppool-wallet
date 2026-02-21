@@ -1,16 +1,19 @@
 <script setup lang="ts">
+import { computed, watch } from 'vue';
 import { useApp } from '@/composables/useApp';
-
-import { validateMnemonic, getInvalidMnemonicWords } from '@/utils/crypto';
-import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from '@/utils/form';
+import { useImportWallet } from '@/composables/useImportWallet';
+import { useForm, usePasswordBlur, useMnemonicField } from '@/utils/form';
+import { validateMnemonic } from '@/utils/crypto';
 import { UX_DELAY_SLOW } from '@/utils/constants';
-import { watch, computed, onMounted } from 'vue';
 
-const { router, wallet: walletStore } = useApp();
-
-const SESSION_KEY = 'import_draft_mnemonic';
-const SESSION_TS_KEY = 'import_draft_ts';
-const DRAFT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const { router } = useApp();
+const {
+  mnemonic: mnemonicRef,
+  invalidWords,
+  isValid: isMnemonicValid,
+  importAction,
+  sanitizeMnemonic
+} = useImportWallet();
 
 const form = useForm({
   mnemonic: '',
@@ -18,89 +21,37 @@ const form = useForm({
   confirmPassword: ''
 });
 
-const invalidWords = computed(() => {
-  if (!form.mnemonic) return [];
-  return getInvalidMnemonicWords(form.mnemonic);
-});
-
-const { sanitizeMnemonic, onBlurMnemonic } = useMnemonicField(form, validateMnemonic);
+const { onBlurMnemonic } = useMnemonicField(form, validateMnemonic);
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
+// Sync form mnemonic with composable mnemonic
+watch(mnemonicRef, (val) => {
+  if (form.mnemonic !== val) form.mnemonic = val;
+}, { immediate: true });
+
+watch(() => form.mnemonic, (val) => {
+  if (mnemonicRef.value !== val) {
+    mnemonicRef.value = val;
+    sanitizeMnemonic();
+  }
+});
+
 const canImport = computed(() => {
-  const mnemonic = form.mnemonic.trim().toLowerCase();
   return (
-    mnemonic &&
+    isMnemonicValid.value &&
     form.password &&
     form.confirmPassword &&
-    !form.hasError() &&
-    invalidWords.value.length === 0 &&
-    validateMnemonic(mnemonic)
+    !form.hasError()
   );
 });
 
-// Strip commas and normalize internal spacing while typing
-watch(() => form.mnemonic, sanitizeMnemonic);
-
-// Persist mnemonic to session storage (in-memory only, cleared on browser close)
-watch(
-  () => form.mnemonic,
-  (val) => {
-    if (chrome?.storage?.session) {
-      chrome.storage.session.set({
-        [SESSION_KEY]: val,
-        [SESSION_TS_KEY]: Date.now()
-      });
-    }
-  }
-);
-
-onMounted(async () => {
-  if (chrome?.storage?.session) {
-    const data = await chrome.storage.session.get([SESSION_KEY, SESSION_TS_KEY]);
-    const savedAt = Number(data[SESSION_TS_KEY]) || 0;
-    if (data[SESSION_KEY] && Date.now() - savedAt < DRAFT_TTL_MS) {
-      form.mnemonic = data[SESSION_KEY];
-    } else {
-      clearSessionDraft();
-    }
-  }
-});
-
-function clearSessionDraft() {
-  if (chrome?.storage?.session) {
-    chrome.storage.session.remove([SESSION_KEY, SESSION_TS_KEY]);
-  }
-}
-
 async function handleImport() {
-  const normalizedMnemonic = form.mnemonic.trim().toLowerCase();
-  form.mnemonic = normalizedMnemonic; // Update UI to reflect cleaned version
-
-  if (!validateMnemonic(normalizedMnemonic)) {
-    form.setError('mnemonic', 'Invalid secret phrase');
-    return;
-  }
-
-  const errors = validatePasswordMatch(form.password, form.confirmPassword);
-
-  if (errors.password) {
-    form.setError('password', errors.password);
-    return;
-  }
-
-  if (errors.confirmPassword) {
-    form.setError('confirmPassword', errors.confirmPassword);
-    return;
-  }
-
   form.isProcessing = true;
   try {
-    await walletStore.importWallet(normalizedMnemonic, form.password);
-    clearSessionDraft();
+    await importAction(form.password, form.confirmPassword);
     router.push('/dashboard');
-  } catch (e) {
-    form.setError('general', 'Failed to import wallet');
-    console.error('Failed to import wallet:', (e as Error).message);
+  } catch (e: any) {
+    form.setError('general', e.message || 'Failed to import wallet');
   } finally {
     form.isProcessing = false;
   }

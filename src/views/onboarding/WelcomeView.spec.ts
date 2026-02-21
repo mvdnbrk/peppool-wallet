@@ -3,28 +3,23 @@ import { mount } from '@vue/test-utils';
 import WelcomeView from './WelcomeView.vue';
 import { useApp } from '@/composables/useApp';
 
+// UI Components
+import PepForm from '@/components/ui/form/PepForm.vue';
+import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import PepButton from '@/components/ui/PepButton.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+
 // Mock useApp
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp', () => ({
   useApp: vi.fn()
 }));
 
-// Components
+// Visual stubs only
 const stubs = {
   PepWordmark: { template: '<div />' },
-  PepForm: {
-    props: ['id'],
-    template:
-      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
-  },
-  PepPasswordInput: {
-    name: 'PepPasswordInput',
-    template:
-      '<input type="password" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
-    props: ['modelValue']
-  },
-  PepLoadingButton: { template: '<button type="submit"><slot /></button>' },
-  PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' }
 };
 
@@ -46,16 +41,21 @@ describe('WelcomeView Logic', () => {
     });
   });
 
+  const global = {
+    stubs,
+    components: {
+      PepForm,
+      PepPasswordInput,
+      PepLoadingButton,
+      PepButton,
+      PepMainLayout,
+      PepPageHeader
+    }
+  };
+
   it('should show create/import buttons when wallet is NOT created', async () => {
     mockStore.isCreated = false;
-    const wrapper = mount(WelcomeView, {
-      global: {
-        stubs: {
-          ...stubs,
-          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
-        }
-      }
-    });
+    const wrapper = mount(WelcomeView, { global });
 
     expect(wrapper.text()).toContain('Create new wallet');
     expect(wrapper.text()).toContain('Import secret phrase');
@@ -63,14 +63,7 @@ describe('WelcomeView Logic', () => {
 
   it('should show password input and unlock button when wallet IS created', async () => {
     mockStore.isCreated = true;
-    const wrapper = mount(WelcomeView, {
-      global: {
-        stubs: {
-          ...stubs,
-          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
-        }
-      }
-    });
+    const wrapper = mount(WelcomeView, { global });
 
     expect(wrapper.find('input[type="password"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Unlock');
@@ -80,14 +73,7 @@ describe('WelcomeView Logic', () => {
     mockStore.isCreated = true;
     mockStore.unlock.mockResolvedValue(true);
 
-    const wrapper = mount(WelcomeView, {
-      global: {
-        stubs: {
-          ...stubs,
-          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
-        }
-      }
-    });
+    const wrapper = mount(WelcomeView, { global });
 
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('#welcome-unlock-form').trigger('submit');

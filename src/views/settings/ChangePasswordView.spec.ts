@@ -4,6 +4,13 @@ import ChangePasswordView from './ChangePasswordView.vue';
 import { useApp } from '@/composables/useApp';
 import { replaceMock, pushMock } from '@/composables/__mocks__/useApp';
 import * as encryption from '@/utils/encryption';
+
+// UI Components
+import PepForm from '@/components/ui/form/PepForm.vue';
+import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
+import PepPasswordFields from '@/components/ui/form/PepPasswordFields.vue';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import PepButton from '@/components/ui/PepButton.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepSuccessState from '@/components/ui/PepSuccessState.vue';
@@ -18,23 +25,6 @@ vi.mock('@/utils/encryption', () => ({
 }));
 
 const stubs = {
-  PepForm: {
-    props: ['id'],
-    template:
-      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
-  },
-  PepPasswordInput: {
-    template:
-      '<div><input :id="id" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" /><span>{{ error }}</span></div>',
-    props: ['modelValue', 'id', 'error']
-  },
-  PepPasswordFields: {
-    template:
-      '<div><input id="pwd" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /><span>{{ errors.password }}</span><span>{{ errors.confirmPassword }}</span></div>',
-    props: ['password', 'confirmPassword', 'errors']
-  },
-  PepLoadingButton: { template: '<button type="submit"><slot /></button>' },
-  PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' }
 };
 
@@ -62,13 +52,25 @@ describe('ChangePasswordView', () => {
     });
   });
 
+  const global = {
+    stubs,
+    components: {
+      PepForm,
+      PepPasswordInput,
+      PepPasswordFields,
+      PepLoadingButton,
+      PepButton,
+      PepMainLayout,
+      PepPageHeader,
+      PepSuccessState
+    }
+  };
+
   it('should redirect if wallet is locked', () => {
     mockWallet.isUnlocked = false;
     const { requireUnlock } = useApp();
 
-    mount(ChangePasswordView, {
-      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
-    });
+    mount(ChangePasswordView, { global });
 
     expect(requireUnlock).toHaveBeenCalled();
   });
@@ -76,14 +78,12 @@ describe('ChangePasswordView', () => {
   it('should show success state after successful password change', async () => {
     mockWallet.unlock.mockResolvedValue(true);
 
-    const wrapper = mount(ChangePasswordView, {
-      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
-    });
+    const wrapper = mount(ChangePasswordView, { global });
 
     // Fill form
-    await wrapper.find('#old-password').setValue('old-pass');
-    await wrapper.find('#pwd').setValue('new-pass-12345678');
-    await wrapper.find('#conf').setValue('new-pass-12345678');
+    await wrapper.find('input#old-password').setValue('old-pass');
+    await wrapper.find('input#new-password').setValue('new-pass-12345678');
+    await wrapper.find('input#confirm-password').setValue('new-pass-12345678');
 
     // Submit
     await wrapper.find('#change-password-form').trigger('submit');
@@ -96,14 +96,12 @@ describe('ChangePasswordView', () => {
   });
 
   it('should prevent changing to the same password', async () => {
-    const wrapper = mount(ChangePasswordView, {
-      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
-    });
+    const wrapper = mount(ChangePasswordView, { global });
 
     // Fill with same passwords
-    await wrapper.find('#old-password').setValue('same-pass');
-    await wrapper.find('#pwd').setValue('same-pass');
-    await wrapper.find('#conf').setValue('same-pass');
+    await wrapper.find('input#old-password').setValue('same-pass');
+    await wrapper.find('input#new-password').setValue('same-pass');
+    await wrapper.find('input#confirm-password').setValue('same-pass');
 
     await wrapper.find('#change-password-form').trigger('submit');
     await wrapper.vm.$nextTick();
@@ -116,14 +114,12 @@ describe('ChangePasswordView', () => {
   it('should navigate to dashboard when Close is clicked on success screen', async () => {
     mockWallet.unlock.mockResolvedValue(true);
 
-    const wrapper = mount(ChangePasswordView, {
-      global: { stubs, components: { PepMainLayout, PepPageHeader, PepSuccessState } }
-    });
+    const wrapper = mount(ChangePasswordView, { global });
 
     // Trigger success
-    await wrapper.find('#old-password').setValue('old-pass');
-    await wrapper.find('#pwd').setValue('new-pass-12345678');
-    await wrapper.find('#conf').setValue('new-pass-12345678');
+    await wrapper.find('input#old-password').setValue('old-pass');
+    await wrapper.find('input#new-password').setValue('new-pass-12345678');
+    await wrapper.find('input#confirm-password').setValue('new-pass-12345678');
     await wrapper.find('#change-password-form').trigger('submit');
     await flushPromises();
     await wrapper.vm.$nextTick();

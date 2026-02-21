@@ -3,6 +3,16 @@ import { mount } from '@vue/test-utils';
 import CreateWalletView from './CreateWalletView.vue';
 import { useApp } from '@/composables/useApp';
 
+// UI Components
+import PepForm from '@/components/ui/form/PepForm.vue';
+import PepPasswordFields from '@/components/ui/form/PepPasswordFields.vue';
+import PepMnemonicGrid from '@/components/ui/PepMnemonicGrid.vue';
+import PepCheckbox from '@/components/ui/form/PepCheckbox.vue';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import PepButton from '@/components/ui/PepButton.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+
 // Mock useApp
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp', () => ({
@@ -18,30 +28,8 @@ vi.mock('@/utils/crypto', async (importOriginal) => {
   };
 });
 
-// Components
+// Visual stubs only
 const stubs = {
-  PepPageHeader: { template: '<div />' },
-  PepForm: {
-    props: ['id'],
-    template:
-      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
-  },
-  PepPasswordFields: {
-    template:
-      '<div><input id="pwd" type="password" :value="password" @input="$emit(\'update:password\', $event.target.value)" /><input id="conf" type="password" :value="confirmPassword" @input="$emit(\'update:confirmPassword\', $event.target.value)" /></div>',
-    props: ['password', 'confirmPassword']
-  },
-  PepMnemonicGrid: {
-    name: 'PepMnemonicGrid',
-    template: '<div class="mnemonic-grid" />'
-  },
-  PepCheckbox: {
-    template:
-      '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
-    props: ['modelValue']
-  },
-  PepLoadingButton: { template: '<button type="submit"><slot /></button>' },
-  PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
   PepIcon: { template: '<div />' }
 };
 
@@ -65,43 +53,43 @@ describe('CreateWalletView Logic', () => {
     });
   });
 
+  const global = {
+    stubs,
+    components: {
+      PepForm,
+      PepPasswordFields,
+      PepMnemonicGrid,
+      PepCheckbox,
+      PepLoadingButton,
+      PepButton,
+      PepMainLayout,
+      PepPageHeader
+    }
+  };
+
   it('should move to step 2 after valid password is set', async () => {
-    const wrapper = mount(CreateWalletView, {
-      global: {
-        stubs: {
-          ...stubs,
-          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
-        }
-      }
-    });
+    const wrapper = mount(CreateWalletView, { global });
 
     // Step 1: Fill passwords
-    await wrapper.find('#pwd').setValue(STRONG_PWD);
-    await wrapper.find('#conf').setValue(STRONG_PWD);
+    await wrapper.find('input#new-password').setValue(STRONG_PWD);
+    await wrapper.find('input#confirm-password').setValue(STRONG_PWD);
 
     // Trigger form submit directly
     await wrapper.find('#create-wallet-password-form').trigger('submit');
     await wrapper.vm.$nextTick();
 
-    // Should now show mnemonic grid stub
-    expect(wrapper.find('.mnemonic-grid').exists()).toBe(true);
+    // Should now show mnemonic grid
+    expect(wrapper.findComponent(PepMnemonicGrid).exists()).toBe(true);
   });
 
   it('should call store.importWallet and navigate to dashboard on step 2 success', async () => {
     mockStore.importWallet.mockResolvedValue(undefined);
 
-    const wrapper = mount(CreateWalletView, {
-      global: {
-        stubs: {
-          ...stubs,
-          PepPageHeader: { template: '<div />', props: ['title', 'backTo', 'onBack'] }
-        }
-      }
-    });
+    const wrapper = mount(CreateWalletView, { global });
 
     // 1. Step 1
-    await wrapper.find('#pwd').setValue(STRONG_PWD);
-    await wrapper.find('#conf').setValue(STRONG_PWD);
+    await wrapper.find('input#new-password').setValue(STRONG_PWD);
+    await wrapper.find('input#confirm-password').setValue(STRONG_PWD);
     await wrapper.find('#create-wallet-password-form').trigger('submit');
     await wrapper.vm.$nextTick();
 

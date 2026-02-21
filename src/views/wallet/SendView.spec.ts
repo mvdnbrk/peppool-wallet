@@ -7,6 +7,11 @@ import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepSuccessState from '@/components/ui/PepSuccessState.vue';
 import PepForm from '@/components/ui/form/PepForm.vue';
+import PepInput from '@/components/ui/form/PepInput.vue';
+import PepButton from '@/components/ui/PepButton.vue';
+import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
+import PepInputGroup from '@/components/ui/form/PepInputGroup.vue';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 import { useApp } from '@/composables/useApp';
 
 // Mock useApp
@@ -26,20 +31,7 @@ vi.mock('@/utils/api', () => ({
 
 // Mock global components
 const stubs = {
-  PepIcon: { template: '<div></div>' },
-  PepInput: {
-    template: '<div><slot name="prefix" /><slot /><slot name="suffix" /></div>',
-    props: ['modelValue'],
-    methods: { focus: () => {} }
-  },
-  PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
-  PepPasswordInput: { template: '<div><slot /></div>' },
-  PepInputGroup: { template: '<div><slot /></div>' },
-  PepLoadingButton: { template: '<button><slot /></button>' },
-  PepForm: {
-    props: ['id'],
-    template: '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
-  }
+  PepIcon: { template: '<div></div>' }
 };
 
 describe('SendView', () => {
@@ -55,7 +47,8 @@ describe('SendView', () => {
       balance: 7,
       prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn(),
-      openExplorerTx: vi.fn()
+      openExplorerTx: vi.fn(),
+      openExplorerTxLink: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
@@ -73,7 +66,12 @@ describe('SendView', () => {
       PepMainLayout,
       PepPageHeader,
       PepSuccessState,
-      PepForm
+      PepForm,
+      PepInput,
+      PepButton,
+      PepPasswordInput,
+      PepInputGroup,
+      PepLoadingButton
     }
   };
 

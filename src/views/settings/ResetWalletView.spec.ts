@@ -3,32 +3,23 @@ import { mount } from '@vue/test-utils';
 import ResetWalletView from './ResetWalletView.vue';
 import { useApp } from '@/composables/useApp';
 
+// UI Components
+import PepForm from '@/components/ui/form/PepForm.vue';
+import PepCheckbox from '@/components/ui/form/PepCheckbox.vue';
+import PepButton from '@/components/ui/PepButton.vue';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+
 // Mock useApp
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp', () => ({
   useApp: vi.fn()
 }));
 
-// Mock global components
+// Visual stubs only
 const stubs = {
-  PepPageHeader: { template: '<div><slot /></div>' },
-  PepForm: {
-    props: ['id'],
-    template:
-      '<form :id="id" @submit.prevent="$emit(\'submit\')"><slot /><slot name="actions" /></form>'
-  },
-  PepCheckbox: {
-    template:
-      '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
-    props: ['modelValue']
-  },
-  PepButton: {
-    template: '<button @click="$emit(\'click\')"><slot /></button>',
-    props: ['disabled']
-  },
-  PepLoadingButton: {
-    template: '<button type="submit"><slot /></button>'
-  }
+  PepIcon: { template: '<div />' }
 };
 
 describe('ResetWalletView Feature', () => {
@@ -48,18 +39,24 @@ describe('ResetWalletView Feature', () => {
     });
   });
 
+  const global = {
+    stubs,
+    components: {
+      PepForm,
+      PepCheckbox,
+      PepButton,
+      PepLoadingButton,
+      PepMainLayout,
+      PepPageHeader
+    }
+  };
+
   it('should call resetWallet and redirect to home on confirm', async () => {
-    const wrapper = mount(ResetWalletView, {
-      global: {
-        stubs
-      }
-    });
+    const wrapper = mount(ResetWalletView, { global });
 
     const resetSpy = vi.spyOn(mockWallet, 'resetWallet');
 
     // 1. Initial state: button should be disabled
-    const button = wrapper.find('button');
-    // Check disabled state via vm because of stub
     // @ts-ignore
     expect(wrapper.vm.confirmedBackup).toBe(false);
 

@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { useLockout } from '@/composables/useLockout';
-import { encrypt } from '@/utils/encryption';
-import { useForm, validatePasswordMatch, usePasswordBlur } from '@/utils/form';
+import { useChangePassword } from '@/composables/useChangePassword';
+import { useForm, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
-const { router, wallet: walletStore, requireUnlock } = useApp();
+const { router, requireUnlock } = useApp();
 requireUnlock();
 
 const { isLockedOut, lockoutError } = useLockout();
+const { isSuccess, performChange } = useChangePassword();
 
 const form = useForm({
   oldPassword: '',
@@ -19,8 +20,6 @@ const form = useForm({
 
 const { onBlurPassword, onBlurConfirmPassword } = usePasswordBlur(form);
 
-const isSuccess = ref(false);
-
 const canSubmit = computed(() => {
   return (
     !isLockedOut.value &&
@@ -28,8 +27,18 @@ const canSubmit = computed(() => {
     form.oldPassword &&
     form.password &&
     form.confirmPassword &&
+    form.password !== form.oldPassword &&
     !form.hasError()
   );
+});
+
+// Immediately show error if new password is same as old
+watch([() => form.oldPassword, () => form.password], ([oldPass, newPass]) => {
+  if (oldPass && newPass && oldPass === newPass) {
+    form.setError('password', 'Cannot use current password');
+  } else if (form.errors.password === 'Cannot use current password') {
+    form.clearError('password');
+  }
 });
 
 const oldPasswordError = computed(() => {
@@ -42,50 +51,16 @@ const oldPasswordError = computed(() => {
 async function handleChangePassword() {
   if (isLockedOut.value) return;
 
-  const errors = validatePasswordMatch(form.password, form.confirmPassword);
-
-  if (errors.password) {
-    form.setError('password', errors.password.replace('Password', 'New password'));
-    return;
-  }
-
-  if (errors.confirmPassword) {
-    form.setError('confirmPassword', errors.confirmPassword);
-    return;
-  }
-
-  if (form.password === form.oldPassword) {
-    form.setError('password', 'Cannot use current password');
-    return;
-  }
-
   form.isProcessing = true;
   try {
-    // Verify old password via unlock() — inherits escalating lockout
-    const success = await walletStore.unlock(form.oldPassword);
-    if (!success) {
-      if (!isLockedOut.value) {
-        form.setError('oldPassword', 'Incorrect current password');
-      }
-      form.isProcessing = false;
-      return;
-    }
-
-    // Re-encrypt with new password
-    const mnemonic = walletStore.plaintextMnemonic;
-    if (!mnemonic) {
-      form.setError('general', 'Could not access wallet data. Please try again.');
-      form.isProcessing = false;
-      return;
-    }
-
-    const newEncrypted = await encrypt(mnemonic, form.password);
-    walletStore.updateVault(newEncrypted);
-
-    isSuccess.value = true;
-  } catch (e) {
-    if (!isLockedOut.value) {
-      form.setError('oldPassword', 'Incorrect current password');
+    await performChange(form.oldPassword, form.password, form.confirmPassword);
+  } catch (e: any) {
+    if (e.field === 'oldPassword') {
+      if (!isLockedOut.value) form.setError(e.field, e.message);
+    } else if (e.field) {
+      form.setError(e.field, e.message);
+    } else {
+      form.setError('general', e.message || 'An error occurred');
     }
   } finally {
     form.isProcessing = false;

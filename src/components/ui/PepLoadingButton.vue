@@ -5,11 +5,13 @@ import PepButton from './PepButton.vue';
 interface Props {
   loading?: boolean;
   minLoadingMs?: number;
+  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  minLoadingMs: 0
+  minLoadingMs: 0,
+  disabled: false
 });
 
 const displayedLoading = ref(false);
@@ -51,7 +53,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <PepButton v-bind="$attrs" :loading="displayedLoading">
+  <PepButton v-bind="$attrs" :loading="displayedLoading" :disabled="disabled">
     <slot />
   </PepButton>
 </template>

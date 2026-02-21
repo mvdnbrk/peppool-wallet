@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ref } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import ChangePasswordView from './ChangePasswordView.vue';
 import { useApp } from '@/composables/useApp';
+import { useChangePassword, ChangePasswordError } from '@/composables/useChangePassword';
 import { replaceMock, pushMock } from '@/composables/__mocks__/useApp';
 import * as encryption from '@/utils/encryption';
 
@@ -17,6 +19,20 @@ import PepSuccessState from '@/components/ui/PepSuccessState.vue';
 
 // Mock useApp
 vi.mock('@/composables/useApp');
+
+// Mock useChangePassword
+const mockChangePassword = {
+  isSuccess: ref(false),
+  performChange: vi.fn().mockResolvedValue(true)
+};
+
+vi.mock('@/composables/useChangePassword', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/composables/useChangePassword')>();
+  return {
+    ...actual,
+    useChangePassword: () => mockChangePassword
+  };
+});
 
 // Mock Encryption
 vi.mock('@/utils/encryption', () => ({
@@ -34,6 +50,7 @@ describe('ChangePasswordView', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    mockChangePassword.isSuccess.value = false;
     vi.mocked(encryption.encrypt).mockResolvedValue('new-encrypted-mnemonic');
 
     mockWallet = {
@@ -76,8 +93,6 @@ describe('ChangePasswordView', () => {
   });
 
   it('should show success state after successful password change', async () => {
-    mockWallet.unlock.mockResolvedValue(true);
-
     const wrapper = mount(ChangePasswordView, { global });
 
     // Fill form
@@ -87,15 +102,24 @@ describe('ChangePasswordView', () => {
 
     // Submit
     await wrapper.find('#change-password-form').trigger('submit');
+
+    // Simulate success state change in composable
+    mockChangePassword.isSuccess.value = true;
     await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain('Password updated!');
-    expect(mockWallet.unlock).toHaveBeenCalledWith('old-pass');
-    expect(mockWallet.updateVault).toHaveBeenCalledWith('new-encrypted-mnemonic');
+    expect(mockChangePassword.performChange).toHaveBeenCalledWith(
+      'old-pass',
+      'new-pass-12345678',
+      'new-pass-12345678'
+    );
   });
 
-  it('should prevent changing to the same password', async () => {
+  it('should prevent changing to the same password by showing error', async () => {
+    mockChangePassword.performChange.mockRejectedValueOnce(
+      new ChangePasswordError('password', 'Cannot use current password')
+    );
     const wrapper = mount(ChangePasswordView, { global });
 
     // Fill with same passwords
@@ -107,24 +131,28 @@ describe('ChangePasswordView', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain('Cannot use current password');
-    // Ensure wallet unlock was never even called
-    expect(mockWallet.unlock).not.toHaveBeenCalled();
+  });
+
+  it('should disable update button if new password is same as current', async () => {
+    const wrapper = mount(ChangePasswordView, { global });
+
+    await wrapper.find('input#old-password').setValue('same-pass');
+    await wrapper.find('input#new-password').setValue('same-pass');
+    await wrapper.find('input#confirm-password').setValue('same-pass');
+
+    const button = wrapper.findComponent(PepLoadingButton);
+    expect(button.props('disabled')).toBe(true);
+    expect(wrapper.text()).toContain('Cannot use current password');
   });
 
   it('should navigate to dashboard when Close is clicked on success screen', async () => {
-    mockWallet.unlock.mockResolvedValue(true);
-
     const wrapper = mount(ChangePasswordView, { global });
 
     // Trigger success
-    await wrapper.find('input#old-password').setValue('old-pass');
-    await wrapper.find('input#new-password').setValue('new-pass-12345678');
-    await wrapper.find('input#confirm-password').setValue('new-pass-12345678');
-    await wrapper.find('#change-password-form').trigger('submit');
-    await flushPromises();
+    mockChangePassword.isSuccess.value = true;
     await wrapper.vm.$nextTick();
 
-    const closeBtn = wrapper.findAll('button').find((b) => b.text() === 'Close');
+    const closeBtn = wrapper.findAll('button').find((b) => b.text().includes('Close'));
     await closeBtn?.trigger('click');
 
     expect(pushMock).toHaveBeenCalledWith('/dashboard');

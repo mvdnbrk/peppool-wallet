@@ -124,6 +124,9 @@ describe('SendView', () => {
 
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
     const wrapper = mount(SendView, { global });
+    // Ensure we are at step 1
+    // @ts-ignore
+    wrapper.vm.form.step = 1;
 
     await flushPromises();
 
@@ -149,8 +152,7 @@ describe('SendView', () => {
 
     // Manually move to Step 3 and set a TXID
     // @ts-ignore
-    const ui = wrapper.vm.ui;
-    ui.step = 3;
+    wrapper.vm.form.step = 3;
     mockSendTransaction.txid.value =
       'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
 
@@ -167,6 +169,9 @@ describe('SendView', () => {
     mockSendTransaction.displayBalance.mockReturnValue('5 PEP');
 
     const wrapper = mount(SendView, { global });
+    // Ensure we are at step 1
+    // @ts-ignore
+    wrapper.vm.form.step = 1;
 
     await flushPromises();
 
@@ -175,6 +180,10 @@ describe('SendView', () => {
 
   it('should have a MAX button of type="button" that does not trigger form submit', async () => {
     const wrapper = mount(SendView, { global });
+    // Ensure we are at step 1
+    // @ts-ignore
+    wrapper.vm.form.step = 1;
+
     await flushPromises();
 
     // Find the MAX button

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { useSendTransaction } from '@/composables/useSendTransaction';
 import { isValidAddress } from '@/utils/crypto';
@@ -28,14 +28,11 @@ const form = useForm(
     amountRibbits: 0,
     isFiatMode: false,
     password: '',
-    isMax: false
+    isMax: false,
+    step: 1
   },
   { persistKey: 'send', sensitiveFields: ['password'] }
 );
-
-const ui = reactive({
-  step: 1
-});
 
 const canReview = computed(() => {
   return (
@@ -100,7 +97,7 @@ async function handleReview() {
 
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
-    ui.step = 2;
+    form.step = 2;
   } catch (e: any) {
     form.setError('general', e.message || 'Validation failed');
   } finally {
@@ -119,8 +116,12 @@ async function handleSend() {
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
 
-    form.reset();
-    ui.step = 3;
+    // Clear inputs but keep success screen
+    form.recipient = '';
+    form.amountRibbits = 0;
+    form.password = '';
+    form.isMax = false;
+    form.step = 3;
   } catch (e: any) {
     form.setError('general', e.message || 'Failed to send');
   } finally {
@@ -129,6 +130,11 @@ async function handleSend() {
 }
 
 function handleCancel() {
+  form.reset();
+  router.push('/dashboard');
+}
+
+function handleClose() {
   form.reset();
   router.push('/dashboard');
 }
@@ -161,15 +167,15 @@ onMounted(async () => {
   <PepMainLayout>
     <template #header>
       <PepPageHeader
-        :title="ui.step === 3 ? 'Success' : 'Send PEP'"
+        :title="form.step === 3 ? 'Success' : 'Send PEP'"
         :onBack="
-          ui.step === 2
+          form.step === 2
             ? () => {
-                ui.step = 1;
+                form.step = 1;
                 form.clearError();
                 form.password = '';
               }
-            : ui.step === 1
+            : form.step === 1
               ? handleCancel
               : undefined
         "
@@ -177,7 +183,7 @@ onMounted(async () => {
     </template>
 
     <!-- Step 1 -->
-    <div v-if="ui.step === 1" class="flex flex-1 flex-col">
+    <div v-if="form.step === 1" class="flex flex-1 flex-col">
       <PepForm id="send-review-form" class="flex flex-1 flex-col" @submit="handleReview">
         <PepInput
           ref="recipientInput"
@@ -253,7 +259,7 @@ onMounted(async () => {
     </div>
 
     <!-- Step 2 -->
-    <div v-if="ui.step === 2" class="flex flex-1 flex-col">
+    <div v-if="form.step === 2" class="flex flex-1 flex-col">
       <PepForm
         id="send-transaction-form"
         :loading="form.isProcessing"
@@ -329,7 +335,7 @@ onMounted(async () => {
 
     <!-- Step 3 -->
     <PepSuccessState
-      v-if="ui.step === 3"
+      v-if="form.step === 3"
       title="Transaction sent!"
       description="Your PEP is on its way."
     >
@@ -337,11 +343,9 @@ onMounted(async () => {
     </PepSuccessState>
 
     <template #actions>
-      <div v-if="ui.step === 3" class="w-full space-y-3">
+      <div v-if="form.step === 3" class="w-full space-y-3">
         <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
-        <PepButton @click="router.push('/dashboard')" variant="secondary" class="w-full">
-          Close
-        </PepButton>
+        <PepButton @click="handleClose" variant="secondary" class="w-full"> Close </PepButton>
       </div>
     </template>
   </PepMainLayout>

@@ -2,7 +2,7 @@
 import PepSpinner from './PepSpinner.vue';
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger';
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
   loading?: boolean;
@@ -29,7 +29,6 @@ withDefaults(defineProps<Props>(), {
           variant === 'danger',
         'text-offwhite border border-slate-700 bg-slate-800 hover:bg-slate-700':
           variant === 'secondary',
-        'bg-transparent text-slate-500 hover:text-white': variant === 'ghost',
         'cursor-pointer': !disabled && !loading
       }
     ]"

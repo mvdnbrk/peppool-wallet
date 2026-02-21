@@ -5,6 +5,7 @@ node_modules/
 dist/
 dist-ssr/
 screenshots/
+coverage/
 
 # Environment & Secrets
 .env

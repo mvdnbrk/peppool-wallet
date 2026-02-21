@@ -52,6 +52,11 @@ describe('PepIcon', () => {
     const check = mount(PepIcon, { props: { name: 'check' } });
     expect(check.find('path').attributes('stroke')).toBe('none');
     expect(check.find('path').attributes('fill')).toBe('currentColor');
+
+    // swap should have stroke and no fill
+    const swap = mount(PepIcon, { props: { name: 'swap' } });
+    expect(swap.find('path').attributes('stroke')).toBe('currentColor');
+    expect(swap.find('path').attributes('fill')).toBe('none');
   });
 
   it('should apply custom size and class', () => {

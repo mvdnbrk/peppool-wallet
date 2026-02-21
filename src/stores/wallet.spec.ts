@@ -54,6 +54,41 @@ describe('Wallet Store', () => {
     expect(store.address).toBe(originalAddress);
   });
 
+  it('should handle failed unlock and trigger lockout after 5 attempts', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+    store.lock();
+
+    // 5 attempts should trigger 30s lockout
+    for (let i = 0; i < 5; i++) {
+      const success = await store.unlock('wrong-pass');
+      expect(success).toBe(false);
+    }
+
+    expect(store.isLockedOut).toBe(true);
+    expect(store.lockoutUntil).toBeGreaterThan(Date.now());
+  });
+
+  it('should auto-unlock via checkSession if chrome.storage has mnemonic', async () => {
+    localStorage.setItem('peppool_vault', 'any-vault');
+    localStorage.setItem('peppool_address', 'any-addr');
+    
+    // Mock chrome.storage.local.get for session expiry
+    (global.chrome.storage.local.get as any).mockResolvedValue({ 
+      unlocked_until: Date.now() + 10000 
+    });
+
+    // Mock chrome.storage.session.get
+    (global.chrome.storage.session.get as any).mockResolvedValue({ 
+      mnemonic: 'suffer dish east miss seat great brother hello motion mountain celery plunge' 
+    });
+
+    const store = useWalletStore();
+    const success = await store.checkSession();
+    expect(success).toBe(true);
+    expect(store.isUnlocked).toBe(true);
+  });
+
   it('should import a wallet with a mnemonic', async () => {
     const store = useWalletStore();
     const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';

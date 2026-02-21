@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
@@ -128,5 +129,22 @@ describe('Wallet Views Navigation', () => {
 
     await loadMore?.trigger('click');
     expect(mockWallet.fetchMoreTransactions).toHaveBeenCalled();
+  });
+
+  it('Dashboard: should adjust font size for large balances', async () => {
+    mockWallet.balance = 1000000000000000; // Force very long string
+    const wrapper = mount(DashboardView, { global });
+    
+    const balanceSpan = wrapper.find('span.text-offwhite');
+    expect(balanceSpan.classes()).toContain('text-xl');
+  });
+
+  it('Dashboard: should refresh and poll on mount if unlocked', async () => {
+    mockWallet.isUnlocked = true;
+    mount(DashboardView, { global });
+    await nextTick();
+    
+    expect(mockWallet.refreshBalance).toHaveBeenCalled();
+    expect(mockWallet.startPolling).toHaveBeenCalled();
   });
 });

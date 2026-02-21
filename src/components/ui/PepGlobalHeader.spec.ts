@@ -27,4 +27,24 @@ describe('PepGlobalHeader', () => {
     await wrapper.find('#app-settings-button').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/settings');
   });
+
+  it('should NOT render on onboarding pages', () => {
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      route: { path: '/create' } as any
+    } as any);
+
+    const wrapper = mount(PepGlobalHeader);
+    expect(wrapper.find('header').exists()).toBe(false);
+  });
+
+  it('should render on dashboard', () => {
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      route: { path: '/dashboard' } as any
+    } as any);
+
+    const wrapper = mount(PepGlobalHeader);
+    expect(wrapper.find('header').exists()).toBe(true);
+  });
 });

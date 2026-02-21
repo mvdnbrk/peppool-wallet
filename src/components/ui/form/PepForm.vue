@@ -2,6 +2,7 @@
 import { provide, computed } from 'vue';
 
 interface Props {
+  id: string;
   loading?: boolean;
 }
 
@@ -26,7 +27,7 @@ function handleSubmit(e: Event) {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="flex flex-1 flex-col gap-6">
+  <form :id="id" @submit.prevent="handleSubmit" class="flex flex-1 flex-col gap-6">
     <div class="flex-1 space-y-6">
       <slot />
     </div>

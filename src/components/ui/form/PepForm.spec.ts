@@ -15,7 +15,7 @@ const ChildComponent = defineComponent({
 describe('PepForm UI Component', () => {
   it('should provide isFormDisabled state to children', async () => {
     const wrapper = mount(PepForm, {
-      props: { loading: true },
+      props: { id: 'test-form', loading: true },
       slots: {
         default: ChildComponent
       }
@@ -29,7 +29,7 @@ describe('PepForm UI Component', () => {
 
   it('should emit submit when not loading', async () => {
     const wrapper = mount(PepForm, {
-      props: { loading: false }
+      props: { id: 'test-form', loading: false }
     });
 
     await wrapper.find('form').trigger('submit');
@@ -38,7 +38,7 @@ describe('PepForm UI Component', () => {
 
   it('should NOT emit submit when loading', async () => {
     const wrapper = mount(PepForm, {
-      props: { loading: true }
+      props: { id: 'test-form', loading: true }
     });
 
     await wrapper.find('form').trigger('submit');

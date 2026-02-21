@@ -72,7 +72,7 @@ async function handleCreate() {
 
     <!-- Step 1: Password -->
     <div v-if="step === 1" class="flex flex-1 flex-col pt-0">
-      <PepForm @submit="handleNextToSeed" class="flex flex-1 flex-col">
+      <PepForm id="create-wallet-password-form" @submit="handleNextToSeed" class="flex flex-1 flex-col">
         <div class="space-y-2 text-sm text-slate-400">
           <p>Set a password to protect your wallet.</p>
           <p>This password is used to encrypt your secret phrase locally.</p>
@@ -94,7 +94,12 @@ async function handleCreate() {
 
     <!-- Step 2: Show Seed -->
     <div v-if="step === 2" class="flex flex-1 flex-col pt-0">
-      <PepForm :loading="form.isProcessing" @submit="handleCreate" class="flex flex-1 flex-col">
+      <PepForm
+        id="create-wallet-confirm-form"
+        :loading="form.isProcessing"
+        @submit="handleCreate"
+        class="flex flex-1 flex-col"
+      >
         <div class="space-y-2 pb-0 text-sm text-slate-400">
           <p class="text-offwhite font-bold">Write down your secret phrase</p>
           <p>

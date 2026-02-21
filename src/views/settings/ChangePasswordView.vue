@@ -111,6 +111,7 @@ async function handleChangePassword() {
 
     <PepForm
       v-else
+      id="change-password-form"
       :loading="form.isProcessing"
       @submit="handleChangePassword"
       class="flex flex-1 flex-col"

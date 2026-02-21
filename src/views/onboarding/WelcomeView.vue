@@ -88,7 +88,7 @@ async function handleUnlock() {
     </div>
 
     <div v-if="walletStore.isCreated" class="w-full">
-      <PepForm :loading="form.isProcessing" @submit="handleUnlock">
+      <PepForm id="welcome-unlock-form" :loading="form.isProcessing" @submit="handleUnlock">
         <PepPasswordInput
           ref="passwordInput"
           v-model="form.password"

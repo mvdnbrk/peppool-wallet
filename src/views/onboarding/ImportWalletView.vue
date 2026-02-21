@@ -113,7 +113,12 @@ async function handleImport() {
       <PepPageHeader title="Import wallet" backTo="/" />
     </template>
 
-    <PepForm :loading="form.isProcessing" @submit="handleImport" class="flex flex-1 flex-col">
+    <PepForm
+      id="import-wallet-form"
+      :loading="form.isProcessing"
+      @submit="handleImport"
+      class="flex flex-1 flex-col"
+    >
       <PepInputGroup
         label="Secret phrase (12 or 24 words)"
         id="mnemonic"

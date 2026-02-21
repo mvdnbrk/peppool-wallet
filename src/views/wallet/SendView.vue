@@ -294,7 +294,7 @@ onMounted(async () => {
 
     <!-- Step 1 -->
     <div v-if="ui.step === 1" class="flex flex-1 flex-col">
-      <PepForm class="flex flex-1 flex-col" @submit="handleReview">
+      <PepForm id="send-review-form" class="flex flex-1 flex-col" @submit="handleReview">
         <PepInput
           ref="recipientInput"
           v-model="form.recipient"
@@ -370,7 +370,12 @@ onMounted(async () => {
 
     <!-- Step 2 -->
     <div v-if="ui.step === 2" class="flex flex-1 flex-col">
-      <PepForm :loading="form.isProcessing" @submit="handleSend" class="flex flex-1 flex-col">
+      <PepForm
+        id="send-transaction-form"
+        :loading="form.isProcessing"
+        @submit="handleSend"
+        class="flex flex-1 flex-col"
+      >
         <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
           <div class="flex flex-col space-y-0.5">
             <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"

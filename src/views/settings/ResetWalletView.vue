@@ -21,7 +21,7 @@ async function handleReset() {
     <template #header>
       <PepPageHeader title="Reset wallet" />
     </template>
-    <PepForm @submit="handleReset" class="flex flex-1 flex-col">
+    <PepForm id="reset-wallet-form" @submit="handleReset" class="flex flex-1 flex-col">
       <div class="space-y-4 text-sm text-slate-400">
         <p class="text-offwhite font-bold">
           This will completely wipe your wallet data from this browser.

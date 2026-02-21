@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue';
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { useLockout } from '@/composables/useLockout';
-import { decrypt } from '@/utils/encryption';
-import { UX_DELAY_NORMAL } from '@/utils/constants';
+import { useShowMnemonic } from '@/composables/useShowMnemonic';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 
-const { router, wallet: walletStore, requireUnlock } = useApp();
+const { router, requireUnlock } = useApp();
 requireUnlock();
 
 const { isLockedOut, lockoutError } = useLockout();
+const { step, mnemonic, error, reveal } = useShowMnemonic();
 
+const passwordInput = ref<any>(null);
 const password = ref('');
-const mnemonic = ref('');
-const error = ref('');
-const step = ref(1); // 1: Password, 2: Show
 const isProcessing = ref(false);
 
 const errorMessage = computed(() => {
@@ -32,46 +30,22 @@ watch(isLockedOut, (locked) => {
   if (locked) {
     password.value = '';
     error.value = '';
-  } else {
-    error.value = '';
   }
 });
 
-// Clear sensitive data from memory when leaving this view
+// Clear password from memory when leaving this view
 onUnmounted(() => {
-  mnemonic.value = '';
   password.value = '';
 });
 
 async function handleReveal() {
-  if (isLockedOut.value || isProcessing.value) return;
+  if (isLockedOut.value || isProcessing.value || !!errorMessage.value) return;
 
   isProcessing.value = true;
-
   try {
-    // Use decrypt directly but through the store's unlock flow for lockout tracking
-    const success = await walletStore.unlock(password.value);
+    const success = await reveal(password.value);
     if (!success) {
-      if (!isLockedOut.value) {
-        error.value = 'Incorrect password';
-      }
-      isProcessing.value = false;
-      return;
-    }
-
-    // After successful unlock, the mnemonic is in the store
-    if (walletStore.plaintextMnemonic) {
-      mnemonic.value = walletStore.plaintextMnemonic;
-    } else {
-      // Fallback: decrypt directly if session didn't cache it
-      mnemonic.value = await decrypt(walletStore.encryptedMnemonic!, password.value);
-    }
-
-    step.value = 2;
-    error.value = '';
-  } catch (e) {
-    if (!isLockedOut.value) {
-      error.value = 'Incorrect password';
+      nextTick(() => passwordInput.value?.focus());
     }
   } finally {
     isProcessing.value = false;
@@ -91,6 +65,7 @@ async function handleReveal() {
 
       <div class="space-y-6">
         <PepPasswordInput
+          ref="passwordInput"
           v-model="password"
           id="reveal-password"
           label="Password"
@@ -117,10 +92,10 @@ async function handleReveal() {
     <template #actions>
       <PepLoadingButton
         v-if="step === 1"
+        id="reveal-button"
         @click="handleReveal"
         :loading="isProcessing"
-        :minLoadingMs="UX_DELAY_NORMAL"
-        :disabled="isLockedOut || !password || !!errorMessage"
+        :disabled="isLockedOut || !password || !!errorMessage || isProcessing"
         class="w-full"
       >
         {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}

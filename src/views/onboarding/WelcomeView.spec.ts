@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { ref } from 'vue';
+import { mount, flushPromises } from '@vue/test-utils';
 import WelcomeView from './WelcomeView.vue';
 import { useApp } from '@/composables/useApp';
 
@@ -83,5 +84,33 @@ describe('WelcomeView Logic', () => {
 
     expect(mockStore.unlock).toHaveBeenCalledWith('password123');
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('should show error message on incorrect password', async () => {
+    mockStore.isCreated = true;
+    mockStore.unlock.mockResolvedValue(false);
+
+    const wrapper = mount(WelcomeView, { global });
+
+    await wrapper.find('input[type="password"]').setValue('wrong-pass');
+    await wrapper.find('#welcome-unlock-form').trigger('submit');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Incorrect password');
+  });
+
+  it('should show lockout error when locked out', async () => {
+    // We need to mock useLockout return value
+    const { useLockout } = await import('@/composables/useLockout');
+    vi.mocked(useLockout).mockReturnValue({
+      isLockedOut: ref(true),
+      lockoutError: ref('Too many attempts')
+    } as any);
+
+    mockStore.isCreated = true;
+    const wrapper = mount(WelcomeView, { global });
+
+    expect(wrapper.text()).toContain('Too many attempts');
+    expect(wrapper.findComponent(PepLoadingButton).text()).toContain('Locked');
   });
 });

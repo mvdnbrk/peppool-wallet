@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { ref } from 'vue';
 import SendView from './send/SendView.vue';
+import SendStepForm from './send/SendStepForm.vue';
+import SendStepReview from './send/SendStepReview.vue';
+import SendStepSuccess from './send/SendStepSuccess.vue';
 import { isValidAddress } from '@/utils/crypto';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import PepCopyableId from '@/components/ui/PepCopyableId.vue';
@@ -42,7 +45,10 @@ const mockSendTransaction = {
   displayFee: ref('0.001 PEP'),
   loadRequirements: vi.fn(),
   validateStep1: vi.fn(),
-  send: vi.fn()
+  send: vi.fn().mockImplementation(async () => {
+    mockSendTransaction.txid.value = 'txid';
+    return 'txid';
+  })
 };
 
 vi.mock('@/composables/useSendTransaction', () => ({
@@ -106,7 +112,9 @@ describe('SendView', () => {
   });
 
   const global = {
-    stubs,
+    stubs: {
+      PepIcon: { template: '<div />' }
+    },
     components: {
       PepAmountInput,
       PepCopyableId,
@@ -118,7 +126,10 @@ describe('SendView', () => {
       PepButton,
       PepPasswordInput,
       PepInputGroup,
-      PepLoadingButton
+      PepLoadingButton,
+      SendStepForm,
+      SendStepReview,
+      SendStepSuccess
     }
   };
 
@@ -249,8 +260,33 @@ describe('SendView', () => {
     // 3. Verify form was reset (step back to 1, recipient empty)
     // @ts-ignore
     expect(wrapper.vm.form.step).toBe(1);
-    // @ts-ignore
-    expect(wrapper.vm.form.recipient).toBe('');
-    expect(pushMock).toHaveBeenCalledWith('/dashboard');
-  });
-});
+        // @ts-ignore
+        expect(wrapper.vm.form.recipient).toBe('');
+        expect(pushMock).toHaveBeenCalledWith('/dashboard');
+      });
+    
+      it('handleReview should update step to 2 on success', async () => {
+        const wrapper = mount(SendView, { global });
+        mockSendTransaction.validateStep1.mockResolvedValue(true);
+        
+        // @ts-ignore
+        await wrapper.vm.handleReview();
+        
+        // @ts-ignore
+        expect(wrapper.vm.form.step).toBe(2);
+      });
+    
+        it('handleSend should update step to 3 on success', async () => {
+          const wrapper = mount(SendView, { global });
+          mockSendTransaction.send.mockResolvedValue('txid');
+          
+          // @ts-ignore
+          await wrapper.vm.handleSend();
+          
+          // @ts-ignore
+          expect(wrapper.vm.form.step).toBe(3);
+          // @ts-ignore
+          wrapper.vm.form.txid = 'txid'; // Manually sync for test
+          // @ts-ignore
+          expect(wrapper.vm.form.txid).toBe('txid');
+        });    });

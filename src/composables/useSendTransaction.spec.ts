@@ -113,4 +113,43 @@ describe('useSendTransaction Composable', () => {
     expect(api.broadcastTx).toHaveBeenCalledWith('signed-hex');
     expect(mockWallet.refreshBalance).toHaveBeenCalledWith(true);
   });
+
+  it('should handle insufficient funds correctly', async () => {
+    const { isInsufficientFunds, tx, isLoadingRequirements } = useSendTransaction();
+    isLoadingRequirements.value = false;
+    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 100, status: { confirmed: true } }] as any;
+    tx.value.amountRibbits = 1000; // More than balance
+
+    expect(isInsufficientFunds.value).toBe(true);
+  });
+
+  it('should handle send failure with error message', async () => {
+    vi.mocked(api.fetchTxHex).mockReset();
+    vi.mocked(api.broadcastTx).mockReset();
+    
+    const { send, tx } = useSendTransaction();
+    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }] as any;
+    mockWallet.plaintextMnemonic = 'mnemonic';
+    vi.mocked(api.fetchTxHex).mockRejectedValue(new Error('Network error'));
+
+    await expect(send('password', false)).rejects.toThrow('Network error');
+  });
+
+  it('should throw error if password is missing and mnemonic not loaded', async () => {
+    mockWallet.plaintextMnemonic = null;
+    const { send } = useSendTransaction();
+    await expect(send('', false)).rejects.toThrow('Password required');
+  });
+
+  it('should calculate max amount correctly', async () => {
+    const { tx, loadRequirements } = useSendTransaction();
+    const mockUtxos = [{ txid: 'c1', vout: 0, value: 1000000, status: { confirmed: true } }];
+    vi.mocked(api.fetchUtxos).mockResolvedValue(mockUtxos as any);
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+
+    await loadRequirements(true); // isMax = true
+
+    expect(tx.value.amountRibbits).toBeGreaterThan(0);
+    expect(tx.value.amountRibbits).toBeLessThan(1000000);
+  });
 });

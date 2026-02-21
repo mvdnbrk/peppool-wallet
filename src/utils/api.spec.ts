@@ -4,6 +4,8 @@ import {
   fetchPepPrice,
   validateAddress,
   fetchTransactions,
+  fetchTransaction,
+  fetchTxHex,
   fetchRecommendedFees,
   broadcastTx
 } from './api';
@@ -17,6 +19,7 @@ describe('API Utils', () => {
   const mockResponse = (data: any, ok = true) => ({
     ok,
     json: () => Promise.resolve(data),
+    text: () => Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data)),
     headers: {
       get: (name: string) => (name.toLowerCase() === 'content-type' ? 'application/json' : null)
     }
@@ -39,6 +42,32 @@ describe('API Utils', () => {
 
     const balanceRibbits = await fetchAddressInfo('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
     expect(balanceRibbits).toBe(RIBBITS_PER_PEP * 1.3);
+  });
+
+  it('should fetch a single transaction correctly', async () => {
+    const mockTx = {
+      txid: 'tx123',
+      version: 1,
+      locktime: 0,
+      vin: [],
+      vout: [],
+      size: 100,
+      weight: 400,
+      fee: 1000,
+      status: { confirmed: true }
+    };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockTx));
+
+    const tx = await fetchTransaction('tx123');
+    expect(tx.txid).toBe('tx123');
+  });
+
+  it('should fetch transaction hex correctly', async () => {
+    const mockHex = '01000000...';
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockHex));
+
+    const hex = await fetchTxHex('tx123');
+    expect(hex).toBe(mockHex);
   });
 
   it('should fetch PEP prices correctly', async () => {
@@ -123,5 +152,39 @@ describe('API Utils', () => {
     });
 
     await expect(fetchAddressInfo('invalid')).rejects.toThrow('Service not available (404).');
+  });
+
+  it('should throw "Too many requests" on 429 error', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: { get: () => 'application/json' }
+    });
+
+    await expect(fetchPepPrice()).rejects.toThrow('Too many requests. Please wait a moment.');
+  });
+
+  it('should throw "Method not allowed" on 405 error', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 405,
+      headers: { get: () => 'application/json' }
+    });
+
+    await expect(fetchPepPrice()).rejects.toThrow(
+      'Method not allowed. Please check API endpoint configuration.'
+    );
+  });
+
+  it('should throw server error on 500+ error', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 500,
+      headers: { get: () => 'application/json' }
+    });
+
+    await expect(fetchPepPrice()).rejects.toThrow(
+      'Server error at peppool.space. Please try again later.'
+    );
   });
 });

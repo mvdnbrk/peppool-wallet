@@ -17,8 +17,9 @@ function getDurationLabel(val: number) {
       <PepPageHeader title="Preferences" />
     </template>
     <div class="mt-0 flex-1 space-y-2">
-      <PepList>
+      <PepList id="preferences-list">
         <PepListItem
+          id="pref-currency-item"
           label="Currency"
           icon="chevron-right"
           @click="router.push('/settings/currency')"
@@ -31,6 +32,7 @@ function getDurationLabel(val: number) {
         </PepListItem>
 
         <PepListItem
+          id="pref-explorer-item"
           label="Preferred explorer"
           icon="chevron-right"
           @click="router.push('/settings/explorer')"
@@ -43,6 +45,7 @@ function getDurationLabel(val: number) {
         </PepListItem>
 
         <PepListItem
+          id="pref-autolock-item"
           label="Auto-Lock"
           icon="chevron-right"
           @click="router.push('/settings/auto-lock')"

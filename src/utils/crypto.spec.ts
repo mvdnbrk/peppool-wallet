@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import * as bitcoin from 'bitcoinjs-lib';
+import { describe, it, expect, vi } from 'vitest';
 import {
   generateMnemonic,
   validateMnemonic,
@@ -11,6 +12,24 @@ import {
   getInvalidMnemonicWords
 } from './crypto';
 import { RIBBITS_PER_PEP } from './constants';
+
+// Mock bitcoinjs-lib
+vi.mock('bitcoinjs-lib', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('bitcoinjs-lib')>();
+  return {
+    ...actual,
+    Psbt: vi.fn().mockImplementation(function (this: any) {
+      this.version = 0;
+      this.addInput = vi.fn();
+      this.addOutput = vi.fn();
+      this.signAllInputs = vi.fn();
+      this.finalizeAllInputs = vi.fn();
+      this.extractTransaction = vi.fn().mockReturnValue({
+        toHex: () => 'signed-hex-output'
+      });
+    })
+  };
+});
 
 describe('Crypto Utils', () => {
   const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
@@ -100,9 +119,9 @@ describe('Crypto Utils', () => {
 
   describe('Transaction Signing', () => {
     const toAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
-    // Use a more valid minimal transaction hex
+    // Valid Pepecoin transaction hex structure (version 1, 1 input, 1 output)
     const validDummyHex =
-      '010000000100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff0100000000000000000000000000000000';
+      '0100000001bc9606ba9ed606fa66006000000000000000000000000000000000000000000000000000ffffffff0100e1f505000000001976a91476a91476a91476a91476a91476a91476a91476a91488ac00000000';
     const txid1 = '0'.repeat(64);
     const txid2 = '1'.repeat(64);
     const signer = deriveSigner(mnemonic);
@@ -122,6 +141,18 @@ describe('Crypto Utils', () => {
       await expect(
         createSignedTx(signer, toAddress, RIBBITS_PER_PEP, badUtxos, RIBBITS_PER_PEP * 0.01)
       ).rejects.toThrow('Missing raw hex');
+    });
+
+    it('should successfully create a signed transaction hex', async () => {
+      const signedHex = await createSignedTx(
+        signer,
+        toAddress,
+        RIBBITS_PER_PEP,
+        mockUtxos,
+        RIBBITS_PER_PEP * 0.01
+      );
+
+      expect(signedHex).toBe('signed-hex-output');
     });
   });
 });

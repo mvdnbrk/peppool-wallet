@@ -9,7 +9,7 @@ import { APP_VERSION } from '@/utils/constants';
     </template>
 
     <div class="mt-0 flex-1 space-y-4">
-      <PepList>
+      <PepList id="about-links-list">
         <PepListItem
           label="Peppool.space"
           href="https://peppool.space"

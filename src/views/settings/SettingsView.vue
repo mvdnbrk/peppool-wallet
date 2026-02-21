@@ -14,18 +14,25 @@ function handleLock() {
     <PepPageHeader title="Settings" backTo="/dashboard" />
 
     <div class="mt-0 flex-1 space-y-2">
-      <PepList>
+      <PepList id="settings-menu-list">
         <PepListItem
+          id="settings-preferences-item"
           label="Preferences"
           icon="chevron-right"
           @click="router.push('/settings/preferences')"
         />
         <PepListItem
+          id="settings-security-item"
           label="Security"
           icon="chevron-right"
           @click="router.push('/settings/security')"
         />
-        <PepListItem label="About" icon="chevron-right" @click="router.push('/settings/about')" />
+        <PepListItem
+          id="settings-about-item"
+          label="About"
+          icon="chevron-right"
+          @click="router.push('/settings/about')"
+        />
       </PepList>
 
       <div class="pt-6">

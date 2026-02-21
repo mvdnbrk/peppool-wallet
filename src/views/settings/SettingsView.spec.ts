@@ -12,118 +12,126 @@ import CurrencyView from './CurrencyView.vue';
 import PreferredExplorerView from './PreferredExplorerView.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepListItem from '@/components/ui/list/PepListItem.vue';
+import PepList from '@/components/ui/list/PepList.vue';
+import { useApp } from '@/composables/useApp';
 
-// Mock Router
+// Mock useApp
 const pushMock = vi.fn();
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock
-  })
-}));
-
-// Mock global components
-const stubs = {
-  PepFooter: { template: '<div></div>' },
-  PepList: { template: '<div><slot /></div>' },
-  PepListItem: { template: '<div><slot /></div>' },
-  PepButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
-  PepPasswordFields: { template: '<div></div>' },
-  PepLoadingButton: { template: '<button><slot /></button>' },
-  PepCheckbox: { template: '<div></div>' },
-  PepPasswordInput: { template: '<div></div>' },
-  PepMnemonicGrid: { template: '<div></div>' },
-  PepRadioList: { template: '<div></div>' }
-};
+const backMock = vi.fn();
+vi.mock('@/composables/useApp');
 
 describe('Settings Views Navigation', () => {
+  let mockWallet: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWallet = {
+      isUnlocked: true,
+      selectedCurrency: 'USD',
+      selectedExplorer: 'peppool',
+      lockDuration: 15,
+      resetWallet: vi.fn(),
+      openExplorerTx: vi.fn(),
+      openExplorerAddress: vi.fn()
+    };
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock, back: backMock } as any,
+      wallet: mockWallet,
+      requireUnlock: vi.fn(),
+      route: { path: '/settings' } as any
+    });
   });
 
-  it('SettingsView: should have a backTo prop set to /dashboard', () => {
-    const wrapper = mount(SettingsView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+  const global = {
+    components: {
+      PepListItem,
+      PepList,
+      PepPageHeader,
+      PepMainLayout
+    }
+  };
+
+  it('SettingsView: should render correctly and have back button', () => {
+    const wrapper = mount(SettingsView, { global });
+    expect(wrapper.text()).toContain('Preferences');
+    expect(wrapper.find('#settings-menu-list').exists()).toBe(true);
+
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBe('/dashboard');
   });
 
+  it('SettingsView: should navigate to sub-sections', async () => {
+    const wrapper = mount(SettingsView, { global });
+
+    await wrapper.find('#settings-security-item').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/settings/security');
+
+    await wrapper.find('#settings-preferences-item').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/settings/preferences');
+
+    await wrapper.find('#settings-about-item').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/settings/about');
+  });
+
   it('AboutView: should use default router.back()', () => {
-    const wrapper = mount(AboutView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(AboutView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('SecurityView: should use default router.back()', () => {
-    const wrapper = mount(SecurityView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(SecurityView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('PreferencesView: should use default router.back()', () => {
-    const wrapper = mount(PreferencesView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(PreferencesView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('ChangePasswordView: should use default router.back()', () => {
-    const wrapper = mount(ChangePasswordView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(ChangePasswordView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('ResetWalletView: should use default router.back()', () => {
-    const wrapper = mount(ResetWalletView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(ResetWalletView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('ShowMnemonicView: should use default router.back()', () => {
-    const wrapper = mount(ShowMnemonicView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(ShowMnemonicView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('AutoLockView: should use default router.back()', () => {
-    const wrapper = mount(AutoLockView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(AutoLockView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('CurrencyView: should use default router.back()', () => {
-    const wrapper = mount(CurrencyView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(CurrencyView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();
   });
 
   it('PreferredExplorerView: should use default router.back()', () => {
-    const wrapper = mount(PreferredExplorerView, {
-      global: { stubs, components: { PepPageHeader, PepMainLayout } }
-    });
+    const wrapper = mount(PreferredExplorerView, { global });
     const header = wrapper.findComponent(PepPageHeader);
     expect(header.props('backTo')).toBeUndefined();
     expect(header.props('onBack')).toBeUndefined();

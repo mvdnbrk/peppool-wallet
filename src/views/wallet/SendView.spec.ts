@@ -66,13 +66,10 @@ vi.mock('@/utils/api', () => ({
   validateAddress: vi.fn()
 }));
 
-vi.mock('@/utils/crypto', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/crypto')>();
-  return {
-    ...actual,
-    isValidAddress: vi.fn().mockReturnValue(true)
-  };
-});
+vi.mock('@/utils/crypto', () => ({
+  isValidAddress: vi.fn().mockReturnValue(true),
+  truncateId: vi.fn().mockReturnValue({ start: 'abc', end: 'xyz', full: 'abc...xyz' })
+}));
 
 // Mock global components
 const stubs = {
@@ -260,33 +257,115 @@ describe('SendView', () => {
     // 3. Verify form was reset (step back to 1, recipient empty)
     // @ts-ignore
     expect(wrapper.vm.form.step).toBe(1);
-        // @ts-ignore
-        expect(wrapper.vm.form.recipient).toBe('');
-        expect(pushMock).toHaveBeenCalledWith('/dashboard');
-      });
-    
-      it('handleReview should update step to 2 on success', async () => {
-        const wrapper = mount(SendView, { global });
-        mockSendTransaction.validateStep1.mockResolvedValue(true);
-        
-        // @ts-ignore
-        await wrapper.vm.handleReview();
-        
-        // @ts-ignore
-        expect(wrapper.vm.form.step).toBe(2);
-      });
-    
-        it('handleSend should update step to 3 on success', async () => {
-          const wrapper = mount(SendView, { global });
-          mockSendTransaction.send.mockResolvedValue('txid');
-          
-          // @ts-ignore
-          await wrapper.vm.handleSend();
-          
-          // @ts-ignore
-          expect(wrapper.vm.form.step).toBe(3);
-          // @ts-ignore
-          wrapper.vm.form.txid = 'txid'; // Manually sync for test
-          // @ts-ignore
-          expect(wrapper.vm.form.txid).toBe('txid');
-        });    });
+    // @ts-ignore
+    expect(wrapper.vm.form.recipient).toBe('');
+    expect(pushMock).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('handleReview should update step to 2 on success', async () => {
+    const wrapper = mount(SendView, { global });
+    mockSendTransaction.validateStep1.mockResolvedValue(true);
+
+    // @ts-ignore
+    await wrapper.vm.handleReview();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.step).toBe(2);
+  });
+
+  it('handleSend should update step to 3 on success', async () => {
+    const wrapper = mount(SendView, { global });
+    mockSendTransaction.send.mockResolvedValue('txid');
+
+    // @ts-ignore
+    await wrapper.vm.handleSend();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.step).toBe(3);
+    // @ts-ignore
+    wrapper.vm.form.txid = 'txid'; // Manually sync for test
+    // @ts-ignore
+    expect(wrapper.vm.form.txid).toBe('txid');
+  });
+
+  it('handleSend should handle error on failure', async () => {
+    const wrapper = mount(SendView, { global });
+    // @ts-ignore
+    wrapper.vm.form.txid = '';
+    // @ts-ignore
+    wrapper.vm.form.step = 2;
+    mockSendTransaction.send.mockRejectedValue(new Error('Send failed'));
+
+    // @ts-ignore
+    await wrapper.vm.handleSend();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.errors.general).toBe('Send failed');
+    // @ts-ignore
+    expect(wrapper.vm.form.step).toBe(2);
+  });
+  it('handleReview should handle error on failure', async () => {
+    const wrapper = mount(SendView, { global });
+    mockSendTransaction.validateStep1.mockRejectedValue(new Error('Invalid step 1'));
+
+    // @ts-ignore
+    await wrapper.vm.handleReview();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.errors.general).toBe('Invalid step 1');
+  });
+
+  it('setMax should set isMax and update amount', () => {
+    const wrapper = mount(SendView, { global });
+    mockSendTransaction.tx.value.maxRibbits = 5000;
+
+    // @ts-ignore
+    wrapper.vm.setMax();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.isMax).toBe(true);
+    // @ts-ignore
+    expect(wrapper.vm.form.amountRibbits).toBe(5000);
+  });
+
+  it('handleAddressBlur should set error for invalid address', async () => {
+    vi.mocked(isValidAddress).mockReturnValue(false);
+
+    const wrapper = mount(SendView, { global });
+    const setErrorSpy = vi.spyOn(wrapper.vm.form, 'setError');
+
+    // @ts-ignore
+    wrapper.vm.form.recipient = 'not-valid';
+
+    // @ts-ignore
+    await wrapper.vm.handleAddressBlur();
+
+    expect(setErrorSpy).toHaveBeenCalledWith('recipient', 'Invalid address format');
+
+    // Cleanup
+    vi.mocked(isValidAddress).mockReturnValue(true);
+  });
+  it('handleClose should reset and navigate', () => {
+    const wrapper = mount(SendView, { global });
+    // @ts-ignore
+    wrapper.vm.form.recipient = 'some-data';
+
+    // @ts-ignore
+    wrapper.vm.handleClose();
+
+    // @ts-ignore
+    expect(wrapper.vm.form.recipient).toBe('');
+    expect(pushMock).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('openExplorer should call store.openExplorerTx', () => {
+    const wrapper = mount(SendView, { global });
+    // @ts-ignore
+    wrapper.vm.form.txid = 'test-txid';
+
+    // @ts-ignore
+    wrapper.vm.openExplorer();
+
+    expect(mockWallet.openExplorerTx).toHaveBeenCalledWith('test-txid');
+  });
+});

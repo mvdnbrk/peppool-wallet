@@ -10,13 +10,15 @@ const { router } = useApp();
       <PepPageHeader title="Security" />
     </template>
     <div class="mt-0 flex-1 space-y-2">
-      <PepList>
+      <PepList id="security-menu-list">
         <PepListItem
+          id="security-change-password-item"
           label="Change password"
           icon="chevron-right"
           @click="router.push('/change-password')"
         />
         <PepListItem
+          id="security-show-mnemonic-item"
           label="Show secret phrase"
           icon="chevron-right"
           @click="router.push('/show-mnemonic')"
@@ -25,6 +27,7 @@ const { router } = useApp();
 
       <div class="pt-6">
         <PepButton
+          id="security-reset-wallet-button"
           @click="router.push('/reset-wallet')"
           variant="secondary"
           class="w-full !text-red-400"

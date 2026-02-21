@@ -60,3 +60,34 @@ vi.mock('@/composables/useApp', () => ({
 vi.mock('@/composables/useLockout', () => ({
   useLockout: mockUseLockout
 }));
+
+// Global component registration
+import { config } from '@vue/test-utils';
+import PepIcon from '@/components/ui/PepIcon.vue';
+import PepButton from '@/components/ui/PepButton.vue';
+import PepCard from '@/components/ui/PepCard.vue';
+import PepForm from '@/components/ui/form/PepForm.vue';
+import PepInput from '@/components/ui/form/PepInput.vue';
+import PepInputGroup from '@/components/ui/form/PepInputGroup.vue';
+import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import PepMainLayout from '@/components/ui/PepMainLayout.vue';
+import PepPageHeader from '@/components/ui/PepPageHeader.vue';
+import PepSuccessState from '@/components/ui/PepSuccessState.vue';
+
+config.global.components = {
+  PepIcon,
+  PepButton,
+  PepCard,
+  PepForm,
+  PepInput,
+  PepInputGroup,
+  PepLoadingButton,
+  PepMainLayout,
+  PepPageHeader,
+  PepSuccessState
+};
+
+config.global.stubs = {
+  'router-link': true,
+  'router-view': true
+};

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { useForm, validatePasswordMatch, usePasswordBlur } from './form';
+import { describe, it, expect, vi } from 'vitest';
+import { useForm, validatePasswordMatch, usePasswordBlur, useMnemonicField } from './form';
 import { nextTick } from 'vue';
 
 describe('useForm Utility', () => {
@@ -70,6 +70,25 @@ describe('useForm Utility', () => {
     expect(form.isProcessing).toBe(false);
     expect(form.hasError()).toBe(false);
   });
+
+  it('should persist data to localStorage', async () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem');
+    const form = useForm({ name: 'pepe' }, { persistKey: 'test' });
+
+    form.name = 'kek';
+    await nextTick();
+
+    expect(spy).toHaveBeenCalledWith('peppool_form_test', expect.stringContaining('kek'));
+    spy.mockRestore();
+  });
+
+  it('should restore data from localStorage', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(JSON.stringify({ name: 'stored' }));
+    const form = useForm({ name: 'initial' }, { persistKey: 'test' });
+
+    expect(form.name).toBe('stored');
+    vi.restoreAllMocks();
+  });
 });
 
 describe('Password Validation Logic', () => {
@@ -125,5 +144,19 @@ describe('Password Validation Logic', () => {
       onBlurPassword();
       expect(form.errors.password).toContain('at least 8 characters');
     });
+  });
+});
+
+describe('useMnemonicField', () => {
+  it('should sanitize and validate mnemonic on blur', () => {
+    const form = { mnemonic: 'a, b  c', setError: vi.fn() };
+    const validate = vi.fn().mockReturnValue(false);
+    const { sanitizeMnemonic, onBlurMnemonic } = useMnemonicField(form as any, validate);
+
+    sanitizeMnemonic();
+    expect(form.mnemonic).toBe('a b c');
+
+    onBlurMnemonic();
+    expect(form.setError).toHaveBeenCalledWith('mnemonic', 'Invalid secret phrase');
   });
 });

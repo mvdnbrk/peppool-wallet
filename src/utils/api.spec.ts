@@ -1,28 +1,97 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   fetchAddressInfo,
   fetchPepPrice,
   validateAddress,
   fetchTransactions,
   fetchTransaction,
+  fetchUtxos,
   fetchTxHex,
   fetchRecommendedFees,
+  fetchTipHeight,
   broadcastTx
 } from './api';
 import { RIBBITS_PER_PEP } from './constants';
 
 describe('API Utils', () => {
+  let errorSpy: any;
+
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  const mockResponse = (data: any, ok = true) => ({
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const mockResponse = (data: any, ok = true, status = 200) => ({
     ok,
+    status,
     json: () => Promise.resolve(data),
     text: () => Promise.resolve(typeof data === 'string' ? data : JSON.stringify(data)),
     headers: {
       get: (name: string) => (name.toLowerCase() === 'content-type' ? 'application/json' : null)
     }
+  });
+
+  it('should fetch tip height correctly', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('12345'),
+      headers: { get: () => 'text/plain' }
+    });
+
+    const height = await fetchTipHeight();
+    expect(height).toBe(12345);
+  });
+
+  it('should throw error when fetchTipHeight fails', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 500
+    });
+
+    await expect(fetchTipHeight()).rejects.toThrow('Tip height fetch failed (500)');
+  });
+
+  it('should handle request timeouts/aborts', async () => {
+    const error = new Error('Aborted');
+    error.name = 'AbortError';
+    (vi.mocked(fetch) as any).mockRejectedValue(error);
+
+    await expect(fetchPepPrice()).rejects.toThrow('Aborted');
+  });
+
+  it('should handle non-json error responses', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 400,
+      headers: { get: () => 'text/plain' },
+      text: () => Promise.resolve('Raw error message')
+    });
+
+    await expect(fetchPepPrice()).rejects.toThrow('Service unavailable (400)');
+  });
+
+  it('should handle json error responses with custom messages', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 400,
+      headers: { get: () => 'application/json' },
+      json: () => Promise.resolve({ message: 'Custom API error' })
+    });
+
+    await expect(fetchPepPrice()).rejects.toThrow('Custom API error');
+  });
+
+  it('should throw when content-type is not json', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'text/html' }
+    });
+
+    await expect(fetchPepPrice()).rejects.toThrow('Invalid response from server.');
   });
 
   it('should fetch and calculate balance correctly from Esplora structure', async () => {
@@ -68,6 +137,24 @@ describe('API Utils', () => {
 
     const hex = await fetchTxHex('tx123');
     expect(hex).toBe(mockHex);
+  });
+
+  it('should throw error when fetchTxHex fails', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 404
+    });
+
+    await expect(fetchTxHex('tx123')).rejects.toThrow('Service not available (404).');
+  });
+
+  it('should fetch UTXOs correctly', async () => {
+    const mockUtxos = [{ txid: 'tx1', vout: 0, value: 100, status: { confirmed: true } }];
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockUtxos));
+
+    const utxos = await fetchUtxos('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    expect(utxos).toHaveLength(1);
+    expect(utxos[0].txid).toBe('tx1');
   });
 
   it('should fetch PEP prices correctly', async () => {
@@ -141,6 +228,35 @@ describe('API Utils', () => {
 
     const result = await broadcastTx('deadbeef');
     expect(result).toBe(mockTxid);
+  });
+
+  it('should throw error when broadcastTx fails with 404', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 404
+    });
+
+    await expect(broadcastTx('deadbeef')).rejects.toThrow('Service not available (404).');
+  });
+
+  it('should throw error when broadcastTx fails with other error', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: () => Promise.resolve('Invalid hex')
+    });
+
+    await expect(broadcastTx('deadbeef')).rejects.toThrow('Invalid hex');
+  });
+
+  it('should throw generic error when broadcastTx fails without message', async () => {
+    (vi.mocked(fetch) as any).mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: () => Promise.resolve('')
+    });
+
+    await expect(broadcastTx('deadbeef')).rejects.toThrow('Broadcast failed (500)');
   });
 
   it('should throw an error when API call fails', async () => {

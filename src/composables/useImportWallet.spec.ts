@@ -2,13 +2,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useImportWallet } from './useImportWallet';
 import { useApp } from '@/composables/useApp';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent } from 'vue';
+import { defineComponent, createApp } from 'vue';
 
 // Mock dependencies
 vi.mock('@/composables/useApp');
 
 const VALID_MNEMONIC =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+// Helper to test composables that use lifecycle hooks
+function withSetup<T>(composable: () => T): [T, ReturnType<typeof createApp>] {
+  let result: T;
+  const app = createApp(
+    defineComponent({
+      setup() {
+        result = composable();
+        return () => {};
+      }
+    })
+  );
+  app.mount(document.createElement('div'));
+  return [result!, app];
+}
 
 describe('useImportWallet Composable', () => {
   let mockWallet: any;
@@ -35,10 +50,10 @@ describe('useImportWallet Composable', () => {
   });
 
   it('should initialize with empty mnemonic', () => {
-    const { mnemonic, invalidWords, isValid } = useImportWallet();
-    expect(mnemonic.value).toBe('');
-    expect(invalidWords.value).toEqual([]);
-    expect(isValid.value).toBe(false);
+    const [composable] = withSetup(() => useImportWallet());
+    expect(composable.mnemonic.value).toBe('');
+    expect(composable.invalidWords.value).toEqual([]);
+    expect(composable.isValid.value).toBe(false);
   });
 
   it('should restore draft from session storage on mount', async () => {
@@ -47,24 +62,16 @@ describe('useImportWallet Composable', () => {
       import_draft_ts: Date.now()
     });
 
-    const TestComponent = defineComponent({
-      setup() {
-        const { mnemonic } = useImportWallet();
-        return { mnemonic };
-      },
-      template: '<div></div>'
-    });
-
-    const wrapper = mount(TestComponent);
+    const [composable] = withSetup(() => useImportWallet());
     await flushPromises();
 
     expect(chrome.storage.session.get).toHaveBeenCalled();
-    expect(wrapper.vm.mnemonic).toBe('restored word');
+    expect(composable.mnemonic.value).toBe('restored word');
   });
 
   it('should persist draft to session storage on change', async () => {
-    const { mnemonic } = useImportWallet();
-    mnemonic.value = 'new word';
+    const [composable] = withSetup(() => useImportWallet());
+    composable.mnemonic.value = 'new word';
     await flushPromises();
 
     expect(chrome.storage.session.set).toHaveBeenCalledWith(
@@ -73,41 +80,41 @@ describe('useImportWallet Composable', () => {
   });
 
   it('should validate mnemonic and word list', () => {
-    const { mnemonic, isValid, invalidWords } = useImportWallet();
+    const [composable] = withSetup(() => useImportWallet());
 
     // Invalid word
-    mnemonic.value = 'notaword ';
-    expect(invalidWords.value).toContain('notaword');
-    expect(isValid.value).toBe(false);
+    composable.mnemonic.value = 'notaword ';
+    expect(composable.invalidWords.value).toContain('notaword');
+    expect(composable.isValid.value).toBe(false);
 
     // Valid mnemonic
-    mnemonic.value = VALID_MNEMONIC;
-    expect(invalidWords.value).toEqual([]);
-    expect(isValid.value).toBe(true);
+    composable.mnemonic.value = VALID_MNEMONIC;
+    expect(composable.invalidWords.value).toEqual([]);
+    expect(composable.isValid.value).toBe(true);
   });
 
   it('should sanitize mnemonic by replacing commas and normalizing whitespace', () => {
-    const { mnemonic, sanitizeMnemonic } = useImportWallet();
-    mnemonic.value = 'word1, word2,,  word3';
-    sanitizeMnemonic();
-    expect(mnemonic.value).toBe('word1 word2 word3');
+    const [composable] = withSetup(() => useImportWallet());
+    composable.mnemonic.value = 'word1, word2,,  word3';
+    composable.sanitizeMnemonic();
+    expect(composable.mnemonic.value).toBe('word1 word2 word3');
   });
 
   it('should call importWallet and clear draft on success', async () => {
-    const { mnemonic, importAction } = useImportWallet();
-    mnemonic.value = VALID_MNEMONIC;
+    const [composable] = withSetup(() => useImportWallet());
+    composable.mnemonic.value = VALID_MNEMONIC;
 
-    await importAction('Password123!', 'Password123!');
+    await composable.importAction('Password123!', 'Password123!');
 
     expect(mockWallet.importWallet).toHaveBeenCalledWith(VALID_MNEMONIC, 'Password123!');
     expect(chrome.storage.session.remove).toHaveBeenCalled();
   });
 
   it('should throw error on password mismatch', async () => {
-    const { mnemonic, importAction } = useImportWallet();
-    mnemonic.value = VALID_MNEMONIC;
+    const [composable] = withSetup(() => useImportWallet());
+    composable.mnemonic.value = VALID_MNEMONIC;
 
-    await expect(importAction('Password123!', 'mismatch-long-enough')).rejects.toThrow(
+    await expect(composable.importAction('Password123!', 'mismatch-long-enough')).rejects.toThrow(
       'Passwords do not match'
     );
   });

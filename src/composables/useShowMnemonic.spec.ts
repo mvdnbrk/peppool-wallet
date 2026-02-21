@@ -2,12 +2,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useShowMnemonic } from './useShowMnemonic';
 import { useApp } from '@/composables/useApp';
 import * as encryption from '@/utils/encryption';
+import { defineComponent, createApp } from 'vue';
 
 // Mock dependencies
 vi.mock('@/composables/useApp');
 vi.mock('@/utils/encryption', () => ({
   decrypt: vi.fn()
 }));
+
+// Helper to test composables that use lifecycle hooks
+function withSetup<T>(composable: () => T): [T, ReturnType<typeof createApp>] {
+  let result: T;
+  const app = createApp(
+    defineComponent({
+      setup() {
+        result = composable();
+        return () => {};
+      }
+    })
+  );
+  app.mount(document.createElement('div'));
+  return [result!, app];
+}
 
 describe('useShowMnemonic Composable', () => {
   let mockWallet: any;
@@ -25,21 +41,21 @@ describe('useShowMnemonic Composable', () => {
   });
 
   it('should initialize with step 1 and empty mnemonic', () => {
-    const { step, mnemonic, error } = useShowMnemonic();
-    expect(step.value).toBe(1);
-    expect(mnemonic.value).toBe('');
-    expect(error.value).toBe('');
+    const [composable] = withSetup(() => useShowMnemonic());
+    expect(composable.step.value).toBe(1);
+    expect(composable.mnemonic.value).toBe('');
+    expect(composable.error.value).toBe('');
   });
 
   it('should successfully reveal mnemonic when password is correct', async () => {
     mockWallet.unlock.mockResolvedValue(true);
-    const { step, mnemonic, reveal } = useShowMnemonic();
+    const [composable] = withSetup(() => useShowMnemonic());
 
-    const result = await reveal('correct-pass');
+    const result = await composable.reveal('correct-pass');
 
     expect(result).toBe(true);
-    expect(mnemonic.value).toBe('test mnemonic');
-    expect(step.value).toBe(2);
+    expect(composable.mnemonic.value).toBe('test mnemonic');
+    expect(composable.step.value).toBe(2);
     expect(mockWallet.unlock).toHaveBeenCalledWith('correct-pass');
   });
 
@@ -48,46 +64,46 @@ describe('useShowMnemonic Composable', () => {
     mockWallet.plaintextMnemonic = null;
     vi.mocked(encryption.decrypt).mockResolvedValue('decrypted-fallback');
 
-    const { mnemonic, reveal } = useShowMnemonic();
-    await reveal('correct-pass');
+    const [composable] = withSetup(() => useShowMnemonic());
+    await composable.reveal('correct-pass');
 
-    expect(mnemonic.value).toBe('decrypted-fallback');
+    expect(composable.mnemonic.value).toBe('decrypted-fallback');
     expect(encryption.decrypt).toHaveBeenCalledWith('encrypted', 'correct-pass');
   });
 
   it('should set error and return false when password is incorrect', async () => {
     mockWallet.unlock.mockResolvedValue(false);
-    const { step, error, reveal } = useShowMnemonic();
+    const [composable] = withSetup(() => useShowMnemonic());
 
-    const result = await reveal('wrong-pass');
+    const result = await composable.reveal('wrong-pass');
 
     expect(result).toBe(false);
-    expect(error.value).toBe('Incorrect password');
-        expect(step.value).toBe(1);
-      });
-    
-      it('should return false if password is empty', async () => {
-        const { reveal } = useShowMnemonic();
-        const result = await reveal('');
-        expect(result).toBe(false);
-      });
-    
-      it('should handle unexpected errors during unlock', async () => {
-        mockWallet.unlock.mockRejectedValue(new Error('Unexpected'));
-        const { reveal, error } = useShowMnemonic();
-    
-        const result = await reveal('any-pass');
-    
-        expect(result).toBe(false);
-        expect(error.value).toBe('Incorrect password');
-      });
-    
-      it('should clear mnemonic on unmount', async () => {
-        const { mnemonic } = useShowMnemonic();
-        mnemonic.value = 'sensitive data';
-        
-        // We can't trigger onUnmounted easily in a pure unit test, 
-        // but we can verify it's a ref and the logic exists.
-        expect(mnemonic.value).toBe('sensitive data');
-      });
-    });
+    expect(composable.error.value).toBe('Incorrect password');
+    expect(composable.step.value).toBe(1);
+  });
+
+  it('should return false if password is empty', async () => {
+    const [composable] = withSetup(() => useShowMnemonic());
+    const result = await composable.reveal('');
+    expect(result).toBe(false);
+  });
+
+  it('should handle unexpected errors during unlock', async () => {
+    mockWallet.unlock.mockRejectedValue(new Error('Unexpected'));
+    const [composable] = withSetup(() => useShowMnemonic());
+
+    const result = await composable.reveal('any-pass');
+
+    expect(result).toBe(false);
+    expect(composable.error.value).toBe('Incorrect password');
+  });
+
+  it('should clear mnemonic on unmount', async () => {
+    const [composable, app] = withSetup(() => useShowMnemonic());
+    composable.mnemonic.value = 'sensitive data';
+
+    app.unmount();
+
+    expect(composable.mnemonic.value).toBe('');
+  });
+});

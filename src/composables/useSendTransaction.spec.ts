@@ -126,9 +126,11 @@ describe('useSendTransaction Composable', () => {
   it('should handle send failure with error message', async () => {
     vi.mocked(api.fetchTxHex).mockReset();
     vi.mocked(api.broadcastTx).mockReset();
-    
+
     const { send, tx } = useSendTransaction();
-    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }] as any;
+    tx.value.utxos = [
+      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
+    ] as any;
     mockWallet.plaintextMnemonic = 'mnemonic';
     vi.mocked(api.fetchTxHex).mockRejectedValue(new Error('Network error'));
 

@@ -258,7 +258,9 @@ describe('Wallet Store', () => {
       store.transactions = [new Transaction(tx1, store.address)];
 
       // Mock API to return a full page of transactions
-      const fullPage = Array(25).fill(null).map((_, i) => ({ ...mockTx, txid: `page-${i}` }));
+      const fullPage = Array(25)
+        .fill(null)
+        .map((_, i) => ({ ...mockTx, txid: `page-${i}` }));
       vi.mocked(api.fetchTransactions).mockResolvedValue(fullPage as any);
 
       const hasMore = await store.fetchMoreTransactions();

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import WelcomeView from './WelcomeView.vue';
 import { useApp } from '@/composables/useApp';
+import { UX_DELAY_FAST } from '@/utils/constants';
 
 // UI Components
 import PepForm from '@/components/ui/form/PepForm.vue';
@@ -112,5 +113,78 @@ describe('WelcomeView Logic', () => {
 
     expect(wrapper.text()).toContain('Too many attempts');
     expect(wrapper.findComponent(PepLoadingButton).text()).toContain('Locked');
+  });
+
+  it('should show create/import buttons when wallet is NOT created', () => {
+    mockStore.isCreated = false;
+    const wrapper = mount(WelcomeView, { global });
+    
+    expect(wrapper.text()).toContain('Create new wallet');
+    expect(wrapper.text()).toContain('Import secret phrase');
+  });
+
+  it('should navigate to create and import flows when wallet NOT created', async () => {
+    mockStore.isCreated = false;
+    const wrapper = mount(WelcomeView, { global });
+
+    const buttons = wrapper.findAllComponents(PepButton);
+    
+    await buttons[0].trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/create');
+
+    await buttons[1].trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/import');
+  });
+
+  it('should navigate to forgot password', async () => {
+    mockStore.isCreated = true;
+    const wrapper = mount(WelcomeView, { global });
+
+    const forgotBtn = wrapper.findAll('button').find(b => b.text().includes('Forgot your password?'));
+    await forgotBtn?.trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/forgot-password');
+  });
+
+  it('should call store.unlock and navigate to dashboard on success', async () => {
+    const { useLockout } = await import('@/composables/useLockout');
+    vi.mocked(useLockout).mockReturnValue({
+      isLockedOut: ref(false),
+      lockoutError: ref('')
+    } as any);
+
+    mockStore.isCreated = true;
+    mockStore.unlock.mockResolvedValue(true);
+
+    const wrapper = mount(WelcomeView, { global });
+    await wrapper.find('input[type="password"]').setValue('password123');
+    
+    await wrapper.find('#welcome-unlock-form').trigger('submit');
+    await flushPromises();
+
+    expect(mockStore.unlock).toHaveBeenCalledWith('password123');
+    expect(pushMock).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('should wait for minimum loading delay on failure', async () => {
+    const { useLockout } = await import('@/composables/useLockout');
+    vi.mocked(useLockout).mockReturnValue({
+      isLockedOut: ref(false),
+      lockoutError: ref('')
+    } as any);
+
+    vi.useFakeTimers();
+    mockStore.isCreated = true;
+    mockStore.unlock.mockResolvedValue(false);
+
+    const wrapper = mount(WelcomeView, { global });
+    await wrapper.find('input[type="password"]').setValue('wrong');
+    
+    wrapper.find('#welcome-unlock-form').trigger('submit');
+    
+    await vi.advanceTimersByTimeAsync(UX_DELAY_FAST);
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Incorrect password');
+    vi.useRealTimers();
   });
 });

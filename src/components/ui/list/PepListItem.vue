@@ -8,6 +8,7 @@ interface Props {
   selected?: boolean;
   href?: string;
   target?: string;
+  id?: string;
 }
 
 const props = defineProps<Props>();
@@ -19,6 +20,7 @@ const componentType = computed(() => (isAnchor.value ? 'a' : 'button'));
 <template>
   <component
     :is="componentType"
+    :id="id"
     :href="href"
     :target="target"
     class="group flex w-full cursor-pointer items-center justify-between border-b border-slate-700/50 p-4 text-left transition-colors last:border-0 hover:bg-slate-800"

@@ -4,6 +4,7 @@
 
 [![Tests](https://github.com/mvdnbrk/peppool-wallet/actions/workflows/test.yml/badge.svg)](https://github.com/mvdnbrk/peppool-wallet/actions/workflows/test.yml)
 [![Latest Release](https://img.shields.io/github/v/release/mvdnbrk/peppool-wallet?display_name=tag&include_prereleases)](https://github.com/mvdnbrk/peppool-wallet/releases/latest)
+[![codecov](https://codecov.io/gh/mvdnbrk/peppool-wallet/graph/badge.svg?token=72501ea5-b8b1-4118-a3dd-2eaf5eb3a398)](https://codecov.io/gh/mvdnbrk/peppool-wallet)
 
 <p align="center"><a href="https://peppool.space" target="_blank"><img src="https://cdn.peppool.space/opengraph/peppool-wallet.png" width="800" height="418" alt="Peppool wallet"></p>
 

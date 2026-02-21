@@ -2,6 +2,8 @@
 
 **The Pepecoin wallet for everyone.**
 
+[![Tests](https://github.com/mvdnbrk/peppool-wallet/actions/workflows/test.yml/badge.svg)](https://github.com/mvdnbrk/peppool-wallet/actions/workflows/test.yml)
+
 <p align="center"><a href="https://peppool.space" target="_blank"><img src="https://cdn.peppool.space/opengraph/peppool-wallet.png" width="800" height="418" alt="Peppool wallet"></p>
 
 This is the source of the Peppool Wallet browser extension.

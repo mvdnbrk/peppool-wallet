@@ -3,6 +3,7 @@
 **The Pepecoin wallet for everyone.**
 
 [![Tests](https://github.com/mvdnbrk/peppool-wallet/actions/workflows/test.yml/badge.svg)](https://github.com/mvdnbrk/peppool-wallet/actions/workflows/test.yml)
+[![Latest Release](https://img.shields.io/github/v/release/mvdnbrk/peppool-wallet?display_name=tag&include_prereleases)](https://github.com/mvdnbrk/peppool-wallet/releases/latest)
 
 <p align="center"><a href="https://peppool.space" target="_blank"><img src="https://cdn.peppool.space/opengraph/peppool-wallet.png" width="800" height="418" alt="Peppool wallet"></p>
 

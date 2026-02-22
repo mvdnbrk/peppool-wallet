@@ -72,15 +72,15 @@ describe('Wallet Store', () => {
   it('should auto-unlock via checkSession if chrome.storage has mnemonic', async () => {
     localStorage.setItem('peppool_vault', 'any-vault');
     localStorage.setItem('peppool_address', 'any-addr');
-    
+
     // Mock chrome.storage.local.get for session expiry
-    (global.chrome.storage.local.get as any).mockResolvedValue({ 
-      unlocked_until: Date.now() + 10000 
+    (global.chrome.storage.local.get as any).mockResolvedValue({
+      unlocked_until: Date.now() + 10000
     });
 
     // Mock chrome.storage.session.get
-    (global.chrome.storage.session.get as any).mockResolvedValue({ 
-      mnemonic: 'suffer dish east miss seat great brother hello motion mountain celery plunge' 
+    (global.chrome.storage.session.get as any).mockResolvedValue({
+      mnemonic: 'suffer dish east miss seat great brother hello motion mountain celery plunge'
     });
 
     const store = useWalletStore();

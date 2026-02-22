@@ -134,7 +134,7 @@ describe('Wallet Views Navigation', () => {
   it('Dashboard: should adjust font size for large balances', async () => {
     mockWallet.balance = 1000000000000000; // Force very long string
     const wrapper = mount(DashboardView, { global });
-    
+
     const balanceSpan = wrapper.find('span.text-offwhite');
     expect(balanceSpan.classes()).toContain('text-xl');
   });
@@ -143,7 +143,7 @@ describe('Wallet Views Navigation', () => {
     mockWallet.isUnlocked = true;
     mount(DashboardView, { global });
     await nextTick();
-    
+
     expect(mockWallet.refreshBalance).toHaveBeenCalled();
     expect(mockWallet.startPolling).toHaveBeenCalled();
   });

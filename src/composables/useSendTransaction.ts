@@ -92,36 +92,45 @@ export function useSendTransaction() {
     return true;
   }
 
+  let isSending = false;
+
   async function send(password: string, isMax: boolean) {
-    let mnemonic = walletStore.plaintextMnemonic;
-    if (!mnemonic) {
-      if (!password) throw new Error('Password required');
-      mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);
-      walletStore.cacheMnemonic(mnemonic);
+    if (isSending) throw new Error('Transaction already in progress');
+    isSending = true;
+
+    try {
+      let mnemonic = walletStore.plaintextMnemonic;
+      if (!mnemonic) {
+        if (!password) throw new Error('Password required');
+        mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);
+        walletStore.cacheMnemonic(mnemonic);
+      }
+
+      const { selectedUtxos } = tx.value.selectUtxos(isMax);
+      const usedUtxosWithHex: UTXO[] = [];
+
+      for (const utxo of selectedUtxos) {
+        const rawHex = await fetchTxHex(utxo.txid);
+        usedUtxosWithHex.push({ ...utxo, rawHex });
+      }
+
+      const signer = deriveSigner(mnemonic);
+      const signedHex = await createSignedTx(
+        signer,
+        tx.value.recipient,
+        tx.value.amountRibbits,
+        usedUtxosWithHex,
+        tx.value.estimatedFeeRibbits
+      );
+
+      const result = await broadcastTx(signedHex);
+      txid.value = result;
+
+      await walletStore.refreshBalance(true);
+      return result;
+    } finally {
+      isSending = false;
     }
-
-    const { selectedUtxos } = tx.value.selectUtxos(isMax);
-    const usedUtxosWithHex: UTXO[] = [];
-
-    for (const utxo of selectedUtxos) {
-      const rawHex = await fetchTxHex(utxo.txid);
-      usedUtxosWithHex.push({ ...utxo, rawHex });
-    }
-
-    const signer = deriveSigner(mnemonic);
-    const signedHex = await createSignedTx(
-      signer,
-      tx.value.recipient,
-      tx.value.amountRibbits,
-      usedUtxosWithHex,
-      tx.value.estimatedFeeRibbits
-    );
-
-    const result = await broadcastTx(signedHex);
-    txid.value = result;
-
-    await walletStore.refreshBalance(true);
-    return result;
   }
 
   return {

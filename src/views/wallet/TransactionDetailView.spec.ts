@@ -75,24 +75,28 @@ describe('TransactionDetailView', () => {
   });
 
   it('should show Network Fee only for outgoing transactions', async () => {
-    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
-    
+    mockWallet.fetchTransaction.mockResolvedValue(
+      new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
+    );
+
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
     });
 
     await flushPromises();
-    
+
     // 1. Outgoing
     expect(wrapper.text()).toContain('Network Fee');
 
     // 2. Incoming
     const incomingRaw = { ...mockRawTx, vin: [] };
-    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+    mockWallet.fetchTransaction.mockResolvedValue(
+      new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
+    );
     // @ts-ignore
     await wrapper.vm.loadDetails();
     await flushPromises();
-    
+
     expect(wrapper.text()).not.toContain('Network Fee');
   });
 
@@ -102,7 +106,9 @@ describe('TransactionDetailView', () => {
       vin: [],
       vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
     };
-    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+    mockWallet.fetchTransaction.mockResolvedValue(
+      new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
+    );
 
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
@@ -117,7 +123,9 @@ describe('TransactionDetailView', () => {
 
   it('should show unconfirmed status correctly', async () => {
     const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
-    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+    mockWallet.fetchTransaction.mockResolvedValue(
+      new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
+    );
 
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
@@ -129,7 +137,9 @@ describe('TransactionDetailView', () => {
   });
 
   it('should call openExplorer with correct txid', async () => {
-    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+    mockWallet.fetchTransaction.mockResolvedValue(
+      new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
+    );
 
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
@@ -142,21 +152,22 @@ describe('TransactionDetailView', () => {
     expect(mockWallet.openExplorerTx).toHaveBeenCalledWith(mockRawTx.txid);
   });
 
-      it('should update details when store transaction list changes', async () => {
-        const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
-        mockWallet.fetchTransaction.mockResolvedValue(new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
-    
-        const wrapper = mount(TransactionDetailView, {
-          global: { stubs, components: { PepPageHeader } }
-        });
-          await flushPromises();
-      expect(wrapper.text()).toContain('In mempool');
-  
-      // Simulate store updating the transaction list (e.g. after a poll found a new block)
-      mockWallet.transactions = [new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')];
-      await wrapper.vm.$nextTick();
-  
-      expect(wrapper.text()).toContain('Confirmed');
+  it('should update details when store transaction list changes', async () => {
+    const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
+    mockWallet.fetchTransaction.mockResolvedValue(
+      new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
+    );
+
+    const wrapper = mount(TransactionDetailView, {
+      global: { stubs, components: { PepPageHeader } }
     });
+    await flushPromises();
+    expect(wrapper.text()).toContain('In mempool');
+
+    // Simulate store updating the transaction list (e.g. after a poll found a new block)
+    mockWallet.transactions = [new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')];
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.text()).toContain('Confirmed');
   });
-  
+});

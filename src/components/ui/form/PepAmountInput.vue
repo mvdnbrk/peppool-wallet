@@ -79,7 +79,7 @@ watch(inputAmount, (newVal, oldVal) => {
   if (isNaN(numeric) || numeric <= 0) {
     emit('update:ribbits', 0);
   } else {
-    const pepVal = props.isFiatMode ? numeric / props.price : numeric;
+    const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
     emit('update:ribbits', pepToRibbits(pepVal));
   }
 

@@ -72,6 +72,18 @@ describe('PepAmountInput UI Component', () => {
     expect(wrapper.emitted('update:ribbits')?.[0]).toEqual([150_000_000]);
   });
 
+  it('should treat fiat input as PEP when price is 0 to avoid division by zero', async () => {
+    const wrapper = mount(PepAmountInput, {
+      props: { ribbits: 0, price: 0, isFiatMode: true },
+      global: { stubs }
+    });
+
+    const input = wrapper.find('input');
+    await input.setValue('5');
+
+    expect(wrapper.emitted('update:ribbits')?.[0]).toEqual([500_000_000]);
+  });
+
   it('should emit change-max: false when user types', async () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 100, price: 10, isFiatMode: false },

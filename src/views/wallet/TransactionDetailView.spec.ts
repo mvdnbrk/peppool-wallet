@@ -177,7 +177,7 @@ describe('TransactionDetailView', () => {
     });
 
     await flushPromises();
-    
+
     // Ensure it started polling
     expect(vi.getTimerCount()).toBe(1);
 

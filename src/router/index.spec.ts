@@ -99,4 +99,10 @@ describe('Router Logic', () => {
     await router.push('/');
     expect(router.currentRoute.value.path).toBe('/import');
   });
+
+  it('should redirect unknown paths to root', async () => {
+    walletStore.isUnlocked = false;
+    await router.push('/nonexistent-page');
+    expect(router.currentRoute.value.path).toBe('/');
+  });
 });

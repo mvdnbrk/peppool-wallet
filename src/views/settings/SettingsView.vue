@@ -39,7 +39,5 @@ function handleLock() {
         <PepButton @click="handleLock" variant="secondary" class="w-full"> Lock Wallet </PepButton>
       </div>
     </div>
-
-    <PepFooter />
   </div>
 </template>

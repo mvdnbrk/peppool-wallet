@@ -42,6 +42,9 @@ watch(txid, (newTxid) => {
   if (newTxid) form.txid = newTxid;
 });
 
+// Step 2 can't survive remount — password isn't persisted
+if (form.step === 2) form.step = 1;
+
 const canReview = computed(() => {
   return (
     !isLoadingRequirements.value &&

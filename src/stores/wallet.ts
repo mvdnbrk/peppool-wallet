@@ -51,7 +51,9 @@ export const useWalletStore = defineStore('wallet', () => {
 
   // ── State ──
   const accounts = ref<Account[]>(JSON.parse(localStorage.getItem('peppool_accounts') || '[]'));
-  const activeAddress = ref<string | null>(localStorage.getItem('peppool_active_address'));
+  const activeAccountIndex = ref<number>(
+    parseInt(localStorage.getItem('peppool_active_account') || '0')
+  );
   const encryptedMnemonic = ref<string | null>(localStorage.getItem('peppool_vault'));
   const plaintextMnemonic = ref<string | null>(null);
   const isUnlocked = ref(false);
@@ -76,10 +78,8 @@ export const useWalletStore = defineStore('wallet', () => {
   // ── Computed ──
   const isCreated = computed(() => !!encryptedMnemonic.value);
   const isMnemonicLoaded = computed(() => !!plaintextMnemonic.value);
-  const address = computed(() => activeAddress.value);
-  const activeAccount = computed(() =>
-    accounts.value.find((a) => a.address === activeAddress.value)
-  );
+  const activeAccount = computed(() => accounts.value[activeAccountIndex.value] || null);
+  const address = computed(() => activeAccount.value?.address || null);
   const balanceFiat = computed(() => balance.value * (prices.value[selectedCurrency.value] || 0));
   const currencySymbol = computed(() => (selectedCurrency.value === 'USD' ? '$' : '€'));
 
@@ -88,7 +88,7 @@ export const useWalletStore = defineStore('wallet', () => {
     const cachedTxs = localStorage.getItem('peppool_transactions');
     if (cachedTxs) {
       transactions.value = JSON.parse(cachedTxs).map(
-        (raw: any) => new Transaction(raw, activeAddress.value || '')
+        (raw: any) => new Transaction(raw, address.value || '')
       );
     }
   } catch {
@@ -156,10 +156,10 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function refreshTransactions() {
-    if (!activeAddress.value) return;
+    if (!address.value) return;
     try {
-      const rawTxs = await fetchTransactions(activeAddress.value);
-      transactions.value = rawTxs.map((raw) => new Transaction(raw, activeAddress.value!));
+      const rawTxs = await fetchTransactions(address.value);
+      transactions.value = rawTxs.map((raw) => new Transaction(raw, address.value!));
       canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
       localStorage.setItem('peppool_transactions', JSON.stringify(rawTxs.slice(0, 20)));
     } catch (e) {
@@ -168,12 +168,12 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function fetchMoreTransactions() {
-    if (!activeAddress.value || transactions.value.length === 0) return false;
+    if (!address.value || transactions.value.length === 0) return false;
     const lastTx = transactions.value[transactions.value.length - 1];
     if (!lastTx) return false;
     try {
-      const rawTxs = await fetchTransactions(activeAddress.value, lastTx.txid);
-      const newTxs = rawTxs.map((raw) => new Transaction(raw, activeAddress.value!));
+      const rawTxs = await fetchTransactions(address.value, lastTx.txid);
+      const newTxs = rawTxs.map((raw) => new Transaction(raw, address.value!));
       const existingIds = new Set(transactions.value.map((t) => t.txid));
       const uniqueNewTxs = newTxs.filter((t) => !existingIds.has(t.txid));
       canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
@@ -187,11 +187,11 @@ export const useWalletStore = defineStore('wallet', () => {
 
   async function fetchTransaction(txid: string): Promise<Transaction> {
     const rawTx = await apiFetchTransaction(txid);
-    return new Transaction(rawTx, activeAddress.value || '');
+    return new Transaction(rawTx, address.value || '');
   }
 
   async function refreshBalance(force = false) {
-    if (!activeAddress.value) return;
+    if (!address.value) return;
     try {
       const currentPrices = await fetchPepPrice();
       prices.value = currentPrices;
@@ -205,7 +205,7 @@ export const useWalletStore = defineStore('wallet', () => {
       }
       lastTipHeight = tipHeight;
 
-      const totalRibbits = await fetchAddressInfo(activeAddress.value);
+      const totalRibbits = await fetchAddressInfo(address.value);
       balance.value = totalRibbits / RIBBITS_PER_PEP;
       localStorage.setItem('peppool_balance', balance.value.toString());
 
@@ -238,12 +238,12 @@ export const useWalletStore = defineStore('wallet', () => {
     };
 
     accounts.value = [initialAccount];
-    activeAddress.value = walletAddress;
+    activeAccountIndex.value = 0;
     isUnlocked.value = true;
 
     localStorage.setItem('peppool_vault', encrypted);
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-    localStorage.setItem('peppool_active_address', walletAddress);
+    localStorage.setItem('peppool_active_account', '0');
 
     await lockout.reset();
     await refreshBalance(true);
@@ -253,19 +253,17 @@ export const useWalletStore = defineStore('wallet', () => {
     const primaryAddress = deriveAddress(mnemonic, 0, 0);
 
     if (accounts.value.length === 0) {
-      if (activeAddress.value && activeAddress.value !== primaryAddress)
-        throw new Error('Invalid vault');
+      if (address.value && address.value !== primaryAddress) throw new Error('Invalid vault');
       return;
     }
 
     const account0 = accounts.value.find((a) => parseDerivationPath(a.path).accountIndex === 0);
     if (!account0 || account0.address !== primaryAddress) throw new Error('Invalid vault');
 
-    if (activeAddress.value && activeAddress.value !== primaryAddress) {
-      const active = accounts.value.find((a) => a.address === activeAddress.value);
-      if (!active) throw new Error('Invalid vault');
+    const active = activeAccount.value;
+    if (active) {
       const { accountIndex, addressIndex } = parseDerivationPath(active.path);
-      if (deriveAddress(mnemonic, accountIndex, addressIndex) !== activeAddress.value)
+      if (deriveAddress(mnemonic, accountIndex, addressIndex) !== active.address)
         throw new Error('Invalid vault');
     }
   }
@@ -317,7 +315,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   async function resetWallet() {
     accounts.value = [];
-    activeAddress.value = null;
+    activeAccountIndex.value = 0;
     encryptedMnemonic.value = null;
     plaintextMnemonic.value = null;
     isUnlocked.value = false;
@@ -345,11 +343,10 @@ export const useWalletStore = defineStore('wallet', () => {
     clearAutoLockAlarm();
   }
 
-  async function switchAccount(address: string) {
-    const account = accounts.value.find((a) => a.address === address);
-    if (!account) return;
-    activeAddress.value = address;
-    localStorage.setItem('peppool_active_address', address);
+  async function switchAccount(index: number) {
+    if (!accounts.value[index]) return;
+    activeAccountIndex.value = index;
+    localStorage.setItem('peppool_active_account', index.toString());
     balance.value = 0;
     transactions.value = [];
     await refreshBalance(true);
@@ -366,7 +363,7 @@ export const useWalletStore = defineStore('wallet', () => {
     };
     accounts.value.push(newAccount);
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-    await switchAccount(newAddress);
+    await switchAccount(nextIndex);
   }
 
   function cacheMnemonic(mnemonic: string) {
@@ -390,7 +387,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   return {
     accounts,
-    activeAddress,
+    activeAccountIndex,
     activeAccount,
     address,
     encryptedMnemonic: readonly(encryptedMnemonic),

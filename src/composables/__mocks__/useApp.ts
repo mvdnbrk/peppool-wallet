@@ -38,6 +38,6 @@ export const useApp = vi.fn(() => ({
     resetWallet: vi.fn(),
     resetLockTimer: vi.fn(),
     accounts: [],
-    activeAddress: 'test-address'
+    activeAccountIndex: 0
   }
 }));

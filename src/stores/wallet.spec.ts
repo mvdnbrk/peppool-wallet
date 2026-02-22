@@ -74,7 +74,7 @@ describe('Wallet Store', () => {
         }
       ])
     );
-    localStorage.setItem('peppool_active_address', 'PcorruptedAddress');
+    localStorage.setItem('peppool_active_account', '0');
 
     // Re-init store from corrupted localStorage
     setActivePinia(createPinia());
@@ -107,7 +107,7 @@ describe('Wallet Store', () => {
       'peppool_accounts',
       JSON.stringify([{ address: 'any-addr', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }])
     );
-    localStorage.setItem('peppool_active_address', 'any-addr');
+    localStorage.setItem('peppool_active_account', '0');
 
     // Mock chrome.storage.local.get for session expiry
     (global.chrome.storage.local.get as any).mockResolvedValue({
@@ -178,11 +178,11 @@ describe('Wallet Store', () => {
       { address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
       { address: 'addr2', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
     ];
-    store.activeAddress = 'addr1';
+    store.activeAccountIndex = 0;
 
-    await store.switchAccount('addr2');
+    await store.switchAccount(1);
     expect(store.address).toBe('addr2');
-    expect(localStorage.getItem('peppool_active_address')).toBe('addr2');
+    expect(localStorage.getItem('peppool_active_account')).toBe('1');
     expect(store.balance).toBe(1); // Should be refreshed on switch
     expect(store.transactions).toHaveLength(0); // Should be cleared on switch
   });
@@ -212,7 +212,7 @@ describe('Wallet Store', () => {
         label: 'Account 1'
       }
     ];
-    store.activeAddress = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
+    store.activeAccountIndex = 0;
 
     await store.refreshBalance();
 
@@ -354,7 +354,7 @@ describe('Wallet Store', () => {
           label: 'Account 1'
         }
       ];
-      store.activeAddress = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
+      store.activeAccountIndex = 0;
 
       await store.refreshTransactions();
 
@@ -366,7 +366,17 @@ describe('Wallet Store', () => {
 
     it('should restore transactions from cache on initialization', () => {
       localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
-      localStorage.setItem('peppool_active_address', 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+      localStorage.setItem('peppool_active_account', '0');
+      localStorage.setItem(
+        'peppool_accounts',
+        JSON.stringify([
+          {
+            address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
+            path: "m/44'/3434'/0'/0/0",
+            label: 'Account 1'
+          }
+        ])
+      );
 
       const store = useWalletStore();
       expect(store.transactions).toHaveLength(1);
@@ -394,7 +404,7 @@ describe('Wallet Store', () => {
       const store = useWalletStore();
       const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
       store.accounts = [{ address: addr, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-      store.activeAddress = addr;
+      store.activeAccountIndex = 0;
 
       // Setup initial transactions
       const tx1 = { ...mockTx, txid: 'tx1' };

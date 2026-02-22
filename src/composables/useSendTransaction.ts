@@ -114,7 +114,11 @@ export function useSendTransaction() {
         usedUtxosWithHex.push({ ...utxo, rawHex });
       }
 
-      const signer = deriveSigner(mnemonic);
+      const signer = deriveSigner(
+        mnemonic,
+        walletStore.activeAccount?.accountIndex || 0,
+        walletStore.activeAccount?.addressIndex || 0
+      );
       const signedHex = await createSignedTx(
         signer,
         tx.value.recipient,

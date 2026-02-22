@@ -154,4 +154,26 @@ describe('useSendTransaction Composable', () => {
     expect(tx.value.amountRibbits).toBeGreaterThan(0);
     expect(tx.value.amountRibbits).toBeLessThan(1000000);
   });
+
+  it('should use active account indices when deriving signer', async () => {
+    const { tx, send } = useSendTransaction();
+    mockWallet.activeAccount = {
+      address: 'addr2',
+      accountIndex: 5,
+      addressIndex: 3,
+      label: 'Account 6'
+    };
+    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }] as any;
+    tx.value.recipient = 'recipient';
+    tx.value.amountRibbits = 500_000_000;
+
+    vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
+    vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
+    vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
+    vi.mocked(api.broadcastTx).mockResolvedValue('new-txid');
+
+    await send('password', false);
+
+    expect(crypto.deriveSigner).toHaveBeenCalledWith('test mnemonic', 5, 3);
+  });
 });

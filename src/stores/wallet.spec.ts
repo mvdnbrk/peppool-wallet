@@ -57,6 +57,29 @@ describe('Wallet Store', () => {
     expect(store.address).toBe(originalAddress);
   });
 
+  it('should fail unlock if mnemonic derives different primary address', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+    store.lock();
+    
+    // Manually corrupt the stored accounts in localStorage
+    localStorage.setItem('peppool_accounts', JSON.stringify([{
+      address: 'PcorruptedAddress',
+      accountIndex: 0,
+      addressIndex: 0,
+      label: 'Account 1'
+    }]));
+    localStorage.setItem('peppool_active_address', 'PcorruptedAddress');
+
+    // Re-init store from corrupted localStorage
+    setActivePinia(createPinia());
+    const freshStore = useWalletStore();
+
+    const success = await freshStore.unlock('password123');
+    expect(success).toBe(false);
+    expect(freshStore.isUnlocked).toBe(false);
+  });
+
   it('should handle failed unlock and trigger lockout after 5 attempts', async () => {
     const store = useWalletStore();
     await store.createWallet('password123');
@@ -112,7 +135,9 @@ describe('Wallet Store', () => {
 
   it('should perform a full wallet reset', async () => {
     const store = useWalletStore();
+    localStorage.setItem('other_app_key', 'keep-me');
     await store.createWallet('password123');
+    store.prices.USD = 10;
 
     expect(store.isCreated).toBe(true);
     store.resetWallet();
@@ -120,7 +145,27 @@ describe('Wallet Store', () => {
     expect(store.address).toBeNull();
     expect(store.accounts).toHaveLength(0);
     expect(store.isCreated).toBe(false);
+    expect(store.prices.USD).toBe(0);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
+    expect(localStorage.getItem('other_app_key')).toBe('keep-me');
+  });
+
+  it('encryptedMnemonic should be exposed as readonly', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+
+    const original = store.encryptedMnemonic;
+    expect(original).toBeTruthy();
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      (store as any).encryptedMnemonic = 'hacked';
+    } catch {
+      // Expected
+    }
+
+    expect(store.encryptedMnemonic).toBe(original);
+    warnSpy.mockRestore();
   });
 
   it('should switch accounts correctly', async () => {

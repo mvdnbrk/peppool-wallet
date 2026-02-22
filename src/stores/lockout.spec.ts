@@ -85,6 +85,25 @@ describe('Lockout Store', () => {
     expect(store.failedAttempts).toBe(0);
   });
 
+  it('should reset failed attempts if previous lockout expired', async () => {
+    vi.useFakeTimers();
+    const store = useLockoutStore();
+
+    // 1. Trigger first lockout (3 failures -> 30s)
+    for (let i = 0; i < 3; i++) await store.recordFailure();
+    expect(store.failedAttempts).toBe(3);
+    expect(store.isLockedOut).toBe(true);
+
+    // 2. Advance time past 30s
+    vi.advanceTimersByTime(31000);
+    expect(store.isLockedOut).toBe(false);
+
+    // 3. Record next failure - should CONTINUE incrementing (result = 4)
+    await store.recordFailure();
+    expect(store.failedAttempts).toBe(4);
+    vi.useRealTimers();
+  });
+
   it('should persist state to chrome.storage.local', async () => {
     const store = useLockoutStore();
     await store.recordFailure();
@@ -106,16 +125,21 @@ describe('Lockout Store', () => {
     expect(store.isCreated).toBe(true);
     expect(store.address).toBe('Paddress');
 
-    // 12 failures
-    for (let i = 0; i < 12; i++) {
-      // Advance time to bypass any existing lockout
-      vi.advanceTimersByTime(31 * 60 * 1000);
-      await store.unlock('wrong');
-    }
-
-    expect(store.encryptedMnemonic).toBeNull();
-    expect(store.address).toBeNull();
-    expect(lockout.failedAttempts).toBe(0);
-    vi.useRealTimers();
-  });
+        // 11 failures
+        for (let i = 0; i < 11; i++) {
+          vi.advanceTimersByTime(31 * 60 * 1000); 
+          await store.unlock('wrong');
+        }
+        expect(lockout.failedAttempts).toBe(11);
+    
+        // 12th failure triggers wipe
+        vi.advanceTimersByTime(31 * 60 * 1000); 
+        await store.unlock('wrong');
+    
+        expect(store.encryptedMnemonic).toBeNull();
+        expect(store.address).toBeNull();
+        expect(lockout.failedAttempts).toBe(0);
+        vi.useRealTimers();
+      });
+    
 });

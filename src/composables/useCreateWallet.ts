@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, onScopeDispose } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { generateMnemonic } from '@/utils/crypto';
 import { validatePasswordMatch } from '@/utils/form';
@@ -9,6 +9,10 @@ export function useCreateWallet() {
   const step = ref(1); // 1: Password, 2: Show Seed
   const mnemonic = ref('');
   const confirmedSeed = ref(false);
+
+  onScopeDispose(() => {
+    mnemonic.value = '';
+  });
 
   function prepareMnemonic(password: string, confirmPassword: string) {
     const errors = validatePasswordMatch(password, confirmPassword);

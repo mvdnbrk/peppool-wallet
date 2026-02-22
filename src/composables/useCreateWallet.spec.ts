@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { effectScope } from 'vue';
 import { useCreateWallet } from './useCreateWallet';
 import { useApp } from '@/composables/useApp';
 import * as crypto from '@/utils/crypto';
@@ -71,5 +72,24 @@ describe('useCreateWallet Composable', () => {
     step.value = 2;
     backToPassword();
     expect(step.value).toBe(1);
+  });
+
+  it('should clear mnemonic from memory on unmount to prevent leaking sensitive data', () => {
+    const scope = effectScope();
+    let mnemonic: any;
+    let prepareMnemonic: any;
+
+    scope.run(() => {
+      const result = useCreateWallet();
+      mnemonic = result.mnemonic;
+      prepareMnemonic = result.prepareMnemonic;
+    });
+
+    prepareMnemonic('Password123!', 'Password123!');
+    expect(mnemonic.value).toBe('test mnemonic');
+
+    // Stopping the scope triggers onScopeDispose cleanup
+    scope.stop();
+    expect(mnemonic.value).toBe('');
   });
 });

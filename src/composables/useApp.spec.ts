@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useApp } from './useApp';
 import { useRouter } from 'vue-router';
 import { useWalletStore } from '@/stores/wallet';
-import { mount, flushPromises } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 
 // Unmock useApp so we test the real one
@@ -35,29 +35,17 @@ describe('useApp Composable', () => {
     vi.mocked(useWalletStore).mockReturnValue(mockStore);
   });
 
-  const TestComponent = defineComponent({
-    setup() {
-      const app = useApp();
-      app.requireUnlock();
-      return () => null;
-    }
-  });
-
-  it('requireUnlock should redirect to / if wallet is locked', async () => {
-    mockStore.isUnlocked = false;
-
-    mount(TestComponent);
-
-    await flushPromises();
-    expect(mockRouter.replace).toHaveBeenCalledWith('/');
-  });
-
-  it('requireUnlock should NOT redirect if wallet is unlocked', async () => {
-    mockStore.isUnlocked = true;
+  it('should return router, route, and wallet', () => {
+    const TestComponent = defineComponent({
+      setup() {
+        const app = useApp();
+        expect(app.router).toBe(mockRouter);
+        expect(app.wallet).toBe(mockStore);
+        expect(app.route).toBeDefined();
+        return () => null;
+      }
+    });
 
     mount(TestComponent);
-
-    await flushPromises();
-    expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 });

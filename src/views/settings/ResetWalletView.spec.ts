@@ -34,7 +34,7 @@ describe('ResetWalletView Feature', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
+
       route: { path: '/reset-wallet' } as any
     });
   });

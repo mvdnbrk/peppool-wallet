@@ -103,7 +103,7 @@ describe('SendView', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
+
       route: { path: '/send' } as any
     });
   });

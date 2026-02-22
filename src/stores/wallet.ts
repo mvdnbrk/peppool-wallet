@@ -299,14 +299,9 @@ export const useWalletStore = defineStore('wallet', () => {
     lockTimer = null;
 
     localStorage.removeItem('peppool_transactions');
-    clearForms();
+    localStorage.removeItem('peppool_form_send');
+    localStorage.removeItem('peppool_form_import');
     await clearAutoLockAlarm();
-  }
-
-  function clearForms() {
-    // Specifically wipe form persistence but keep the wallet (vault/address)
-    const keysToRemove = Object.keys(localStorage).filter((k) => k.startsWith('peppool_form_'));
-    keysToRemove.forEach((k) => localStorage.removeItem(k));
   }
 
   function resetWallet() {

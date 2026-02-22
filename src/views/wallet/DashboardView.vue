@@ -51,7 +51,7 @@ async function handleLoadMore() {
 </script>
 
 <template>
-  <PepMainLayout @mousedown="walletStore.resetLockTimer" @keydown="walletStore.resetLockTimer">
+  <PepMainLayout>
     <!-- Balance Card -->
     <div
       class="group relative mb-4 space-y-2 rounded-2xl border border-slate-700 bg-slate-800 p-6 text-center"

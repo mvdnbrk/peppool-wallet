@@ -51,13 +51,11 @@ describe('Wallet Views Navigation', () => {
       refreshBalance: vi.fn(),
       startPolling: vi.fn(),
       stopPolling: vi.fn(),
-      resetLockTimer: vi.fn(),
       openExplorerTx: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
       route: { params: { txid: 'test-tx' } } as any
     });
   });

@@ -32,6 +32,5 @@ export const useApp = vi.fn(() => ({
     startPolling: vi.fn(),
     stopPolling: vi.fn(),
     openExplorerTx: vi.fn()
-  },
-  requireUnlock: vi.fn()
+  }
 }));

@@ -29,7 +29,7 @@ describe('Onboarding Navigation', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: { errors: {} } as any,
-      requireUnlock: vi.fn(),
+
       route: { path: '/' } as any
     });
   });

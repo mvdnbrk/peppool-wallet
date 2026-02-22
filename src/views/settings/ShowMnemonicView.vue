@@ -5,8 +5,7 @@ import { useLockout } from '@/composables/useLockout';
 import { useShowMnemonic } from '@/composables/useShowMnemonic';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 
-const { router, requireUnlock } = useApp();
-requireUnlock();
+const { router } = useApp();
 
 const { isLockedOut, lockoutError } = useLockout();
 const { step, mnemonic, error, reveal } = useShowMnemonic();

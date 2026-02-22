@@ -1,4 +1,4 @@
-import { computed } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 
 /**
@@ -6,12 +6,21 @@ import { useWalletStore } from '@/stores/wallet';
  */
 export function useLockout() {
   const wallet = useWalletStore();
+  const now = ref(Date.now());
+
+  watchEffect((onCleanup) => {
+    if (wallet.isLockedOut) {
+      now.value = Date.now();
+      const timer = setInterval(() => { now.value = Date.now(); }, 1000);
+      onCleanup(() => clearInterval(timer));
+    }
+  });
 
   const isLockedOut = computed(() => wallet.isLockedOut);
 
   const secondsRemaining = computed(() => {
     if (!wallet.lockoutUntil) return 0;
-    return Math.max(0, Math.ceil((wallet.lockoutUntil - Date.now()) / 1000));
+    return Math.max(0, Math.ceil((wallet.lockoutUntil - now.value) / 1000));
   });
 
   const lockoutError = computed(() => {

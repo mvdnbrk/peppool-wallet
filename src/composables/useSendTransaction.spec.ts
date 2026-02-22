@@ -159,8 +159,7 @@ describe('useSendTransaction Composable', () => {
     const { tx, send } = useSendTransaction();
     mockWallet.activeAccount = {
       address: 'addr2',
-      accountIndex: 5,
-      addressIndex: 3,
+      path: "m/44'/3434'/5'/0/3",
       label: 'Account 6'
     };
     tx.value.utxos = [

@@ -7,7 +7,13 @@ import {
   validateAddress,
   fetchRecommendedFees
 } from '@/utils/api';
-import { createSignedTx, isValidAddress, deriveSigner, type UTXO } from '@/utils/crypto';
+import {
+  createSignedTx,
+  isValidAddress,
+  deriveSigner,
+  parseDerivationPath,
+  type UTXO
+} from '@/utils/crypto';
 import { decrypt as decryptMnemonic } from '@/utils/encryption';
 import { SendTransaction } from '@/models/SendTransaction';
 import { RIBBITS_PER_PEP, MIN_SEND_PEP, formatFiat } from '@/utils/constants';
@@ -114,11 +120,11 @@ export function useSendTransaction() {
         usedUtxosWithHex.push({ ...utxo, rawHex });
       }
 
-      const signer = deriveSigner(
-        mnemonic,
-        walletStore.activeAccount?.accountIndex || 0,
-        walletStore.activeAccount?.addressIndex || 0
-      );
+      const activePath = walletStore.activeAccount?.path;
+      const { accountIndex, addressIndex } = activePath
+        ? parseDerivationPath(activePath)
+        : { accountIndex: 0, addressIndex: 0 };
+      const signer = deriveSigner(mnemonic, accountIndex, addressIndex);
       const signedHex = await createSignedTx(
         signer,
         tx.value.recipient,

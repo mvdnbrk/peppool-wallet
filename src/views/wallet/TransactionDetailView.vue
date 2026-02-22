@@ -28,11 +28,10 @@ async function loadDetails() {
 
 onMounted(() => {
   loadDetails();
-  walletStore.startPolling();
 });
 
 onUnmounted(() => {
-  walletStore.stopPolling();
+  // No-op - polling handled by App.vue
 });
 
 function openExplorer() {

@@ -137,12 +137,11 @@ describe('Wallet Views Navigation', () => {
     expect(balanceSpan.classes()).toContain('text-xl');
   });
 
-  it('Dashboard: should refresh and poll on mount if unlocked', async () => {
+  it('Dashboard: should refresh on mount if unlocked', async () => {
     mockWallet.isUnlocked = true;
     mount(DashboardView, { global });
     await nextTick();
 
     expect(mockWallet.refreshBalance).toHaveBeenCalled();
-    expect(mockWallet.startPolling).toHaveBeenCalled();
   });
 });

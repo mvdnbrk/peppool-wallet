@@ -25,12 +25,11 @@ const balanceFontSize = computed(() => {
 onMounted(async () => {
   if (walletStore.isUnlocked) {
     await walletStore.refreshBalance();
-    walletStore.startPolling();
   }
 });
 
 onUnmounted(() => {
-  walletStore.stopPolling();
+  // No-op - polling handled by App.vue
 });
 
 function openDetail(txid: string) {

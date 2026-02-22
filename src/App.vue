@@ -15,7 +15,14 @@ watch(
     if (!unlocked && !publicRoutes.includes(route.path)) {
       router.replace('/');
     }
-  }
+
+    if (unlocked) {
+      wallet.startPolling();
+    } else {
+      wallet.stopPolling();
+    }
+  },
+  { immediate: true }
 );
 </script>
 

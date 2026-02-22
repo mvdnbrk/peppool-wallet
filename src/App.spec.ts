@@ -18,7 +18,9 @@ vi.mock('vue-router', () => ({
 vi.mock('@/stores/wallet', () => ({
   useWalletStore: vi.fn(() => ({
     isUnlocked: false,
-    resetLockTimer: vi.fn()
+    resetLockTimer: vi.fn(),
+    startPolling: vi.fn(),
+    stopPolling: vi.fn()
   }))
 }));
 

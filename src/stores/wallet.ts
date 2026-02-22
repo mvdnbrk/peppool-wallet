@@ -74,12 +74,17 @@ export const useWalletStore = defineStore('wallet', () => {
   const lockoutUntil = ref<number>(Number(localStorage.getItem('peppool_lockout_until')) || 0);
 
   // Load cached transactions on initialization
-  const cachedTxs = localStorage.getItem('peppool_transactions');
-  const initialTransactions = cachedTxs
-    ? JSON.parse(cachedTxs).map(
+  let initialTransactions: Transaction[] = [];
+  try {
+    const cachedTxs = localStorage.getItem('peppool_transactions');
+    if (cachedTxs) {
+      initialTransactions = JSON.parse(cachedTxs).map(
         (raw: any) => new Transaction(raw, localStorage.getItem('peppool_address') || '')
-      )
-    : [];
+      );
+    }
+  } catch {
+    localStorage.removeItem('peppool_transactions');
+  }
 
   const transactions = ref<Transaction[]>(initialTransactions);
   const canLoadMore = ref(true);

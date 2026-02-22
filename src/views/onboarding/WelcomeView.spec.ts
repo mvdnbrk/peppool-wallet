@@ -38,7 +38,6 @@ describe('WelcomeView Logic', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockStore,
-      requireUnlock: vi.fn(),
       route: { path: '/' } as any
     });
   });

@@ -45,7 +45,15 @@ describe('ShowMnemonicView Integration', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: vi.fn() } as any,
       wallet: {} as any,
-      requireUnlock: vi.fn(),
+      vault: {
+        isUnlocked: true,
+        plaintextMnemonic: 'test mnemonic',
+        updateVault: vi.fn(),
+        lock: vi.fn(),
+        resetLockTimer: vi.fn()
+      } as any,
+      account: { activeAddress: 'test' } as any,
+      activity: { refreshBalance: vi.fn() } as any,
       route: { path: '/show-mnemonic' } as any
     });
   });

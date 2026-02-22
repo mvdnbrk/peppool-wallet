@@ -6,7 +6,6 @@ import { useLockoutStore } from './lockout';
 import { Transaction } from '../models/Transaction';
 
 // Mock the API and Crypto utils
-let tipHeight = 0;
 vi.mock('../utils/api', () => ({
   fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
   fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
@@ -14,7 +13,7 @@ vi.mock('../utils/api', () => ({
   fetchRecommendedFees: vi.fn(() =>
     Promise.resolve({ fastestFee: 1, halfHourFee: 1, hourFee: 1, economyFee: 1, minimumFee: 1 })
   ),
-  fetchTipHeight: vi.fn(() => Promise.resolve(++tipHeight))
+  fetchTipHeight: vi.fn(() => Promise.resolve(100))
 }));
 
 describe('Wallet Store', () => {
@@ -38,7 +37,10 @@ describe('Wallet Store', () => {
     expect(store.isCreated).toBe(true);
     expect(store.isUnlocked).toBe(true);
     expect(store.address).not.toBeNull();
+    expect(store.accounts).toHaveLength(1);
+    expect(store.accounts[0].label).toBe('Account 1');
     expect(localStorage.getItem('peppool_vault')).not.toBeNull();
+    expect(localStorage.getItem('peppool_accounts')).not.toBeNull();
   });
 
   it('should unlock an existing wallet', async () => {
@@ -73,7 +75,13 @@ describe('Wallet Store', () => {
 
   it('should auto-unlock via checkSession if chrome.storage has mnemonic', async () => {
     localStorage.setItem('peppool_vault', 'any-vault');
-    localStorage.setItem('peppool_address', 'any-addr');
+    localStorage.setItem(
+      'peppool_accounts',
+      JSON.stringify([
+        { address: 'any-addr', accountIndex: 0, addressIndex: 0, label: 'Account 1' }
+      ])
+    );
+    localStorage.setItem('peppool_active_address', 'any-addr');
 
     // Mock chrome.storage.local.get for session expiry
     (global.chrome.storage.local.get as any).mockResolvedValue({
@@ -99,6 +107,7 @@ describe('Wallet Store', () => {
     expect(store.isCreated).toBe(true);
     expect(store.isUnlocked).toBe(true);
     expect(store.address).toBe('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    expect(store.accounts).toHaveLength(1);
   });
 
   it('should perform a full wallet reset', async () => {
@@ -109,8 +118,62 @@ describe('Wallet Store', () => {
     store.resetWallet();
 
     expect(store.address).toBeNull();
+    expect(store.accounts).toHaveLength(0);
     expect(store.isCreated).toBe(false);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
+  });
+
+  it('should switch accounts correctly', async () => {
+    const store = useWalletStore();
+    // Manually setup two accounts
+    store.accounts = [
+      { address: 'addr1', accountIndex: 0, addressIndex: 0, label: 'Account 1' },
+      { address: 'addr2', accountIndex: 1, addressIndex: 0, label: 'Account 2' }
+    ];
+    store.activeAddress = 'addr1';
+
+    store.switchAccount('addr2');
+    expect(store.address).toBe('addr2');
+    expect(localStorage.getItem('peppool_active_address')).toBe('addr2');
+    expect(store.balance).toBe(0); // Should be cleared on switch
+    expect(store.transactions).toHaveLength(0); // Should be cleared on switch
+  });
+
+  it('should add a new account correctly', async () => {
+    const store = useWalletStore();
+    const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
+    await store.importWallet(mnemonic, 'password123');
+
+    expect(store.accounts).toHaveLength(1);
+
+    await store.addAccount('Savings');
+    expect(store.accounts).toHaveLength(2);
+    expect(store.accounts[1].label).toBe('Savings');
+    expect(store.accounts[1].accountIndex).toBe(1);
+    expect(store.address).toBe(store.accounts[1].address);
+    expect(store.address).not.toBe(store.accounts[0].address);
+  });
+
+  it('should calculate fiat balance correctly', async () => {
+    const store = useWalletStore();
+    // Mock an account
+    store.accounts = [
+      {
+        address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+        accountIndex: 0,
+        addressIndex: 0,
+        label: 'Account 1'
+      }
+    ];
+    store.activeAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+
+    await store.refreshBalance();
+
+    store.setCurrency('USD');
+    expect(store.balanceFiat).toBe(0.5); // 1 PEP * 0.5 USD
+
+    store.setCurrency('EUR');
+    expect(store.balanceFiat).toBe(0.4); // 1 PEP * 0.4 EUR
   });
 
   it('should handle currency changes correctly', () => {
@@ -144,18 +207,6 @@ describe('Wallet Store', () => {
     expect(openSpy).toHaveBeenCalledWith('https://pepeblocks.com/address/addr123', '_blank');
 
     openSpy.mockRestore();
-  });
-
-  it('should calculate fiat balance correctly', async () => {
-    const store = useWalletStore();
-    store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
-    await store.refreshBalance();
-
-    store.setCurrency('USD');
-    expect(store.balanceFiat).toBe(0.5); // 1 PEP * 0.5 USD
-
-    store.setCurrency('EUR');
-    expect(store.balanceFiat).toBe(0.4); // 1 PEP * 0.4 EUR
   });
 
   it('should update and persist lock duration', () => {
@@ -210,8 +261,6 @@ describe('Wallet Store', () => {
     const original = store.plaintextMnemonic;
 
     // Direct assignment should be a no-op (readonly ref)
-    // We expect a Vue warning in the console here, which is what we're testing.
-    // To avoid polluting test logs, we can temporarily mock console.warn
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     try {
@@ -251,7 +300,16 @@ describe('Wallet Store', () => {
       vi.mocked(api.fetchTransactions).mockResolvedValue([mockTx] as any);
 
       const store = useWalletStore();
-      store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+      store.accounts = [
+        {
+          address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+          accountIndex: 0,
+          addressIndex: 0,
+          label: 'Account 1'
+        }
+      ];
+      store.activeAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+
       await store.refreshTransactions();
 
       const cached = localStorage.getItem('peppool_transactions');
@@ -262,7 +320,7 @@ describe('Wallet Store', () => {
 
     it('should restore transactions from cache on initialization', () => {
       localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
-      localStorage.setItem('peppool_address', 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+      localStorage.setItem('peppool_active_address', 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
 
       const store = useWalletStore();
       expect(store.transactions).toHaveLength(1);
@@ -288,11 +346,13 @@ describe('Wallet Store', () => {
     it('should fetch more transactions and append them uniquely', async () => {
       const api = await import('../utils/api');
       const store = useWalletStore();
-      store.address = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+      const addr = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+      store.accounts = [{ address: addr, accountIndex: 0, addressIndex: 0, label: 'Account 1' }];
+      store.activeAddress = addr;
 
       // Setup initial transactions
       const tx1 = { ...mockTx, txid: 'tx1' };
-      store.transactions = [new Transaction(tx1, store.address)];
+      store.transactions = [new Transaction(tx1, addr)];
 
       // Mock API to return a full page of transactions
       const fullPage = Array(25)

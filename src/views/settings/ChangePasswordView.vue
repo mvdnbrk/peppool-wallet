@@ -6,9 +6,7 @@ import { useChangePassword } from '@/composables/useChangePassword';
 import { useForm, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
-const { router, requireUnlock } = useApp();
-requireUnlock();
-
+const { router } = useApp();
 const { isLockedOut, lockoutError } = useLockout();
 const { isSuccess, performChange } = useChangePassword();
 

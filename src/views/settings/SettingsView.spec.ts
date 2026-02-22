@@ -40,7 +40,6 @@ describe('Settings Views Navigation', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
       route: { path: '/settings' } as any
     });
   });

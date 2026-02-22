@@ -31,12 +31,12 @@ export function getInvalidMnemonicWords(mnemonic: string): string[] {
   return completedWords.filter((word) => !wordlist.includes(word));
 }
 
-export function deriveAddress(mnemonic: string, index = 0): string {
+export function deriveAddress(mnemonic: string, accountIndex = 0, addressIndex = 0): string {
   const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
   // BIP32 v5+ expects Uint8Array, not Buffer
   const seed = new Uint8Array(seedBuffer);
   const root = bip32.fromSeed(seed, PEPECOIN);
-  const path = `m/44'/0'/0'/0/${index}`;
+  const path = `m/44'/0'/${accountIndex}'/0/${addressIndex}`;
   const child = root.derivePath(path);
 
   const { address } = bitcoin.payments.p2pkh({
@@ -79,11 +79,11 @@ export interface Signer {
  * Derive a signing key pair from a mnemonic.
  * The returned signer can sign transactions without exposing the mnemonic.
  */
-export function deriveSigner(mnemonic: string, index = 0): Signer {
+export function deriveSigner(mnemonic: string, accountIndex = 0, addressIndex = 0): Signer {
   const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
   const seed = new Uint8Array(seedBuffer);
   const root = bip32.fromSeed(seed, PEPECOIN);
-  return root.derivePath(`m/44'/0'/0'/0/${index}`);
+  return root.derivePath(`m/44'/0'/${accountIndex}'/0/${addressIndex}`);
 }
 
 export async function createSignedTx(

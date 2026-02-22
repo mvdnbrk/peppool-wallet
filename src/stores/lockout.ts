@@ -105,12 +105,6 @@ export const useLockoutStore = defineStore('lockout', () => {
   async function recordFailure(): Promise<{ wipe: boolean }> {
     const currentNow = Date.now();
 
-    // Auto-reset if lockout has expired
-    if (lockoutUntil.value > 0 && currentNow >= lockoutUntil.value) {
-      failedAttempts.value = 0;
-      lockoutUntil.value = 0;
-    }
-
     failedAttempts.value++;
     await saveState(failedAttempts.value, lockoutUntil.value);
 
@@ -129,17 +123,10 @@ export const useLockoutStore = defineStore('lockout', () => {
   }
 
   /**
-   * Check if currently locked out. If the lockout has expired, auto-resets
-   * and returns false. Returns true if still locked.
+   * Check if currently locked out. Returns true if still locked.
    */
   function checkLocked(): boolean {
     const currentNow = Date.now();
-    if (lockoutUntil.value > 0 && currentNow >= lockoutUntil.value) {
-      failedAttempts.value = 0;
-      lockoutUntil.value = 0;
-      clearState();
-      return false;
-    }
     return currentNow < lockoutUntil.value;
   }
 

@@ -47,12 +47,16 @@ describe('Crypto Utils', () => {
   });
 
   it('should derive consistent addresses for the same mnemonic', () => {
-    const a1 = deriveAddress(mnemonic, 0);
-    const a2 = deriveAddress(mnemonic, 0);
+    const a1 = deriveAddress(mnemonic, 0, 0);
+    const a2 = deriveAddress(mnemonic, 0, 0);
     expect(a1).toBe(a2);
 
-    const a3 = deriveAddress(mnemonic, 1);
+    const a3 = deriveAddress(mnemonic, 1, 0);
     expect(a3).not.toBe(a1);
+
+    const a4 = deriveAddress(mnemonic, 0, 1);
+    expect(a4).not.toBe(a1);
+    expect(a4).not.toBe(a3);
   });
 
   it('should validate the provided address', () => {
@@ -103,17 +107,22 @@ describe('Crypto Utils', () => {
   });
 
   it('should derive a signer with a valid publicKey', () => {
-    const signer = deriveSigner(mnemonic);
+    const signer = deriveSigner(mnemonic, 0, 0);
     expect(signer.publicKey).toBeDefined();
     expect(signer.publicKey.length).toBe(33); // compressed public key
     expect(typeof signer.sign).toBe('function');
   });
 
   it('should derive different signers for different indices', () => {
-    const s0 = deriveSigner(mnemonic, 0);
-    const s1 = deriveSigner(mnemonic, 1);
+    const s0 = deriveSigner(mnemonic, 0, 0);
+    const s1 = deriveSigner(mnemonic, 1, 0);
     expect(Buffer.from(s0.publicKey).toString('hex')).not.toBe(
       Buffer.from(s1.publicKey).toString('hex')
+    );
+
+    const s2 = deriveSigner(mnemonic, 0, 1);
+    expect(Buffer.from(s0.publicKey).toString('hex')).not.toBe(
+      Buffer.from(s2.publicKey).toString('hex')
     );
   });
 

@@ -3,143 +3,119 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useLockoutStore } from './lockout';
 import { useWalletStore } from './wallet';
 
-// Mock the API and Crypto utils
-vi.mock('../utils/api', () => ({
-  fetchAddressInfo: vi.fn(),
-  fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
-  fetchTransactions: vi.fn(() => Promise.resolve([])),
-  fetchRecommendedFees: vi.fn(),
-  fetchTipHeight: vi.fn(() => Promise.resolve(1))
-}));
-
-// Mock Crypto logic
+// Mock crypto
 vi.mock('../utils/crypto', () => ({
-  deriveAddress: vi.fn(() => 'correct-addr'),
-  generateMnemonic: vi.fn(),
-  validateMnemonic: vi.fn()
+  generateMnemonic: vi.fn(() => 'test mnemonic'),
+  deriveAddress: vi.fn(() => 'Paddress'),
+  isValidAddress: vi.fn(() => true)
 }));
 
 // Mock encryption
 vi.mock('../utils/encryption', () => ({
-  encrypt: vi.fn(() => Promise.resolve('pbkdf2:upgraded-vault')),
-  decrypt: vi.fn((_vault, password) => {
-    if (password === 'correct') return Promise.resolve('mnemonic');
-    return Promise.reject(new Error('Incorrect password'));
-  }),
-  isLegacyVault: vi.fn((vault: string) => !vault.startsWith('pbkdf2:'))
+  encrypt: vi.fn(() => Promise.resolve('vault')),
+  decrypt: vi.fn((v, p) =>
+    p === 'correct' ? Promise.resolve('mnemonic') : Promise.reject(new Error('fail'))
+  ),
+  isLegacyVault: vi.fn(() => false)
+}));
+
+// Mock API
+vi.mock('../utils/api', () => ({
+  fetchAddressInfo: vi.fn(() => Promise.resolve(0)),
+  fetchTransactions: vi.fn(() => Promise.resolve([])),
+  fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0, EUR: 0 })),
+  fetchTipHeight: vi.fn(() => Promise.resolve(0))
 }));
 
 describe('Lockout Store', () => {
-  let store: ReturnType<typeof useLockoutStore>;
-
   beforeEach(() => {
     setActivePinia(createPinia());
-    localStorage.clear();
     vi.clearAllMocks();
-    store = useLockoutStore();
+    localStorage.clear();
   });
 
-  it('should track failed attempts and lockout after 3 failures via wallet unlock', async () => {
-    const wallet = useWalletStore();
-    wallet.updateVault('vault');
-    wallet.address = 'correct-addr';
-
-    await wallet.unlock('w1');
-    await wallet.unlock('w2');
-    await wallet.unlock('w3');
-    expect(store.isLockedOut).toBe(true);
-  });
-
-  it('should prevent unlock attempts during lockout', async () => {
-    const wallet = useWalletStore();
-    wallet.updateVault('vault');
-    wallet.address = 'correct-addr';
-
-    store.lockoutUntil = Date.now() + 10000;
-    expect(store.isLockedOut).toBe(true);
-
-    const result = await wallet.unlock('correct');
-    expect(result).toBe(false);
-    expect(wallet.isUnlocked).toBe(false);
-
-    store.lockoutUntil = Date.now() - 1000;
+  it('should start with 0 failures and not locked', () => {
+    const store = useLockoutStore();
+    expect(store.failedAttempts).toBe(0);
     expect(store.isLockedOut).toBe(false);
-
-    const finalResult = await wallet.unlock('correct');
-    expect(finalResult).toBe(true);
-    expect(wallet.isUnlocked).toBe(true);
   });
 
-  it('should reset failed attempts if lockout period has passed', async () => {
-    const wallet = useWalletStore();
-    wallet.updateVault('vault');
-    wallet.address = 'correct-addr';
+  it('should increment failures and lock after 5 attempts', async () => {
+    const store = useLockoutStore();
 
-    store.failedAttempts = 3;
-    store.lockoutUntil = Date.now() - 1000;
+    for (let i = 1; i <= 5; i++) {
+      await store.recordFailure();
+      expect(store.failedAttempts).toBe(i);
+    }
 
-    await wallet.unlock('wrong-again');
+    expect(store.isLockedOut).toBe(true);
+    expect(store.lockoutUntil).toBeGreaterThan(Date.now());
+  });
 
+  it('should increase lockout duration exponentially', async () => {
+    const store = useLockoutStore();
+
+    // First lockout (5 failures) -> 30s
+    for (let i = 0; i < 5; i++) await store.recordFailure();
+    const firstLock = store.lockoutUntil - Date.now();
+    expect(firstLock).toBeGreaterThan(25000);
+    expect(firstLock).toBeLessThan(35000);
+
+    // Second lockout (6 failures) -> 5 mins (300s) based on current implementation
+    await store.recordFailure();
+    const secondLock = store.lockoutUntil - Date.now();
+    expect(secondLock).toBeGreaterThan(290000);
+    expect(secondLock).toBeLessThan(310000);
+  });
+
+  it('should check if currently locked out', async () => {
+    const store = useLockoutStore();
+    expect(store.checkLocked()).toBe(false);
+
+    for (let i = 0; i < 5; i++) await store.recordFailure();
+    expect(store.checkLocked()).toBe(true);
+  });
+
+  it('should reset failures on success', async () => {
+    const store = useLockoutStore();
+    await store.recordFailure();
     expect(store.failedAttempts).toBe(1);
-    expect(store.isLockedOut).toBe(false);
+
+    await store.reset();
+    expect(store.failedAttempts).toBe(0);
   });
 
-  it('should escalate lockout duration at each tier', async () => {
-    const wallet = useWalletStore();
-    wallet.updateVault('vault');
-    wallet.address = 'correct-addr';
+  it('should persist state to chrome.storage.local', async () => {
+    const store = useLockoutStore();
+    await store.recordFailure();
 
-    // Tier 1: 3 failures → 30s lockout
-    for (let i = 0; i < 3; i++) await wallet.unlock('wrong');
-    expect(store.isLockedOut).toBe(true);
-    const tier1Duration = store.lockoutUntil - Date.now();
-    expect(tier1Duration).toBeGreaterThan(28 * 1000);
-    expect(tier1Duration).toBeLessThanOrEqual(30 * 1000);
-
-    // Simulate reaching tier 2
-    store.lockoutUntil = 0;
-    store.failedAttempts = 5;
-    await wallet.unlock('wrong');
-    expect(store.failedAttempts).toBe(6);
-    expect(store.isLockedOut).toBe(true);
-
-    const tier2Duration = store.lockoutUntil - Date.now();
-    expect(tier2Duration).toBeGreaterThan(4 * 60 * 1000);
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_failed_attempts: 1
+      })
+    );
   });
 
   it('should wipe wallet after 12 consecutive failures', async () => {
-    const wallet = useWalletStore();
-    wallet.updateVault('vault');
-    wallet.address = 'correct-addr';
+    vi.useFakeTimers();
+    const store = useWalletStore();
+    const lockout = useLockoutStore();
 
-    store.failedAttempts = 11;
-    store.lockoutUntil = 0;
+    // Setup a wallet
+    await store.importWallet('mnemonic', 'correct');
+    expect(store.isCreated).toBe(true);
+    expect(store.address).toBe('Paddress');
 
-    await wallet.unlock('wrong');
+    // 12 failures
+    for (let i = 0; i < 12; i++) {
+      // Advance time to bypass any existing lockout
+      vi.advanceTimersByTime(31 * 60 * 1000);
+      await store.unlock('wrong');
+    }
 
-    expect(wallet.encryptedMnemonic).toBeNull();
-    expect(wallet.address).toBeNull();
-  });
-
-  it('should reset state via reset()', async () => {
-    store.failedAttempts = 5;
-    store.lockoutUntil = Date.now() + 60000;
-
-    await store.reset();
-
-    expect(store.failedAttempts).toBe(0);
-    expect(store.lockoutUntil).toBe(0);
-    expect(store.isLockedOut).toBe(false);
-  });
-
-  it('should compute attemptsRemaining correctly', () => {
-    store.failedAttempts = 0;
-    expect(store.attemptsRemaining).toBe(3);
-
-    store.failedAttempts = 2;
-    expect(store.attemptsRemaining).toBe(1);
-
-    store.failedAttempts = 3;
-    expect(store.attemptsRemaining).toBe(3); // next tier is 6
+    expect(store.encryptedMnemonic).toBeNull();
+    expect(store.address).toBeNull();
+    expect(lockout.failedAttempts).toBe(0);
+    vi.useRealTimers();
   });
 });

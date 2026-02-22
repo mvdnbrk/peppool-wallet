@@ -19,8 +19,10 @@ export const useApp = vi.fn(() => ({
     address: 'test-address',
     isUnlocked: true,
     isCreated: true,
+    isMnemonicLoaded: true,
     lockout: { lockoutUntil: 0, failedAttempts: 0, isLockedOut: false, attemptsRemaining: 3 },
     balance: 0,
+    balanceFiat: 0,
     prices: { USD: 0, EUR: 0 },
     selectedCurrency: 'USD',
     currencySymbol: '$',
@@ -31,7 +33,11 @@ export const useApp = vi.fn(() => ({
     refreshBalance: vi.fn(),
     startPolling: vi.fn(),
     stopPolling: vi.fn(),
-    openExplorerTx: vi.fn()
-  },
-  requireUnlock: vi.fn()
+    openExplorerTx: vi.fn(),
+    lock: vi.fn(),
+    resetWallet: vi.fn(),
+    resetLockTimer: vi.fn(),
+    accounts: [],
+    activeAddress: 'test-address'
+  }
 }));

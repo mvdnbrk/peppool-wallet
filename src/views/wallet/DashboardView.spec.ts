@@ -57,7 +57,6 @@ describe('Wallet Views Navigation', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
       route: { params: { txid: 'test-tx' } } as any
     });
   });

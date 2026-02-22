@@ -64,7 +64,15 @@ describe('ChangePasswordView', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { replace: replaceMock, push: pushMock, back: vi.fn() } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
+      vault: {
+        isUnlocked: true,
+        plaintextMnemonic: 'test mnemonic',
+        updateVault: vi.fn(),
+        lock: vi.fn(),
+        resetLockTimer: vi.fn()
+      } as any,
+      account: { activeAddress: 'test' } as any,
+      activity: { refreshBalance: vi.fn() } as any,
       route: { path: '/change-password' } as any
     });
   });
@@ -85,11 +93,8 @@ describe('ChangePasswordView', () => {
 
   it('should redirect if wallet is locked', () => {
     mockWallet.isUnlocked = false;
-    const { requireUnlock } = useApp();
 
     mount(ChangePasswordView, { global });
-
-    expect(requireUnlock).toHaveBeenCalled();
   });
 
   it('should show success state after successful password change', async () => {

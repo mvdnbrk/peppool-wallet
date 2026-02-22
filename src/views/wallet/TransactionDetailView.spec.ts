@@ -57,7 +57,6 @@ describe('TransactionDetailView', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
-      requireUnlock: vi.fn(),
       route: { params: { txid: mockRawTx.txid } } as any
     });
   });

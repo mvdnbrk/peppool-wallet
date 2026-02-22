@@ -2,13 +2,25 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
 
-// Mock the API and Crypto utils
+// Mock crypto
+vi.mock('../utils/crypto', () => ({
+  generateMnemonic: vi.fn(() => 'test mnemonic'),
+  deriveAddress: vi.fn(() => 'Paddress')
+}));
+
+// Mock encryption
+vi.mock('../utils/encryption', () => ({
+  encrypt: vi.fn(() => Promise.resolve('vault')),
+  decrypt: vi.fn(() => Promise.resolve('mnemonic')),
+  isLegacyVault: vi.fn(() => false)
+}));
+
+// Mock API
 vi.mock('../utils/api', () => ({
-  fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
-  fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
+  fetchAddressInfo: vi.fn(() => Promise.resolve(0)),
   fetchTransactions: vi.fn(() => Promise.resolve([])),
-  fetchRecommendedFees: vi.fn(() => Promise.resolve({ fastestFee: 1 })),
-  fetchTipHeight: vi.fn(() => Promise.resolve(100))
+  fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0, EUR: 0 })),
+  fetchTipHeight: vi.fn(() => Promise.resolve(0))
 }));
 
 describe('Wallet Lock vs Reset Behavior', () => {
@@ -18,59 +30,56 @@ describe('Wallet Lock vs Reset Behavior', () => {
     vi.clearAllMocks();
   });
 
-  it('lock() should preserve the vault but clear sensitive memory', async () => {
+  it('lock() should clear sensitive state but keep the wallet', async () => {
     const store = useWalletStore();
-    await store.createWallet('password123');
 
-    const originalAddress = store.address;
-    const originalVault = localStorage.getItem('peppool_vault');
+    // 1. Setup a wallet and some mock session data
+    await store.importWallet('mnemonic', 'password');
+    localStorage.setItem('peppool_transactions', '[{"txid":"1"}]');
+    localStorage.setItem('peppool_form_send', '{"recipient":"foo","amount":"10"}');
 
     expect(store.isUnlocked).toBe(true);
-    expect(originalVault).not.toBeNull();
+    expect(store.encryptedMnemonic).toBe('vault');
+    expect(store.address).toBe('Paddress');
 
-    // Perform LOCK
+    // 2. Perform lock
     await store.lock();
 
-    // CHECK: Wallet still exists locally
-    expect(store.address).toBe(originalAddress);
+    // CHECK: Still has the wallet
     expect(store.isCreated).toBe(true);
-    expect(localStorage.getItem('peppool_vault')).toBe(originalVault);
+    expect(store.encryptedMnemonic).toBe('vault');
+    expect(store.address).toBe('Paddress');
 
-    // CHECK: Memory/Session is cleared
+    // CHECK: Session data is cleared
     expect(store.isUnlocked).toBe(false);
     expect(store.plaintextMnemonic).toBeNull();
+    expect(localStorage.getItem('peppool_transactions')).toBeNull();
+
+    // CHECK: Form data is wiped for privacy
+    expect(localStorage.getItem('peppool_form_send')).toBeNull();
   });
 
   it('resetWallet() should wipe EVERYTHING', async () => {
     const store = useWalletStore();
-    await store.createWallet('password123');
+
+    // 1. Setup a wallet and some mock session data
+    await store.importWallet('mnemonic', 'password');
+    localStorage.setItem('peppool_transactions', '[{"txid":"1"}]');
+    localStorage.setItem('peppool_currency', 'EUR');
 
     expect(store.isCreated).toBe(true);
-    expect(localStorage.getItem('peppool_vault')).not.toBeNull();
 
-    // Perform RESET
+    // 2. Perform reset
     store.resetWallet();
 
-    // CHECK: No trace of the wallet remains
-    expect(store.address).toBeNull();
+    // CHECK: Wallet is completely gone
     expect(store.isCreated).toBe(false);
-    expect(store.isUnlocked).toBe(false);
-    expect(localStorage.getItem('peppool_vault')).toBeNull();
-    expect(localStorage.getItem('peppool_address')).toBeNull();
-  });
+    expect(store.encryptedMnemonic).toBeNull();
+    expect(store.address).toBeNull();
+    expect(store.accounts).toHaveLength(0);
 
-  it('lock() should clear persisted form data', async () => {
-    const store = useWalletStore();
-    await store.createWallet('password123');
-
-    // Simulate some persisted form data
-    localStorage.setItem('peppool_form_send', JSON.stringify({ recipient: 'foo', amount: '10' }));
-    expect(localStorage.getItem('peppool_form_send')).not.toBeNull();
-
-    // Perform LOCK
-    await store.lock();
-
-    // CHECK: Form data is wiped for privacy
-    expect(localStorage.getItem('peppool_form_send')).toBeNull();
+    // CHECK: Even general settings are wiped
+    expect(localStorage.getItem('peppool_currency')).toBeNull();
+    expect(localStorage.getItem('peppool_transactions')).toBeNull();
   });
 });

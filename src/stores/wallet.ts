@@ -61,6 +61,7 @@ export const useWalletStore = defineStore('wallet', () => {
   const transactions = ref<Transaction[]>([]);
   const canLoadMore = ref(true);
   let lockTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastTipHeight = 0;
 
   // ── Computed ──
   const isCreated = computed(() => !!encryptedMnemonic.value);
@@ -114,12 +115,14 @@ export const useWalletStore = defineStore('wallet', () => {
     if (typeof chrome === 'undefined' || !chrome.storage) return false;
 
     const data = await chrome.storage.local.get(['unlocked_until']);
-    if (!data.unlocked_until || data.unlocked_until <= Date.now()) return false;
+    const unlockedUntil = data.unlocked_until as number | undefined;
+    if (!unlockedUntil || unlockedUntil <= Date.now()) return false;
 
     isUnlocked.value = true;
     try {
       const sessionData = await chrome.storage.session.get(['mnemonic']);
-      if (sessionData.mnemonic) plaintextMnemonic.value = sessionData.mnemonic;
+      const mnemonic = sessionData.mnemonic as string | undefined;
+      if (mnemonic) plaintextMnemonic.value = mnemonic;
     } catch {
       /* ignore */
     }
@@ -157,6 +160,7 @@ export const useWalletStore = defineStore('wallet', () => {
   async function fetchMoreTransactions() {
     if (!activeAddress.value || transactions.value.length === 0) return false;
     const lastTx = transactions.value[transactions.value.length - 1];
+    if (!lastTx) return false;
     try {
       const rawTxs = await fetchTransactions(activeAddress.value, lastTx.txid);
       const newTxs = rawTxs.map((raw) => new Transaction(raw, activeAddress.value!));
@@ -179,7 +183,13 @@ export const useWalletStore = defineStore('wallet', () => {
       localStorage.setItem('peppool_price_usd', currentPrices.USD.toString());
       localStorage.setItem('peppool_price_eur', currentPrices.EUR.toString());
 
-      await fetchTipHeight();
+      const tipHeight = await fetchTipHeight();
+      if (!force && tipHeight === lastTipHeight && lastTipHeight > 0) {
+        await resetLockTimer();
+        return;
+      }
+      lastTipHeight = tipHeight;
+
       const totalRibbits = await fetchAddressInfo(activeAddress.value);
       balance.value = totalRibbits / RIBBITS_PER_PEP;
       localStorage.setItem('peppool_balance', balance.value.toString());

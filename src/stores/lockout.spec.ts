@@ -125,21 +125,20 @@ describe('Lockout Store', () => {
     expect(store.isCreated).toBe(true);
     expect(store.address).toBe('Paddress');
 
-        // 11 failures
-        for (let i = 0; i < 11; i++) {
-          vi.advanceTimersByTime(31 * 60 * 1000); 
-          await store.unlock('wrong');
-        }
-        expect(lockout.failedAttempts).toBe(11);
-    
-        // 12th failure triggers wipe
-        vi.advanceTimersByTime(31 * 60 * 1000); 
-        await store.unlock('wrong');
-    
-        expect(store.encryptedMnemonic).toBeNull();
-        expect(store.address).toBeNull();
-        expect(lockout.failedAttempts).toBe(0);
-        vi.useRealTimers();
-      });
-    
+    // 11 failures
+    for (let i = 0; i < 11; i++) {
+      vi.advanceTimersByTime(31 * 60 * 1000);
+      await store.unlock('wrong');
+    }
+    expect(lockout.failedAttempts).toBe(11);
+
+    // 12th failure triggers wipe
+    vi.advanceTimersByTime(31 * 60 * 1000);
+    await store.unlock('wrong');
+
+    expect(store.encryptedMnemonic).toBeNull();
+    expect(store.address).toBeNull();
+    expect(lockout.failedAttempts).toBe(0);
+    vi.useRealTimers();
+  });
 });

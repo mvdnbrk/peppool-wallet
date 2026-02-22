@@ -235,17 +235,19 @@ export const useWalletStore = defineStore('wallet', () => {
     await refreshBalance(true);
   }
 
-    async function unlock(password: string): Promise<boolean> {
-      if (lockout.checkLocked()) return false;
-      if (!encryptedMnemonic.value) return false;
-  
-      try {
-        const mnemonic = await decrypt(encryptedMnemonic.value, password);
+  async function unlock(password: string): Promise<boolean> {
+    if (lockout.checkLocked()) return false;
+    if (!encryptedMnemonic.value) return false;
+
+    try {
+      const mnemonic = await decrypt(encryptedMnemonic.value, password);
       const primaryAddress = deriveAddress(mnemonic, 0, 0);
 
       // Verify this mnemonic belongs to this wallet by checking the primary address
       if (accounts.value.length > 0) {
-        const hasAccount0 = accounts.value.some((a) => a.address === primaryAddress && a.accountIndex === 0);
+        const hasAccount0 = accounts.value.some(
+          (a) => a.address === primaryAddress && a.accountIndex === 0
+        );
         if (!hasAccount0) throw new Error('Invalid vault');
       } else if (activeAddress.value && activeAddress.value !== primaryAddress) {
         // Fallback for empty accounts list but activeAddress set
@@ -253,31 +255,35 @@ export const useWalletStore = defineStore('wallet', () => {
       }
 
       // If active address doesn't match primary, verify it's one of ours
-      if (activeAddress.value && activeAddress.value !== primaryAddress && accounts.value.length > 0) {
-          const matched = accounts.value.find((a) => a.address === activeAddress.value);
-          if (matched) {
-            const derived = deriveAddress(mnemonic, matched.accountIndex, matched.addressIndex);
-            if (derived !== activeAddress.value) throw new Error('Invalid vault');
-          } else {
-            // Fallback: if we have an active address but it's not in our list, it's an inconsistent state
-            throw new Error('Invalid vault');
-          }
+      if (
+        activeAddress.value &&
+        activeAddress.value !== primaryAddress &&
+        accounts.value.length > 0
+      ) {
+        const matched = accounts.value.find((a) => a.address === activeAddress.value);
+        if (matched) {
+          const derived = deriveAddress(mnemonic, matched.accountIndex, matched.addressIndex);
+          if (derived !== activeAddress.value) throw new Error('Invalid vault');
+        } else {
+          // Fallback: if we have an active address but it's not in our list, it's an inconsistent state
+          throw new Error('Invalid vault');
         }
-  
-        if (isLegacyVault(encryptedMnemonic.value)) {
-          const upgraded = await encrypt(mnemonic, password);
-          updateVault(upgraded);
-        }
-  
-        plaintextMnemonic.value = mnemonic;
-        if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-          await chrome.storage.session.set({ mnemonic });
-        }
-        isUnlocked.value = true;
-        await lockout.reset();
-        await refreshBalance(true);
-        return true;
-      } catch (e) {
+      }
+
+      if (isLegacyVault(encryptedMnemonic.value)) {
+        const upgraded = await encrypt(mnemonic, password);
+        updateVault(upgraded);
+      }
+
+      plaintextMnemonic.value = mnemonic;
+      if (typeof chrome !== 'undefined' && chrome.storage?.session) {
+        await chrome.storage.session.set({ mnemonic });
+      }
+      isUnlocked.value = true;
+      await lockout.reset();
+      await refreshBalance(true);
+      return true;
+    } catch (e) {
       const { wipe } = await lockout.recordFailure();
       if (wipe) {
         resetWallet();

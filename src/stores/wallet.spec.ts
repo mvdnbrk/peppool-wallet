@@ -61,14 +61,19 @@ describe('Wallet Store', () => {
     const store = useWalletStore();
     await store.createWallet('password123');
     store.lock();
-    
+
     // Manually corrupt the stored accounts in localStorage
-    localStorage.setItem('peppool_accounts', JSON.stringify([{
-      address: 'PcorruptedAddress',
-      accountIndex: 0,
-      addressIndex: 0,
-      label: 'Account 1'
-    }]));
+    localStorage.setItem(
+      'peppool_accounts',
+      JSON.stringify([
+        {
+          address: 'PcorruptedAddress',
+          accountIndex: 0,
+          addressIndex: 0,
+          label: 'Account 1'
+        }
+      ])
+    );
     localStorage.setItem('peppool_active_address', 'PcorruptedAddress');
 
     // Re-init store from corrupted localStorage

@@ -163,7 +163,9 @@ describe('useSendTransaction Composable', () => {
       addressIndex: 3,
       label: 'Account 6'
     };
-    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }] as any;
+    tx.value.utxos = [
+      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
+    ] as any;
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 500_000_000;
 

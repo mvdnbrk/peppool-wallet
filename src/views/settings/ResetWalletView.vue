@@ -11,7 +11,7 @@ const isProcessing = ref(false);
 
 async function handleReset() {
   isProcessing.value = true;
-  walletStore.resetWallet();
+  await walletStore.resetWallet();
   router.push('/');
 }
 </script>

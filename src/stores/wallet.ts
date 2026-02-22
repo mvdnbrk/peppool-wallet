@@ -294,7 +294,7 @@ export const useWalletStore = defineStore('wallet', () => {
     } catch (e) {
       const { wipe } = await lockout.recordFailure();
       if (wipe) {
-        resetWallet();
+        await resetWallet();
       }
       return false;
     }
@@ -315,7 +315,7 @@ export const useWalletStore = defineStore('wallet', () => {
     await clearAutoLockAlarm();
   }
 
-  function resetWallet() {
+  async function resetWallet() {
     accounts.value = [];
     activeAddress.value = null;
     encryptedMnemonic.value = null;
@@ -334,8 +334,8 @@ export const useWalletStore = defineStore('wallet', () => {
     }
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.local.remove('unlocked_until');
-      chrome.storage.session?.remove('mnemonic');
+      await chrome.storage.local.remove('unlocked_until');
+      await chrome.storage.session?.remove('mnemonic');
     }
 
     if (lockTimer) clearTimeout(lockTimer);
@@ -345,14 +345,14 @@ export const useWalletStore = defineStore('wallet', () => {
     clearAutoLockAlarm();
   }
 
-  function switchAccount(address: string) {
+  async function switchAccount(address: string) {
     const account = accounts.value.find((a) => a.address === address);
     if (!account) return;
     activeAddress.value = address;
     localStorage.setItem('peppool_active_address', address);
     balance.value = 0;
     transactions.value = [];
-    refreshBalance(true);
+    await refreshBalance(true);
   }
 
   async function addAccount(label?: string) {
@@ -366,7 +366,7 @@ export const useWalletStore = defineStore('wallet', () => {
     };
     accounts.value.push(newAccount);
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-    switchAccount(newAddress);
+    await switchAccount(newAddress);
   }
 
   function cacheMnemonic(mnemonic: string) {

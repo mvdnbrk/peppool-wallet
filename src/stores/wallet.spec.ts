@@ -143,7 +143,7 @@ describe('Wallet Store', () => {
     store.prices.USD = 10;
 
     expect(store.isCreated).toBe(true);
-    store.resetWallet();
+    await store.resetWallet();
 
     expect(store.address).toBeNull();
     expect(store.accounts).toHaveLength(0);
@@ -180,10 +180,10 @@ describe('Wallet Store', () => {
     ];
     store.activeAddress = 'addr1';
 
-    store.switchAccount('addr2');
+    await store.switchAccount('addr2');
     expect(store.address).toBe('addr2');
     expect(localStorage.getItem('peppool_active_address')).toBe('addr2');
-    expect(store.balance).toBe(0); // Should be cleared on switch
+    expect(store.balance).toBe(1); // Should be refreshed on switch
     expect(store.transactions).toHaveLength(0); // Should be cleared on switch
   });
 
@@ -381,11 +381,11 @@ describe('Wallet Store', () => {
       expect(localStorage.getItem('peppool_transactions')).toBeNull();
     });
 
-    it('should clear cached transactions on resetWallet', () => {
+    it('should clear cached transactions on resetWallet', async () => {
       localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
       const store = useWalletStore();
 
-      store.resetWallet();
+      await store.resetWallet();
       expect(localStorage.getItem('peppool_transactions')).toBeNull();
     });
 

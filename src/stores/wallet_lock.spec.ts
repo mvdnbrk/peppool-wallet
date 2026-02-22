@@ -74,7 +74,7 @@ describe('Wallet Lock vs Reset Behavior', () => {
     expect(store.isCreated).toBe(true);
 
     // 2. Perform reset
-    store.resetWallet();
+    await store.resetWallet();
 
     // CHECK: Wallet is completely gone
     expect(store.isCreated).toBe(false);

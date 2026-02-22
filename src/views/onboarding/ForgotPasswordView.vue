@@ -6,8 +6,8 @@ const { router, wallet: walletStore } = useApp();
 
 const confirmedBackup = ref(false);
 
-function handleReset() {
-  walletStore.resetWallet();
+async function handleReset() {
+  await walletStore.resetWallet();
   router.push('/');
 }
 </script>

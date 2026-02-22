@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { Transaction } from '@/models/Transaction';
 
@@ -28,10 +28,6 @@ async function loadDetails() {
 
 onMounted(() => {
   loadDetails();
-});
-
-onUnmounted(() => {
-  // No-op - polling handled by App.vue
 });
 
 function openExplorer() {

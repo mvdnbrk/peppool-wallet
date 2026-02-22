@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { formatFiat, formatAmount } from '@/utils/constants';
 import { useApp } from '@/composables/useApp';
-import { onMounted, onUnmounted, computed, ref } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 
 const { router, wallet: walletStore } = useApp();
 
@@ -26,10 +26,6 @@ onMounted(async () => {
   if (walletStore.isUnlocked) {
     await walletStore.refreshBalance();
   }
-});
-
-onUnmounted(() => {
-  // No-op - polling handled by App.vue
 });
 
 function openDetail(txid: string) {

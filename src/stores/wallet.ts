@@ -50,6 +50,51 @@ function getFailureTier(attempts: number): FailureTier | null {
   }
   return null; // hasn't reached any tier yet
 }
+// ── Lockout storage helpers (chrome.storage.local with localStorage fallback) ─
+const LOCKOUT_KEYS = {
+  attempts: 'peppool_failed_attempts',
+  until: 'peppool_lockout_until'
+} as const;
+
+function hasChromeStorage() {
+  return typeof chrome !== 'undefined' && chrome.storage?.local;
+}
+
+async function loadLockoutState(): Promise<{ attempts: number; until: number }> {
+  if (hasChromeStorage()) {
+    const data = await chrome.storage.local.get([LOCKOUT_KEYS.attempts, LOCKOUT_KEYS.until]);
+    return {
+      attempts: Number(data[LOCKOUT_KEYS.attempts]) || 0,
+      until: Number(data[LOCKOUT_KEYS.until]) || 0
+    };
+  }
+  return {
+    attempts: Number(localStorage.getItem(LOCKOUT_KEYS.attempts)) || 0,
+    until: Number(localStorage.getItem(LOCKOUT_KEYS.until)) || 0
+  };
+}
+
+async function saveLockoutState(attempts: number, until: number) {
+  if (hasChromeStorage()) {
+    await chrome.storage.local.set({
+      [LOCKOUT_KEYS.attempts]: attempts,
+      [LOCKOUT_KEYS.until]: until
+    });
+  } else {
+    localStorage.setItem(LOCKOUT_KEYS.attempts, attempts.toString());
+    localStorage.setItem(LOCKOUT_KEYS.until, until.toString());
+  }
+}
+
+async function clearLockoutState() {
+  if (hasChromeStorage()) {
+    await chrome.storage.local.remove([LOCKOUT_KEYS.attempts, LOCKOUT_KEYS.until]);
+  } else {
+    localStorage.removeItem(LOCKOUT_KEYS.attempts);
+    localStorage.removeItem(LOCKOUT_KEYS.until);
+  }
+}
+
 export const useWalletStore = defineStore('wallet', () => {
   const address = ref<string | null>(localStorage.getItem('peppool_address'));
   const encryptedMnemonic = ref<string | null>(localStorage.getItem('peppool_vault'));
@@ -70,8 +115,8 @@ export const useWalletStore = defineStore('wallet', () => {
   );
   const lockDuration = ref<number>(parseInt(localStorage.getItem('peppool_lock_duration') || '15'));
 
-  const failedAttempts = ref<number>(Number(localStorage.getItem('peppool_failed_attempts')) || 0);
-  const lockoutUntil = ref<number>(Number(localStorage.getItem('peppool_lockout_until')) || 0);
+  const failedAttempts = ref<number>(0);
+  const lockoutUntil = ref<number>(0);
 
   // Load cached transactions on initialization
   let initialTransactions: Transaction[] = [];
@@ -132,6 +177,11 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function checkSession() {
+    // Restore lockout state from secure storage
+    const lockout = await loadLockoutState();
+    failedAttempts.value = lockout.attempts;
+    lockoutUntil.value = lockout.until;
+
     if (typeof chrome === 'undefined' || !chrome.storage) return false;
 
     const data = await chrome.storage.local.get(['unlocked_until']);
@@ -288,8 +338,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     failedAttempts.value = 0;
     lockoutUntil.value = 0;
-    localStorage.removeItem('peppool_failed_attempts');
-    localStorage.removeItem('peppool_lockout_until');
+    await clearLockoutState();
     await refreshBalance();
   }
 
@@ -299,8 +348,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (lockoutUntil.value > 0 && now >= lockoutUntil.value) {
       failedAttempts.value = 0;
       lockoutUntil.value = 0;
-      localStorage.removeItem('peppool_failed_attempts');
-      localStorage.removeItem('peppool_lockout_until');
+      await clearLockoutState();
     }
 
     if (now < lockoutUntil.value) return false;
@@ -325,13 +373,12 @@ export const useWalletStore = defineStore('wallet', () => {
       isUnlocked.value = true;
       failedAttempts.value = 0;
       lockoutUntil.value = 0;
-      localStorage.removeItem('peppool_failed_attempts');
-      localStorage.removeItem('peppool_lockout_until');
+      await clearLockoutState();
       await refreshBalance();
       return true;
     } catch (e) {
       failedAttempts.value++;
-      localStorage.setItem('peppool_failed_attempts', failedAttempts.value.toString());
+      await saveLockoutState(failedAttempts.value, lockoutUntil.value);
 
       const tier = getFailureTier(failedAttempts.value);
       if (tier) {
@@ -341,7 +388,7 @@ export const useWalletStore = defineStore('wallet', () => {
         } else {
           const until = Date.now() + tier.durationMs;
           lockoutUntil.value = until;
-          localStorage.setItem('peppool_lockout_until', until.toString());
+          await saveLockoutState(failedAttempts.value, until);
         }
       }
       return false;
@@ -384,6 +431,7 @@ export const useWalletStore = defineStore('wallet', () => {
     const keysToRemove = Object.keys(localStorage).filter((k) => k.startsWith('peppool_'));
     keysToRemove.forEach((k) => localStorage.removeItem(k));
 
+    clearLockoutState();
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.remove('unlocked_until');
       if (chrome.storage.session) chrome.storage.session.remove('mnemonic');

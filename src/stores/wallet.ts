@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed, readonly } from 'vue';
-import { generateMnemonic, deriveAddress } from '../utils/crypto';
+import {
+  generateMnemonic,
+  deriveAddress,
+  getDerivationPath,
+  parseDerivationPath
+} from '../utils/crypto';
 import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
 import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } from '../utils/api';
 import { Transaction } from '../models/Transaction';
@@ -10,8 +15,7 @@ import { useLockoutStore } from './lockout';
 
 export interface Account {
   address: string;
-  accountIndex: number;
-  addressIndex: number;
+  path: string;
   label: string;
 }
 
@@ -218,8 +222,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     const initialAccount: Account = {
       address: walletAddress,
-      accountIndex: 0,
-      addressIndex: 0,
+      path: getDerivationPath(0, 0),
       label: 'Account 1'
     };
 
@@ -246,7 +249,7 @@ export const useWalletStore = defineStore('wallet', () => {
       // Verify this mnemonic belongs to this wallet by checking the primary address
       if (accounts.value.length > 0) {
         const hasAccount0 = accounts.value.some(
-          (a) => a.address === primaryAddress && a.accountIndex === 0
+          (a) => a.address === primaryAddress && parseDerivationPath(a.path).accountIndex === 0
         );
         if (!hasAccount0) throw new Error('Invalid vault');
       } else if (activeAddress.value && activeAddress.value !== primaryAddress) {
@@ -262,7 +265,8 @@ export const useWalletStore = defineStore('wallet', () => {
       ) {
         const matched = accounts.value.find((a) => a.address === activeAddress.value);
         if (matched) {
-          const derived = deriveAddress(mnemonic, matched.accountIndex, matched.addressIndex);
+          const { accountIndex, addressIndex } = parseDerivationPath(matched.path);
+          const derived = deriveAddress(mnemonic, accountIndex, addressIndex);
           if (derived !== activeAddress.value) throw new Error('Invalid vault');
         } else {
           // Fallback: if we have an active address but it's not in our list, it's an inconsistent state
@@ -353,8 +357,7 @@ export const useWalletStore = defineStore('wallet', () => {
     const newAddress = deriveAddress(plaintextMnemonic.value, nextIndex, 0);
     const newAccount: Account = {
       address: newAddress,
-      accountIndex: nextIndex,
-      addressIndex: 0,
+      path: getDerivationPath(nextIndex, 0),
       label: label || `Account ${nextIndex + 1}`
     };
     accounts.value.push(newAccount);

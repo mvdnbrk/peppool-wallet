@@ -3,10 +3,14 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
 
 // Mock crypto
-vi.mock('../utils/crypto', () => ({
-  generateMnemonic: vi.fn(() => 'test mnemonic'),
-  deriveAddress: vi.fn(() => 'Paddress')
-}));
+vi.mock('../utils/crypto', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../utils/crypto')>();
+  return {
+    ...actual,
+    generateMnemonic: vi.fn(() => 'test mnemonic'),
+    deriveAddress: vi.fn(() => 'Paddress')
+  };
+});
 
 // Mock encryption
 vi.mock('../utils/encryption', () => ({

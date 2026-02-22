@@ -39,6 +39,7 @@ describe('Wallet Store', () => {
     expect(store.address).not.toBeNull();
     expect(store.accounts).toHaveLength(1);
     expect(store.accounts[0].label).toBe('Account 1');
+    expect(store.accounts[0].path).toBe("m/44'/3434'/0'/0/0");
     expect(localStorage.getItem('peppool_vault')).not.toBeNull();
     expect(localStorage.getItem('peppool_accounts')).not.toBeNull();
   });
@@ -68,8 +69,7 @@ describe('Wallet Store', () => {
       JSON.stringify([
         {
           address: 'PcorruptedAddress',
-          accountIndex: 0,
-          addressIndex: 0,
+          path: "m/44'/3434'/0'/0/0",
           label: 'Account 1'
         }
       ])
@@ -105,9 +105,7 @@ describe('Wallet Store', () => {
     localStorage.setItem('peppool_vault', 'any-vault');
     localStorage.setItem(
       'peppool_accounts',
-      JSON.stringify([
-        { address: 'any-addr', accountIndex: 0, addressIndex: 0, label: 'Account 1' }
-      ])
+      JSON.stringify([{ address: 'any-addr', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }])
     );
     localStorage.setItem('peppool_active_address', 'any-addr');
 
@@ -177,8 +175,8 @@ describe('Wallet Store', () => {
     const store = useWalletStore();
     // Manually setup two accounts
     store.accounts = [
-      { address: 'addr1', accountIndex: 0, addressIndex: 0, label: 'Account 1' },
-      { address: 'addr2', accountIndex: 1, addressIndex: 0, label: 'Account 2' }
+      { address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
+      { address: 'addr2', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
     ];
     store.activeAddress = 'addr1';
 
@@ -199,7 +197,7 @@ describe('Wallet Store', () => {
     await store.addAccount('Savings');
     expect(store.accounts).toHaveLength(2);
     expect(store.accounts[1].label).toBe('Savings');
-    expect(store.accounts[1].accountIndex).toBe(1);
+    expect(store.accounts[1].path).toBe("m/44'/3434'/1'/0/0");
     expect(store.address).toBe(store.accounts[1].address);
     expect(store.address).not.toBe(store.accounts[0].address);
   });
@@ -210,8 +208,7 @@ describe('Wallet Store', () => {
     store.accounts = [
       {
         address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-        accountIndex: 0,
-        addressIndex: 0,
+        path: "m/44'/3434'/0'/0/0",
         label: 'Account 1'
       }
     ];
@@ -353,8 +350,7 @@ describe('Wallet Store', () => {
       store.accounts = [
         {
           address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-          accountIndex: 0,
-          addressIndex: 0,
+          path: "m/44'/3434'/0'/0/0",
           label: 'Account 1'
         }
       ];
@@ -397,7 +393,7 @@ describe('Wallet Store', () => {
       const api = await import('../utils/api');
       const store = useWalletStore();
       const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
-      store.accounts = [{ address: addr, accountIndex: 0, addressIndex: 0, label: 'Account 1' }];
+      store.accounts = [{ address: addr, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
       store.activeAddress = addr;
 
       // Setup initial transactions

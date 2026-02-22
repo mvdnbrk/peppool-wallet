@@ -31,12 +31,27 @@ export function getInvalidMnemonicWords(mnemonic: string): string[] {
   return completedWords.filter((word) => !wordlist.includes(word));
 }
 
+export function getDerivationPath(accountIndex = 0, addressIndex = 0): string {
+  return `m/44'/${PEPECOIN.coinType}'/${accountIndex}'/0/${addressIndex}`;
+}
+
+export function parseDerivationPath(path: string) {
+  const parts = path.split('/');
+  return {
+    purpose: parseInt(parts[1]),
+    coinType: parseInt(parts[2]),
+    accountIndex: parseInt(parts[3]),
+    change: parseInt(parts[4]),
+    addressIndex: parseInt(parts[5])
+  };
+}
+
 export function deriveAddress(mnemonic: string, accountIndex = 0, addressIndex = 0): string {
   const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
   // BIP32 v5+ expects Uint8Array, not Buffer
   const seed = new Uint8Array(seedBuffer);
   const root = bip32.fromSeed(seed, PEPECOIN);
-  const path = `m/44'/${PEPECOIN.coinType}'/${accountIndex}'/0/${addressIndex}`;
+  const path = getDerivationPath(accountIndex, addressIndex);
   const child = root.derivePath(path);
 
   const { address } = bitcoin.payments.p2pkh({
@@ -83,7 +98,7 @@ export function deriveSigner(mnemonic: string, accountIndex = 0, addressIndex = 
   const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
   const seed = new Uint8Array(seedBuffer);
   const root = bip32.fromSeed(seed, PEPECOIN);
-  return root.derivePath(`m/44'/${PEPECOIN.coinType}'/${accountIndex}'/0/${addressIndex}`);
+  return root.derivePath(getDerivationPath(accountIndex, addressIndex));
 }
 
 export async function createSignedTx(

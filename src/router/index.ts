@@ -37,7 +37,8 @@ const routes = [
   { path: '/settings/about', component: AboutView },
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },
-  { path: '/settings/auto-lock', component: AutoLockView }
+  { path: '/settings/auto-lock', component: AutoLockView },
+  { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 
 export const router = createRouter({

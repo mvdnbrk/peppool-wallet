@@ -5,6 +5,7 @@ import {
   validateMnemonic,
   deriveAddress,
   deriveSigner,
+  parseDerivationPath,
   createSignedTx,
   type UTXO,
   estimateTxSize,
@@ -46,7 +47,7 @@ describe('Crypto Utils', () => {
     expect(addr).toBe('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
   });
 
-  it('should derive consistent addresses for the same mnemonic', () => {
+  it('should return consistency for the same mnemonic with different indices', () => {
     const a1 = deriveAddress(mnemonic, 0, 0);
     const a2 = deriveAddress(mnemonic, 0, 0);
     expect(a1).toBe(a2);
@@ -57,6 +58,17 @@ describe('Crypto Utils', () => {
     const a4 = deriveAddress(mnemonic, 0, 1);
     expect(a4).not.toBe(a1);
     expect(a4).not.toBe(a3);
+  });
+
+  it('should correctly parse a derivation path and strip hardened suffixes', () => {
+    const path = "m/44'/3434'/1'/0/5";
+    const parsed = parseDerivationPath(path);
+
+    expect(parsed.purpose).toBe(44);
+    expect(parsed.coinType).toBe(3434);
+    expect(parsed.accountIndex).toBe(1);
+    expect(parsed.change).toBe(0);
+    expect(parsed.addressIndex).toBe(5);
   });
 
   it('should validate the provided address', () => {

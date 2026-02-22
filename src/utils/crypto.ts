@@ -37,12 +37,14 @@ export function getDerivationPath(accountIndex = 0, addressIndex = 0): string {
 
 export function parseDerivationPath(path: string) {
   const parts = path.split('/');
+  const clean = (p: string) => parseInt(p.replace("'", ''));
+
   return {
-    purpose: parseInt(parts[1]),
-    coinType: parseInt(parts[2]),
-    accountIndex: parseInt(parts[3]),
-    change: parseInt(parts[4]),
-    addressIndex: parseInt(parts[5])
+    purpose: clean(parts[1]),
+    coinType: clean(parts[2]),
+    accountIndex: clean(parts[3]),
+    change: clean(parts[4]),
+    addressIndex: clean(parts[5])
   };
 }
 

@@ -132,7 +132,7 @@ export async function fetchTransactions(
   address: string,
   afterTxid?: string
 ): Promise<RawTransaction[]> {
-  const query = afterTxid ? `?after_txid=${afterTxid}` : '';
+  const query = afterTxid ? `?after_txid=${encodeURIComponent(afterTxid)}` : '';
   const data = await request<unknown[]>(`/address/${encodeURIComponent(address)}/txs${query}`);
   return data.map((tx) => v.parse(RawTransactionSchema, tx));
 }

@@ -83,7 +83,7 @@ onMounted(() => {
       <div class="mt-2 flex h-6 items-center justify-center">
         <p
           class="text-center text-sm font-medium text-red-400 transition-opacity duration-200"
-          :class="form.hasError() ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
+          :class="form.errors.general ? 'opacity-100' : 'pointer-events-none opacity-0 select-none'"
         >
           {{ form.errors.general }}
         </p>

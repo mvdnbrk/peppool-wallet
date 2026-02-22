@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
 import { computed } from 'vue';
+import logoUrl from '@/assets/logo.svg';
 
 const { router, route } = useApp();
 
@@ -29,7 +30,7 @@ const shouldRender = computed(() => {
       <div class="flex items-center justify-between">
         <div @click="router.push('/dashboard')" class="group flex cursor-pointer items-center">
           <img
-            src="/src/assets/logo.svg"
+            :src="logoUrl"
             class="mr-2 h-8 w-8 transition-transform group-hover:scale-105"
             alt="Logo"
           />

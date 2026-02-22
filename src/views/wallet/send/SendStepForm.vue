@@ -37,7 +37,18 @@ onMounted(() => {
         @blur="$emit('address-blur')"
       />
 
-      <div class="space-y-1">
+      <div class="space-y-4">
+        <div class="px-1">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase"
+              >Available Balance</span
+            >
+            <span id="available-balance" class="text-xs font-bold text-slate-300">{{
+              displayBalance
+            }}</span>
+          </div>
+        </div>
+
         <PepAmountInput
           v-model:ribbits="form.amountRibbits"
           v-model:isFiatMode="form.isFiatMode"
@@ -46,24 +57,20 @@ onMounted(() => {
           @change-max="form.isMax = $event"
         >
           <template #extra>
-            <div class="flex items-center space-x-2 text-sm font-bold tracking-wider uppercase">
-              <span class="text-slate-500">Available:</span>
-              <span class="text-slate-300">{{ displayBalance }}</span>
-              <button
-                id="send-max-button"
-                type="button"
-                @click="$emit('set-max')"
-                :disabled="form.isProcessing || isLoadingRequirements"
-                class="text-pep-green-light hover:text-pep-green cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                tabindex="-1"
-              >
-                MAX
-              </button>
-            </div>
+            <button
+              id="send-max-button"
+              type="button"
+              @click="$emit('set-max')"
+              :disabled="form.isProcessing || isLoadingRequirements"
+              class="text-pep-green-light hover:text-pep-green cursor-pointer text-xs font-bold tracking-wider uppercase disabled:cursor-not-allowed disabled:opacity-50"
+              tabindex="-1"
+            >
+              MAX
+            </button>
           </template>
         </PepAmountInput>
 
-        <div class="mt-3 rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+        <div class="px-1">
           <div class="flex flex-col">
             <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase"
               >Estimated Fee</span

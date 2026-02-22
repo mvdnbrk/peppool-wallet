@@ -183,7 +183,8 @@ describe('SendView', () => {
 
     await flushPromises();
 
-    expect(wrapper.text()).toContain('Available:5 PEP');
+    expect(wrapper.find('#available-balance').text()).toBe('5 PEP');
+    expect(wrapper.text()).toContain('Available Balance');
   });
 
   it('should have a MAX button of type="button" that does not trigger form submit', async () => {

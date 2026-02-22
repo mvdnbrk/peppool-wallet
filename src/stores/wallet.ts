@@ -261,7 +261,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (!account0 || account0.address !== primaryAddress) throw new Error('Invalid vault');
 
     const active = activeAccount.value;
-    if (active) {
+    if (active && active !== account0) {
       const { accountIndex, addressIndex } = parseDerivationPath(active.path);
       if (deriveAddress(mnemonic, accountIndex, addressIndex) !== active.address)
         throw new Error('Invalid vault');

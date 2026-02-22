@@ -22,6 +22,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # AI Agents
+.ai/
 .gemini/
 .agents/
 .claude/

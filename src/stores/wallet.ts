@@ -275,7 +275,7 @@ export const useWalletStore = defineStore('wallet', () => {
     }
   }
 
-  function lock() {
+  async function lock() {
     isUnlocked.value = false;
     plaintextMnemonic.value = null;
     if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -287,7 +287,7 @@ export const useWalletStore = defineStore('wallet', () => {
     localStorage.removeItem('peppool_transactions');
     localStorage.removeItem('peppool_form_send');
     localStorage.removeItem('peppool_form_import');
-    clearAutoLockAlarm();
+    await clearAutoLockAlarm();
   }
 
   function resetWallet() {

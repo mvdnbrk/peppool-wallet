@@ -51,7 +51,6 @@ describe('Wallet Views Navigation', () => {
       refreshBalance: vi.fn(),
       startPolling: vi.fn(),
       stopPolling: vi.fn(),
-      resetLockTimer: vi.fn(),
       openExplorerTx: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({

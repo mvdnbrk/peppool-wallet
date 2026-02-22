@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { watch } from 'vue';
-import { useApp } from '@/composables/useApp';
-import PepGlobalHeader from '@/components/ui/PepGlobalHeader.vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useWalletStore } from '@/stores/wallet';
 
-const { wallet, router, route } = useApp();
+const router = useRouter();
+const route = useRoute();
+const wallet = useWalletStore();
 
-// Global Security Watcher: Kick to home if wallet locks while on protected route
+const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
+
 watch(
   () => wallet.isUnlocked,
-  (isUnlocked) => {
-    const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
-    if (!isUnlocked && !publicRoutes.includes(route.path)) {
+  (unlocked) => {
+    if (!unlocked && !publicRoutes.includes(route.path)) {
       router.replace('/');
     }
   }
@@ -18,7 +20,11 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-full flex-col bg-slate-900">
+  <div
+    class="flex h-full flex-col bg-slate-900"
+    @mousedown="wallet.resetLockTimer"
+    @keydown="wallet.resetLockTimer"
+  >
     <PepGlobalHeader />
 
     <main class="flex-1 overflow-y-auto">

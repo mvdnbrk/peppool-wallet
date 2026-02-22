@@ -43,7 +43,7 @@ export function formatAmount(value: number): string {
  * For tiny values → extends until 2 significant digits ($0.0023)
  */
 export function formatFiat(value: number): string {
-  if (value === 0) return '0.00';
+  if (value === 0 || !Number.isFinite(value)) return '0.00';
   const abs = Math.abs(value);
   if (abs >= 0.01) return value.toFixed(2);
   // Count leading zeros after decimal point, then show 2 significant digits

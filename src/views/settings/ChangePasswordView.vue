@@ -7,6 +7,7 @@ import { useForm, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
 const { router } = useApp();
+
 const { isLockedOut, lockoutError } = useLockout();
 const { isSuccess, performChange } = useChangePassword();
 

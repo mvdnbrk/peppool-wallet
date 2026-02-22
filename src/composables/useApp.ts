@@ -8,8 +8,6 @@ import { useWalletStore } from '@/stores/wallet';
 export function useApp() {
   const router = useRouter();
   const route = useRoute();
-
-  // Stores
   const wallet = useWalletStore();
 
   return {

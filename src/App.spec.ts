@@ -8,9 +8,18 @@ import PepGlobalHeader from './components/ui/PepGlobalHeader.vue';
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(),
   useRouter: vi.fn(() => ({
-    push: vi.fn()
+    push: vi.fn(),
+    replace: vi.fn()
   })),
   RouterView: { template: '<div />' }
+}));
+
+// Mock Wallet Store
+vi.mock('@/stores/wallet', () => ({
+  useWalletStore: vi.fn(() => ({
+    isUnlocked: false,
+    resetLockTimer: vi.fn()
+  }))
 }));
 
 // Mock components

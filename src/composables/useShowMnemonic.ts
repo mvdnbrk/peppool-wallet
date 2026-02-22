@@ -1,4 +1,4 @@
-import { ref, onUnmounted } from 'vue';
+import { ref, onScopeDispose } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { decrypt } from '@/utils/encryption';
 
@@ -9,7 +9,7 @@ export function useShowMnemonic() {
   const mnemonic = ref('');
   const error = ref('');
 
-  onUnmounted(() => {
+  onScopeDispose(() => {
     mnemonic.value = '';
   });
 

@@ -1,56 +1,38 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
-import { fetchTransaction } from '@/utils/api';
 import { Transaction } from '@/models/Transaction';
 
 const { router, route, wallet: walletStore } = useApp();
 
 const txid = route.params.txid as string;
-const txModel = ref<Transaction | null>(null);
+const txFromList = computed(() => walletStore.transactions.find((t) => t.txid === txid));
+const txFetched = ref<Transaction | null>(null);
+
+const txModel = computed(() => txFromList.value || txFetched.value);
+
 const isLoading = ref(true);
 const error = ref('');
-let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
-async function loadDetails(isRefresh = false) {
-  if (!isRefresh) isLoading.value = true;
+async function loadDetails() {
+  isLoading.value = true;
   try {
-    const rawTx = await fetchTransaction(txid);
-    txModel.value = new Transaction(rawTx, walletStore.address!);
-
-    // If confirmed and we were polling, stop polling and refresh balance
-    if (txModel.value.isConfirmed) {
-      stopPolling();
-      await walletStore.refreshBalance(true);
-    } else if (!pollTimer) {
-      // If still unconfirmed, start polling if not already started
-      startPolling();
-    }
+    const transaction = await walletStore.fetchTransaction(txid);
+    txFetched.value = transaction;
   } catch (e: any) {
-    if (!isRefresh) error.value = e.message || 'Failed to load transaction';
+    error.value = e.message || 'Failed to load transaction';
   } finally {
-    if (!isRefresh) isLoading.value = false;
-  }
-}
-
-function startPolling() {
-  stopPolling();
-  pollTimer = setInterval(() => loadDetails(true), 10000); // Poll every 10s
-}
-
-function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
+    isLoading.value = false;
   }
 }
 
 onMounted(() => {
   loadDetails();
+  walletStore.startPolling();
 });
 
 onUnmounted(() => {
-  stopPolling();
+  walletStore.stopPolling();
 });
 
 function openExplorer() {

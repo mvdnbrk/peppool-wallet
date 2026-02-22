@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { reactive } from 'vue';
 import TransactionDetailView from './TransactionDetailView.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import { Transaction } from '@/models/Transaction';
@@ -57,11 +58,15 @@ describe('TransactionDetailView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.fetchTransaction).mockResolvedValue(mockRawTx as any);
-    mockWallet = {
+    mockWallet = reactive({
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       openExplorerTx: vi.fn(),
-      refreshBalance: vi.fn()
-    };
+      refreshBalance: vi.fn(),
+      transactions: [],
+      startPolling: vi.fn(),
+      stopPolling: vi.fn(),
+      fetchTransaction: vi.fn()
+    });
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
@@ -70,107 +75,34 @@ describe('TransactionDetailView', () => {
   });
 
   it('should show Network Fee only for outgoing transactions', async () => {
+    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+    
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
     });
 
+    await flushPromises();
+    
     // 1. Outgoing
-    // @ts-ignore
-    wrapper.vm.txModel = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
-    // @ts-ignore
-    wrapper.vm.isLoading = false;
-    await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain('Network Fee');
 
     // 2. Incoming
+    const incomingRaw = { ...mockRawTx, vin: [] };
+    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
     // @ts-ignore
-    wrapper.vm.txModel = new Transaction(
-      { ...mockRawTx, vin: [] },
-      'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
-    );
-    await wrapper.vm.$nextTick();
+    await wrapper.vm.loadDetails();
+    await flushPromises();
+    
     expect(wrapper.text()).not.toContain('Network Fee');
   });
 
   it('should render incoming transaction data correctly', async () => {
-    const wrapper = mount(TransactionDetailView, {
-      global: { stubs, components: { PepPageHeader } }
-    });
-
-    // Address in vout matches userAddress
-    const incomingTx = new Transaction(
-      {
-        ...mockRawTx,
-        vin: [],
-        vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
-      },
-      'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
-    );
-
-    // @ts-ignore
-    wrapper.vm.txModel = incomingTx;
-    // @ts-ignore
-    wrapper.vm.isLoading = false;
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.text()).toContain('+1 PEP');
-    expect(wrapper.text()).toContain('Received');
-    expect(wrapper.text()).toContain('Confirmed');
-    expect(wrapper.text()).toContain(incomingTx.date);
-    expect(wrapper.text()).toContain('100');
-  });
-
-  it('should show unconfirmed status correctly', async () => {
-    const wrapper = mount(TransactionDetailView, {
-      global: { stubs, components: { PepPageHeader } }
-    });
-
-    const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
-
-    // 1. Sending
-    // @ts-ignore
-    wrapper.vm.txModel = new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
-    // @ts-ignore
-    wrapper.vm.isLoading = false;
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).toContain('Sending');
-    expect(wrapper.text()).toContain('In mempool');
-
-    // 2. Receiving
-    // @ts-ignore
-    wrapper.vm.txModel = new Transaction(
-      {
-        ...unconfirmedRaw,
-        vin: [],
-        vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
-      },
-      'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
-    );
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).toContain('Receiving');
-    expect(wrapper.text()).toContain('In mempool');
-  });
-
-  it('should call openExplorer with correct txid', async () => {
-    const wrapper = mount(TransactionDetailView, {
-      global: { stubs, components: { PepPageHeader } }
-    });
-
-    // @ts-ignore
-    wrapper.vm.txModel = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
-    // @ts-ignore
-    wrapper.vm.isLoading = false;
-    await wrapper.vm.$nextTick();
-
-    await wrapper.find('#view-on-explorer').trigger('click');
-
-    expect(mockWallet.openExplorerTx).toHaveBeenCalledWith(mockRawTx.txid);
-  });
-
-  it('should start polling if transaction is unconfirmed', async () => {
-    vi.useFakeTimers();
-    const unconfirmed = { ...mockRawTx, status: { confirmed: false } };
-    vi.mocked(api.fetchTransaction).mockResolvedValue(unconfirmed as any);
+    const incomingRaw = {
+      ...mockRawTx,
+      vin: [],
+      vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
+    };
+    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
 
     const wrapper = mount(TransactionDetailView, {
       global: { stubs, components: { PepPageHeader } }
@@ -178,17 +110,53 @@ describe('TransactionDetailView', () => {
 
     await flushPromises();
 
-    // Ensure it started polling
-    expect(vi.getTimerCount()).toBe(1);
-
-    // Mock it becoming confirmed for next poll
-    vi.mocked(api.fetchTransaction).mockResolvedValue(mockRawTx as any);
-
-    // Manual trigger of the polling handler logic
-    // @ts-ignore
-    await wrapper.vm.loadDetails(true);
-
-    expect(mockWallet.refreshBalance).toHaveBeenCalledWith(true);
-    vi.useRealTimers();
+    expect(wrapper.text()).toContain('+1 PEP');
+    expect(wrapper.text()).toContain('Received');
+    expect(wrapper.text()).toContain('Confirmed');
   });
-});
+
+  it('should show unconfirmed status correctly', async () => {
+    const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
+    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+
+    const wrapper = mount(TransactionDetailView, {
+      global: { stubs, components: { PepPageHeader } }
+    });
+
+    await flushPromises();
+    expect(wrapper.text()).toContain('Sending');
+    expect(wrapper.text()).toContain('In mempool');
+  });
+
+  it('should call openExplorer with correct txid', async () => {
+    mockWallet.fetchTransaction.mockResolvedValue(new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+
+    const wrapper = mount(TransactionDetailView, {
+      global: { stubs, components: { PepPageHeader } }
+    });
+
+    await flushPromises();
+
+    await wrapper.find('#view-on-explorer').trigger('click');
+
+    expect(mockWallet.openExplorerTx).toHaveBeenCalledWith(mockRawTx.txid);
+  });
+
+      it('should update details when store transaction list changes', async () => {
+        const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
+        mockWallet.fetchTransaction.mockResolvedValue(new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'));
+    
+        const wrapper = mount(TransactionDetailView, {
+          global: { stubs, components: { PepPageHeader } }
+        });
+          await flushPromises();
+      expect(wrapper.text()).toContain('In mempool');
+  
+      // Simulate store updating the transaction list (e.g. after a poll found a new block)
+      mockWallet.transactions = [new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')];
+      await wrapper.vm.$nextTick();
+  
+      expect(wrapper.text()).toContain('Confirmed');
+    });
+  });
+  

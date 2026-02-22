@@ -7,7 +7,13 @@ import {
   parseDerivationPath
 } from '../utils/crypto';
 import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
-import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } from '../utils/api';
+import {
+  fetchAddressInfo,
+  fetchTransactions,
+  fetchTransaction as apiFetchTransaction,
+  fetchPepPrice,
+  fetchTipHeight
+} from '../utils/api';
 import { Transaction } from '../models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '../utils/constants';
 import { EXPLORERS, type ExplorerId, pepeExplorer } from '../utils/explorer';
@@ -177,6 +183,11 @@ export const useWalletStore = defineStore('wallet', () => {
       console.error('Failed to fetch more transactions', e);
       return false;
     }
+  }
+
+  async function fetchTransaction(txid: string): Promise<Transaction> {
+    const rawTx = await apiFetchTransaction(txid);
+    return new Transaction(rawTx, activeAddress.value || '');
   }
 
   async function refreshBalance(force = false) {
@@ -415,6 +426,7 @@ export const useWalletStore = defineStore('wallet', () => {
     importWallet,
     refreshBalance,
     refreshTransactions,
+    fetchTransaction,
     fetchMoreTransactions,
     resetLockTimer,
     startPolling,

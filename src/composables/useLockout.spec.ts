@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useLockout } from './useLockout';
-import { useWalletStore } from '@/stores/wallet';
+import { useLockoutStore } from '@/stores/lockout';
 import { reactive, nextTick } from 'vue';
 
 vi.unmock('@/composables/useLockout');
 
-vi.mock('@/stores/wallet', () => ({
-  useWalletStore: vi.fn()
+vi.mock('@/stores/lockout', () => ({
+  useLockoutStore: vi.fn()
 }));
 
 describe('useLockout Composable', () => {
@@ -21,7 +21,7 @@ describe('useLockout Composable', () => {
       isLockedOut: false
     });
 
-    vi.mocked(useWalletStore).mockReturnValue(mockStore);
+    vi.mocked(useLockoutStore).mockReturnValue(mockStore);
   });
 
   afterEach(() => {
@@ -56,13 +56,12 @@ describe('useLockout Composable', () => {
 
   it('should update countdown in lockoutError', async () => {
     mockStore.isLockedOut = true;
-    mockStore.lockoutUntil = 1010000; // 10s from 1000000
+    mockStore.lockoutUntil = 1010000;
 
     const { lockoutError } = useLockout();
     expect(lockoutError.value).toContain('10s');
 
-    // Simulate update by changing store value
-    mockStore.lockoutUntil = 1005000; // Now 5s left
+    mockStore.lockoutUntil = 1005000;
     await nextTick();
 
     expect(lockoutError.value).toContain('5s');

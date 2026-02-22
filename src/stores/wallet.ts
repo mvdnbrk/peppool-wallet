@@ -6,6 +6,7 @@ import { fetchAddressInfo, fetchTransactions, fetchPepPrice, fetchTipHeight } fr
 import { Transaction } from '../models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '../utils/constants';
 import { EXPLORERS, type ExplorerId, pepeExplorer } from '../utils/explorer';
+import { useLockoutStore } from './lockout';
 
 // ── Background worker messaging ────────────────────────────────────────────
 async function setAutoLockAlarm(delayMinutes: number) {
@@ -28,74 +29,8 @@ async function clearAutoLockAlarm() {
   }
 }
 
-// ── Escalating lockout tiers ───────────────────────────────────────────────
-// Each tier defines when it activates and how long the lockout lasts.
-// After 12 failures the wallet is wiped, forcing re-import from seed phrase.
-interface FailureTier {
-  threshold: number;
-  durationMs: number;
-  wipe?: boolean;
-}
-const FAILURE_TIERS: FailureTier[] = [
-  { threshold: 3, durationMs: 30 * 1000 }, //  3 failures →  30 seconds
-  { threshold: 6, durationMs: 5 * 60 * 1000 }, //  6 failures →   5 minutes
-  { threshold: 9, durationMs: 30 * 60 * 1000 }, //  9 failures →  30 minutes
-  { threshold: 12, durationMs: 0, wipe: true } // 12 failures →  wallet wipe
-];
-
-function getFailureTier(attempts: number): FailureTier | null {
-  // Find the highest tier whose threshold the user has reached
-  for (let i = FAILURE_TIERS.length - 1; i >= 0; i--) {
-    if (attempts >= FAILURE_TIERS[i]!.threshold) return FAILURE_TIERS[i]!;
-  }
-  return null; // hasn't reached any tier yet
-}
-// ── Lockout storage helpers (chrome.storage.local with localStorage fallback) ─
-const LOCKOUT_KEYS = {
-  attempts: 'peppool_failed_attempts',
-  until: 'peppool_lockout_until'
-} as const;
-
-function hasChromeStorage() {
-  return typeof chrome !== 'undefined' && chrome.storage?.local;
-}
-
-async function loadLockoutState(): Promise<{ attempts: number; until: number }> {
-  if (hasChromeStorage()) {
-    const data = await chrome.storage.local.get([LOCKOUT_KEYS.attempts, LOCKOUT_KEYS.until]);
-    return {
-      attempts: Number(data[LOCKOUT_KEYS.attempts]) || 0,
-      until: Number(data[LOCKOUT_KEYS.until]) || 0
-    };
-  }
-  return {
-    attempts: Number(localStorage.getItem(LOCKOUT_KEYS.attempts)) || 0,
-    until: Number(localStorage.getItem(LOCKOUT_KEYS.until)) || 0
-  };
-}
-
-async function saveLockoutState(attempts: number, until: number) {
-  if (hasChromeStorage()) {
-    await chrome.storage.local.set({
-      [LOCKOUT_KEYS.attempts]: attempts,
-      [LOCKOUT_KEYS.until]: until
-    });
-  } else {
-    localStorage.setItem(LOCKOUT_KEYS.attempts, attempts.toString());
-    localStorage.setItem(LOCKOUT_KEYS.until, until.toString());
-  }
-}
-
-async function clearLockoutState() {
-  if (hasChromeStorage()) {
-    await chrome.storage.local.remove([LOCKOUT_KEYS.attempts, LOCKOUT_KEYS.until]);
-  } else {
-    localStorage.removeItem(LOCKOUT_KEYS.attempts);
-    localStorage.removeItem(LOCKOUT_KEYS.until);
-  }
-}
-
 export const useWalletStore = defineStore('wallet', () => {
+  const lockout = useLockoutStore();
   const address = ref<string | null>(localStorage.getItem('peppool_address'));
   const encryptedMnemonic = ref<string | null>(localStorage.getItem('peppool_vault'));
   const plaintextMnemonic = ref<string | null>(null);
@@ -115,9 +50,6 @@ export const useWalletStore = defineStore('wallet', () => {
   );
   const lockDuration = ref<number>(parseInt(localStorage.getItem('peppool_lock_duration') || '15'));
 
-  const failedAttempts = ref<number>(0);
-  const lockoutUntil = ref<number>(0);
-
   // Load cached transactions on initialization
   let initialTransactions: Transaction[] = [];
   try {
@@ -133,22 +65,10 @@ export const useWalletStore = defineStore('wallet', () => {
 
   const transactions = ref<Transaction[]>(initialTransactions);
   const canLoadMore = ref(true);
-  const now = ref(Date.now());
   let lockTimer: ReturnType<typeof setTimeout> | null = null;
-
-  // Update 'now' every second to drive reactive lockout check
-  setInterval(() => {
-    now.value = Date.now();
-  }, 1000);
 
   const isCreated = computed(() => !!encryptedMnemonic.value);
   const isMnemonicLoaded = computed(() => !!plaintextMnemonic.value);
-  const isLockedOut = computed(() => lockoutUntil.value > now.value);
-  const attemptsRemaining = computed(() => {
-    // Find the next tier the user is approaching
-    const nextTier = FAILURE_TIERS.find((t) => failedAttempts.value < t.threshold);
-    return nextTier ? nextTier.threshold - failedAttempts.value : 0;
-  });
   const balanceFiat = computed(() => balance.value * (prices.value[selectedCurrency.value] || 0));
   const currencySymbol = computed(() => (selectedCurrency.value === 'USD' ? '$' : '€'));
 
@@ -177,10 +97,7 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function checkSession() {
-    // Restore lockout state from secure storage
-    const lockout = await loadLockoutState();
-    failedAttempts.value = lockout.attempts;
-    lockoutUntil.value = lockout.until;
+    await lockout.restore();
 
     if (typeof chrome === 'undefined' || !chrome.storage) return false;
 
@@ -336,22 +253,12 @@ export const useWalletStore = defineStore('wallet', () => {
     localStorage.setItem('peppool_vault', encrypted);
     localStorage.setItem('peppool_address', walletAddress);
 
-    failedAttempts.value = 0;
-    lockoutUntil.value = 0;
-    await clearLockoutState();
+    await lockout.reset();
     await refreshBalance();
   }
 
   async function unlock(password: string): Promise<boolean> {
-    const now = Date.now();
-
-    if (lockoutUntil.value > 0 && now >= lockoutUntil.value) {
-      failedAttempts.value = 0;
-      lockoutUntil.value = 0;
-      await clearLockoutState();
-    }
-
-    if (now < lockoutUntil.value) return false;
+    if (lockout.checkLocked()) return false;
     if (!encryptedMnemonic.value) return false;
 
     try {
@@ -371,26 +278,12 @@ export const useWalletStore = defineStore('wallet', () => {
         await chrome.storage.session.set({ mnemonic });
       }
       isUnlocked.value = true;
-      failedAttempts.value = 0;
-      lockoutUntil.value = 0;
-      await clearLockoutState();
+      await lockout.reset();
       await refreshBalance();
       return true;
     } catch (e) {
-      failedAttempts.value++;
-      await saveLockoutState(failedAttempts.value, lockoutUntil.value);
-
-      const tier = getFailureTier(failedAttempts.value);
-      if (tier) {
-        if (tier.wipe) {
-          // Too many failures — wipe the wallet for safety
-          resetWallet();
-        } else {
-          const until = Date.now() + tier.durationMs;
-          lockoutUntil.value = until;
-          await saveLockoutState(failedAttempts.value, until);
-        }
-      }
+      const { wipe } = await lockout.recordFailure();
+      if (wipe) resetWallet();
       return false;
     }
   }
@@ -424,14 +317,11 @@ export const useWalletStore = defineStore('wallet', () => {
     balance.value = 0;
     prices.value = { USD: 0, EUR: 0 };
     transactions.value = [];
-    failedAttempts.value = 0;
-    lockoutUntil.value = 0;
-
     // Remove all peppool-related keys (factory reset)
     const keysToRemove = Object.keys(localStorage).filter((k) => k.startsWith('peppool_'));
     keysToRemove.forEach((k) => localStorage.removeItem(k));
 
-    clearLockoutState();
+    lockout.reset();
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.remove('unlocked_until');
       if (chrome.storage.session) chrome.storage.session.remove('mnemonic');
@@ -465,10 +355,7 @@ export const useWalletStore = defineStore('wallet', () => {
     isUnlocked,
     isCreated,
     isMnemonicLoaded,
-    isLockedOut,
-    attemptsRemaining,
-    failedAttempts,
-    lockoutUntil,
+    lockout,
     balance,
     balanceFiat,
     selectedCurrency,

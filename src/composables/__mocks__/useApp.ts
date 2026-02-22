@@ -19,7 +19,7 @@ export const useApp = vi.fn(() => ({
     address: 'test-address',
     isUnlocked: true,
     isCreated: true,
-    lockoutUntil: 0,
+    lockout: { lockoutUntil: 0, failedAttempts: 0, isLockedOut: false, attemptsRemaining: 3 },
     balance: 0,
     prices: { USD: 0, EUR: 0 },
     selectedCurrency: 'USD',

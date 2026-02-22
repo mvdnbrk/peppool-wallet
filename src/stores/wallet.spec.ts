@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
+import { useLockoutStore } from './lockout';
 
 import { Transaction } from '../models/Transaction';
 
@@ -65,8 +66,9 @@ describe('Wallet Store', () => {
       expect(success).toBe(false);
     }
 
-    expect(store.isLockedOut).toBe(true);
-    expect(store.lockoutUntil).toBeGreaterThan(Date.now());
+    const lockout = useLockoutStore();
+    expect(lockout.isLockedOut).toBe(true);
+    expect(lockout.lockoutUntil).toBeGreaterThan(Date.now());
   });
 
   it('should auto-unlock via checkSession if chrome.storage has mnemonic', async () => {

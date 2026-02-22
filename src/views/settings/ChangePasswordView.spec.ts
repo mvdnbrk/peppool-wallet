@@ -56,7 +56,7 @@ describe('ChangePasswordView', () => {
     mockWallet = {
       isUnlocked: true,
       plaintextMnemonic: 'test mnemonic',
-      lockoutUntil: 0,
+      lockout: { lockoutUntil: 0, failedAttempts: 0, isLockedOut: false },
       unlock: vi.fn(),
       updateVault: vi.fn()
     };

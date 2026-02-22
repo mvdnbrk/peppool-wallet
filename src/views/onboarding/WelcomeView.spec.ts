@@ -32,7 +32,7 @@ describe('WelcomeView Logic', () => {
     vi.clearAllMocks();
     mockStore = {
       isCreated: false,
-      lockoutUntil: 0,
+      lockout: { lockoutUntil: 0, failedAttempts: 0, isLockedOut: false },
       unlock: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({

@@ -75,6 +75,19 @@ describe('Transaction Model', () => {
     expect(tx.txidShort).toBe('12345678...90abcdef');
   });
 
+  it('should sum all outputs for self-send (consolidation) transactions', () => {
+    const selfSendRaw: RawTransaction = {
+      ...mockRawTx,
+      vout: [
+        { scriptpubkey_address: 'user-address', value: 30000000 },
+        { scriptpubkey_address: 'user-address', value: 60000000 }
+      ]
+    };
+    const tx = new Transaction(selfSendRaw, userAddress);
+    expect(tx.isOutgoing).toBe(true);
+    expect(tx.valueRibbits).toBe(90000000);
+  });
+
   describe('Status Display', () => {
     it('should return correct label and color for confirmed outgoing', () => {
       const tx = new Transaction(mockRawTx, userAddress);

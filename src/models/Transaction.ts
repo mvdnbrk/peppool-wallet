@@ -89,7 +89,7 @@ export class Transaction {
       const others = this.raw.vout.filter((vout) => vout.scriptpubkey_address !== this.userAddress);
       return others.length > 0
         ? others.reduce((sum, vout) => sum + vout.value, 0)
-        : this.raw.vout[0]?.value || 0;
+        : this.raw.vout.reduce((sum, vout) => sum + vout.value, 0);
     } else {
       return this.raw.vout
         .filter((vout) => vout.scriptpubkey_address === this.userAddress)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { fetchTransaction } from '@/utils/api';
 import { Transaction } from '@/models/Transaction';
@@ -10,16 +10,47 @@ const txid = route.params.txid as string;
 const txModel = ref<Transaction | null>(null);
 const isLoading = ref(true);
 const error = ref('');
+let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
-onMounted(async () => {
+async function loadDetails(isRefresh = false) {
+  if (!isRefresh) isLoading.value = true;
   try {
     const rawTx = await fetchTransaction(txid);
     txModel.value = new Transaction(rawTx, walletStore.address!);
+
+    // If confirmed and we were polling, stop polling and refresh balance
+    if (txModel.value.isConfirmed) {
+      stopPolling();
+      await walletStore.refreshBalance(true);
+    } else if (!pollTimer) {
+      // If still unconfirmed, start polling if not already started
+      startPolling();
+    }
   } catch (e: any) {
-    error.value = e.message || 'Failed to load transaction';
+    if (!isRefresh) error.value = e.message || 'Failed to load transaction';
   } finally {
-    isLoading.value = false;
+    if (!isRefresh) isLoading.value = false;
   }
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(() => loadDetails(true), 10000); // Poll every 10s
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
+onMounted(() => {
+  loadDetails();
+});
+
+onUnmounted(() => {
+  stopPolling();
 });
 
 function openExplorer() {

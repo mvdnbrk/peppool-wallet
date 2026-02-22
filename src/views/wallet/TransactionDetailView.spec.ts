@@ -1,13 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
 import TransactionDetailView from './TransactionDetailView.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import { Transaction } from '@/models/Transaction';
 import { useApp } from '@/composables/useApp';
+import * as api from '@/utils/api';
 
 // Mock useApp
 const pushMock = vi.fn();
 vi.mock('@/composables/useApp');
+
+// Mock API
+vi.mock('@/utils/api', () => ({
+  fetchTransaction: vi.fn()
+}));
 
 // Mock global components
 const stubs = {
@@ -50,9 +56,11 @@ describe('TransactionDetailView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(api.fetchTransaction).mockResolvedValue(mockRawTx as any);
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-      openExplorerTx: vi.fn()
+      openExplorerTx: vi.fn(),
+      refreshBalance: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
@@ -157,5 +165,30 @@ describe('TransactionDetailView', () => {
     await wrapper.find('#view-on-explorer').trigger('click');
 
     expect(mockWallet.openExplorerTx).toHaveBeenCalledWith(mockRawTx.txid);
+  });
+
+  it('should start polling if transaction is unconfirmed', async () => {
+    vi.useFakeTimers();
+    const unconfirmed = { ...mockRawTx, status: { confirmed: false } };
+    vi.mocked(api.fetchTransaction).mockResolvedValue(unconfirmed as any);
+
+    const wrapper = mount(TransactionDetailView, {
+      global: { stubs, components: { PepPageHeader } }
+    });
+
+    await flushPromises();
+    
+    // Ensure it started polling
+    expect(vi.getTimerCount()).toBe(1);
+
+    // Mock it becoming confirmed for next poll
+    vi.mocked(api.fetchTransaction).mockResolvedValue(mockRawTx as any);
+
+    // Manual trigger of the polling handler logic
+    // @ts-ignore
+    await wrapper.vm.loadDetails(true);
+
+    expect(mockWallet.refreshBalance).toHaveBeenCalledWith(true);
+    vi.useRealTimers();
   });
 });

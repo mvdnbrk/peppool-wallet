@@ -28,5 +28,11 @@ describe('Constants Utilities', () => {
     it('should format tiny amounts with extra precision', () => {
       expect(formatFiat(0.0001234)).toBe('0.00012');
     });
+
+    it('should return 0.00 for NaN, Infinity, and -Infinity to avoid displaying garbage', () => {
+      expect(formatFiat(NaN)).toBe('0.00');
+      expect(formatFiat(Infinity)).toBe('0.00');
+      expect(formatFiat(-Infinity)).toBe('0.00');
+    });
   });
 });

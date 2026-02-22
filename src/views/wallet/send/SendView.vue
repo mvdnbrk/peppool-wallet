@@ -200,7 +200,13 @@ onMounted(async () => {
       @next="handleReview"
     />
 
-    <SendStepReview v-if="form.step === 2" :form="form" :tx="tx" :displayFee="displayFee" @send="handleSend" />
+    <SendStepReview
+      v-if="form.step === 2"
+      :form="form"
+      :tx="tx"
+      :displayFee="displayFee"
+      @send="handleSend"
+    />
 
     <SendStepSuccess v-if="form.step === 3" :txid="form.txid" />
 

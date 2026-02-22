@@ -23,7 +23,9 @@ const truncated = computed(() => truncateId(props.id));
       >
         <span class="inline-flex max-w-full min-w-0 font-mono text-[11px] text-slate-400">
           <span class="flex min-w-0">
-            <span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{{ truncated.start }}</span>
+            <span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{{
+              truncated.start
+            }}</span>
           </span>
           <span class="whitespace-nowrap">{{ truncated.end }}</span>
         </span>

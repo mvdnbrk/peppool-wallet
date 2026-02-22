@@ -11,7 +11,9 @@ export function useLockout() {
   watchEffect((onCleanup) => {
     if (wallet.isLockedOut) {
       now.value = Date.now();
-      const timer = setInterval(() => { now.value = Date.now(); }, 1000);
+      const timer = setInterval(() => {
+        now.value = Date.now();
+      }, 1000);
       onCleanup(() => clearInterval(timer));
     }
   });

@@ -134,7 +134,7 @@ describe('Wallet Store', () => {
 
     expect(store.isCreated).toBe(true);
     expect(store.isUnlocked).toBe(true);
-    expect(store.address).toBe('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    expect(store.address).toBe('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(store.accounts).toHaveLength(1);
   });
 
@@ -209,13 +209,13 @@ describe('Wallet Store', () => {
     // Mock an account
     store.accounts = [
       {
-        address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+        address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
         accountIndex: 0,
         addressIndex: 0,
         label: 'Account 1'
       }
     ];
-    store.activeAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+    store.activeAddress = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
 
     await store.refreshBalance();
 
@@ -334,7 +334,7 @@ describe('Wallet Store', () => {
         {
           value: 100000000,
           scriptpubkey: '',
-          scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+          scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
         }
       ],
       status: {
@@ -352,13 +352,13 @@ describe('Wallet Store', () => {
       const store = useWalletStore();
       store.accounts = [
         {
-          address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+          address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
           accountIndex: 0,
           addressIndex: 0,
           label: 'Account 1'
         }
       ];
-      store.activeAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+      store.activeAddress = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
 
       await store.refreshTransactions();
 
@@ -370,7 +370,7 @@ describe('Wallet Store', () => {
 
     it('should restore transactions from cache on initialization', () => {
       localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
-      localStorage.setItem('peppool_active_address', 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+      localStorage.setItem('peppool_active_address', 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
 
       const store = useWalletStore();
       expect(store.transactions).toHaveLength(1);
@@ -396,7 +396,7 @@ describe('Wallet Store', () => {
     it('should fetch more transactions and append them uniquely', async () => {
       const api = await import('../utils/api');
       const store = useWalletStore();
-      const addr = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+      const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
       store.accounts = [{ address: addr, accountIndex: 0, addressIndex: 0, label: 'Account 1' }];
       store.activeAddress = addr;
 

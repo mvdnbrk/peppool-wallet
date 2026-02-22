@@ -7,5 +7,6 @@ export const PEPECOIN = {
   },
   pubKeyHash: 0x38, // 56 - Addresses start with 'P'
   scriptHash: 0x16, // 22
-  wif: 0x9e // 158
+  wif: 0x9e, // 158
+  coinType: 3434 // SLIP-0044: Pepecoin
 };

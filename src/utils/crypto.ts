@@ -36,7 +36,7 @@ export function deriveAddress(mnemonic: string, accountIndex = 0, addressIndex =
   // BIP32 v5+ expects Uint8Array, not Buffer
   const seed = new Uint8Array(seedBuffer);
   const root = bip32.fromSeed(seed, PEPECOIN);
-  const path = `m/44'/0'/${accountIndex}'/0/${addressIndex}`;
+  const path = `m/44'/${PEPECOIN.coinType}'/${accountIndex}'/0/${addressIndex}`;
   const child = root.derivePath(path);
 
   const { address } = bitcoin.payments.p2pkh({
@@ -83,7 +83,7 @@ export function deriveSigner(mnemonic: string, accountIndex = 0, addressIndex = 
   const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
   const seed = new Uint8Array(seedBuffer);
   const root = bip32.fromSeed(seed, PEPECOIN);
-  return root.derivePath(`m/44'/0'/${accountIndex}'/0/${addressIndex}`);
+  return root.derivePath(`m/44'/${PEPECOIN.coinType}'/${accountIndex}'/0/${addressIndex}`);
 }
 
 export async function createSignedTx(

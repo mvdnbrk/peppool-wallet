@@ -90,7 +90,7 @@ describe('SendView', () => {
     mockSendTransaction.displayBalance.mockReturnValue('0 PEP');
 
     mockWallet = {
-      address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+      address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       isMnemonicLoaded: true,
       selectedCurrency: 'USD',
       currencySymbol: '$',

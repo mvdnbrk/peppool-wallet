@@ -14,7 +14,7 @@ import type { RawTransaction } from '../src/models/Transaction';
 import { Transaction } from '../src/models/Transaction';
 
 const RIBBITS_PER_PEP = 100_000_000;
-const DEMO_ADDRESS = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+const DEMO_ADDRESS = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
 
 const demoTxs: RawTransaction[] = [
     {

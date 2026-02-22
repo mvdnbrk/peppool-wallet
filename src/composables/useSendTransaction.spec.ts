@@ -25,7 +25,7 @@ describe('useSendTransaction Composable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWallet = {
-      address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+      address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       selectedCurrency: 'USD',
       currencySymbol: '$',
       prices: { USD: 10, EUR: 8 },

@@ -96,7 +96,7 @@ describe('API Utils', () => {
 
   it('should fetch and calculate balance correctly from Esplora structure', async () => {
     const data = {
-      address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+      address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       chain_stats: {
         funded_txo_sum: RIBBITS_PER_PEP,
         spent_txo_sum: RIBBITS_PER_PEP * 0.2
@@ -109,7 +109,7 @@ describe('API Utils', () => {
 
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(data));
 
-    const balanceRibbits = await fetchAddressInfo('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const balanceRibbits = await fetchAddressInfo('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(balanceRibbits).toBe(RIBBITS_PER_PEP * 1.3);
   });
 
@@ -152,7 +152,7 @@ describe('API Utils', () => {
     const mockUtxos = [{ txid: 'tx1', vout: 0, value: 100, status: { confirmed: true } }];
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockUtxos));
 
-    const utxos = await fetchUtxos('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const utxos = await fetchUtxos('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(utxos).toHaveLength(1);
     expect(utxos[0].txid).toBe('tx1');
   });
@@ -182,7 +182,7 @@ describe('API Utils', () => {
   it('should validate an address correctly', async () => {
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse({ isvalid: true }));
 
-    const result = await validateAddress('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const result = await validateAddress('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(result.isvalid).toBe(true);
   });
 
@@ -202,7 +202,7 @@ describe('API Utils', () => {
     ];
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockTxs));
 
-    const txs = await fetchTransactions('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const txs = await fetchTransactions('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(txs).toHaveLength(1);
     expect(txs[0]!.txid).toBe('abc123');
   });
@@ -210,7 +210,7 @@ describe('API Utils', () => {
   it('should fetch transactions with after_txid correctly', async () => {
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse([]));
 
-    await fetchTransactions('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh', 'last-txid');
+    await fetchTransactions('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU', 'last-txid');
 
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('after_txid=last-txid'),

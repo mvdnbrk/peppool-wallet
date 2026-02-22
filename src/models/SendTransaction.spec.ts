@@ -8,7 +8,7 @@ function createTx(
   utxoValues: number[] = [],
   fees: Partial<RecommendedFees> | null = null
 ): SendTransaction {
-  const tx = new SendTransaction('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+  const tx = new SendTransaction('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
   tx.utxos = utxoValues.map((value, i) => ({
     txid: `${'0'.repeat(63)}${i}`,
     vout: 0,

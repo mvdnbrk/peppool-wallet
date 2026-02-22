@@ -33,7 +33,7 @@ const mockRawTx = {
       txid: 'prev-txid',
       vout: 0,
       prevout: {
-        scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+        scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
         value: 200000000
       }
     }
@@ -51,7 +51,7 @@ describe('TransactionDetailView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWallet = {
-      address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+      address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       openExplorerTx: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
@@ -68,7 +68,7 @@ describe('TransactionDetailView', () => {
 
     // 1. Outgoing
     // @ts-ignore
-    wrapper.vm.txModel = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    wrapper.vm.txModel = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     // @ts-ignore
     wrapper.vm.isLoading = false;
     await wrapper.vm.$nextTick();
@@ -78,7 +78,7 @@ describe('TransactionDetailView', () => {
     // @ts-ignore
     wrapper.vm.txModel = new Transaction(
       { ...mockRawTx, vin: [] },
-      'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+      'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
     );
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).not.toContain('Network Fee');
@@ -94,9 +94,9 @@ describe('TransactionDetailView', () => {
       {
         ...mockRawTx,
         vin: [],
-        vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }]
+        vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
       },
-      'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+      'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
     );
 
     // @ts-ignore
@@ -121,7 +121,7 @@ describe('TransactionDetailView', () => {
 
     // 1. Sending
     // @ts-ignore
-    wrapper.vm.txModel = new Transaction(unconfirmedRaw, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    wrapper.vm.txModel = new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     // @ts-ignore
     wrapper.vm.isLoading = false;
     await wrapper.vm.$nextTick();
@@ -134,9 +134,9 @@ describe('TransactionDetailView', () => {
       {
         ...unconfirmedRaw,
         vin: [],
-        vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }]
+        vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
       },
-      'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh'
+      'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU'
     );
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain('Receiving');
@@ -149,7 +149,7 @@ describe('TransactionDetailView', () => {
     });
 
     // @ts-ignore
-    wrapper.vm.txModel = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    wrapper.vm.txModel = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     // @ts-ignore
     wrapper.vm.isLoading = false;
     await wrapper.vm.$nextTick();

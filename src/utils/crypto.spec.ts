@@ -43,7 +43,7 @@ describe('Crypto Utils', () => {
   it('should derive a Pepecoin address starting with P', () => {
     const addr = deriveAddress(mnemonic);
     expect(addr.startsWith('P')).toBe(true);
-    expect(addr).toBe('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    expect(addr).toBe('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
   });
 
   it('should derive consistent addresses for the same mnemonic', () => {
@@ -60,9 +60,9 @@ describe('Crypto Utils', () => {
   });
 
   it('should validate the provided address', () => {
-    const validAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+    const validAddress = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
     expect(isValidAddress(validAddress)).toBe(true);
-    expect(isValidAddress('PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh')).toBe(true); // Derived address
+    expect(isValidAddress('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')).toBe(true); // Derived address
     expect(isValidAddress('PinvalidAddressHere')).toBe(false);
   });
 
@@ -127,7 +127,7 @@ describe('Crypto Utils', () => {
   });
 
   describe('Transaction Signing', () => {
-    const toAddress = 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh';
+    const toAddress = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
     // Valid Pepecoin transaction hex structure (version 1, 1 input, 1 output)
     const validDummyHex =
       '0100000001bc9606ba9ed606fa66006000000000000000000000000000000000000000000000000000ffffffff0100e1f505000000001976a91476a91476a91476a91476a91476a91476a91476a91488ac00000000';

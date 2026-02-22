@@ -27,7 +27,7 @@ const mockRawTx = {
   version: 1,
   locktime: 0,
   vin: [],
-  vout: [{ value: 100000000, scriptpubkey_address: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh' }],
+  vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }],
   size: 100,
   weight: 400,
   fee: 1000,
@@ -94,7 +94,7 @@ describe('Wallet Views Navigation', () => {
   });
 
   it('Dashboard: should render transaction items and show header', async () => {
-    const tx = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const tx = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     mockWallet.transactions = [tx];
 
     const wrapper = mount(DashboardView, { global });
@@ -114,7 +114,7 @@ describe('Wallet Views Navigation', () => {
   });
 
   it('Dashboard: should show load more button when transactions exist', async () => {
-    const tx = new Transaction(mockRawTx, 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh');
+    const tx = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     mockWallet.transactions = [tx];
     mockWallet.fetchMoreTransactions = vi.fn().mockResolvedValue(true);
 

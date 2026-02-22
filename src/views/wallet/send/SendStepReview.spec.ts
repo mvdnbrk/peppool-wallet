@@ -17,7 +17,7 @@ const stubs = {
 describe('SendStepReview Component', () => {
   const defaultProps = {
     form: {
-      recipient: 'PmiGhUQAajpEe9uZbWz2k9XDbxdYbHKhdh',
+      recipient: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       password: '',
       errors: {},
       hasError: () => false

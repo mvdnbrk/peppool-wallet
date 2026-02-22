@@ -70,15 +70,14 @@ export class SendTransaction {
     const selectedUtxos: UTXO[] = [];
     let totalValue = 0;
 
-    // Safety buffer for selection - use the exact rate
     const feeRate = this.fees
       ? Math.max(RECOMMENDED_FEE_RATE, this.fees.fastestFee)
       : RECOMMENDED_FEE_RATE;
-    const buffer = Math.ceil(estimateTxSize(this.utxos.length, 2) * feeRate);
 
     for (const utxo of this.utxos) {
       selectedUtxos.push(utxo);
       totalValue += utxo.value;
+      const buffer = Math.ceil(estimateTxSize(selectedUtxos.length, 2) * feeRate);
       if (totalValue >= amountRibbits + buffer) break;
     }
 

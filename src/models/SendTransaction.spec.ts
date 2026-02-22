@@ -170,6 +170,16 @@ describe('SendTransaction', () => {
       expect(selectedUtxos.length).toBe(3);
     });
 
+    it('should estimate fee buffer per selected UTXOs, not total UTXOs', () => {
+      // 20 UTXOs of 1 PEP each, sending 0.5 PEP — should only need 1 UTXO
+      const utxos = Array.from({ length: 20 }, () => RIBBITS_PER_PEP);
+      const tx = createTx(utxos);
+      tx.amountPep = 0.5;
+
+      const { selectedUtxos } = tx.selectUtxos(false);
+      expect(selectedUtxos.length).toBe(1);
+    });
+
     it('should return empty array when there are no UTXOs', () => {
       const tx = createTx([]);
       tx.amountPep = 1;

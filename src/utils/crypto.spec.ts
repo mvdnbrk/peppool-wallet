@@ -7,6 +7,7 @@ import {
   deriveSigner,
   parseDerivationPath,
   createSignedTx,
+  signMessage,
   type UTXO,
   estimateTxSize,
   isValidAddress,
@@ -136,6 +137,33 @@ describe('Crypto Utils', () => {
     expect(Buffer.from(s0.publicKey).toString('hex')).not.toBe(
       Buffer.from(s2.publicKey).toString('hex')
     );
+  });
+
+  describe('Message Signing', () => {
+    it('should return a base64 signature string', () => {
+      const sig = signMessage(mnemonic, 'Hello Pepecoin');
+      expect(typeof sig).toBe('string');
+      // Base64 regex
+      expect(sig).toMatch(/^[A-Za-z0-9+/]+=*$/);
+    });
+
+    it('should produce deterministic signatures for the same message', () => {
+      const sig1 = signMessage(mnemonic, 'test message');
+      const sig2 = signMessage(mnemonic, 'test message');
+      expect(sig1).toBe(sig2);
+    });
+
+    it('should produce different signatures for different messages', () => {
+      const sig1 = signMessage(mnemonic, 'message A');
+      const sig2 = signMessage(mnemonic, 'message B');
+      expect(sig1).not.toBe(sig2);
+    });
+
+    it('should produce different signatures for different account indices', () => {
+      const sig1 = signMessage(mnemonic, 'same message', 0, 0);
+      const sig2 = signMessage(mnemonic, 'same message', 1, 0);
+      expect(sig1).not.toBe(sig2);
+    });
   });
 
   describe('Transaction Signing', () => {

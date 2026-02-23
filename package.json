@@ -19,6 +19,7 @@
     "@zxcvbn-ts/core": "^3.0.4",
     "@zxcvbn-ts/language-common": "^3.0.4",
     "@zxcvbn-ts/language-en": "^3.0.2",
+    "bitcoinjs-message": "^2.2.0",
     "pinia": "^3.0.4",
     "qrcode.vue": "^3.8.0",
     "valibot": "^1.2.0",

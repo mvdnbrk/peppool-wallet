@@ -3,10 +3,10 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
 import { useLockoutStore } from './lockout';
 
-import { Transaction } from '../models/Transaction';
+import { Transaction } from '@/models/Transaction';
 
 // Mock the API and Crypto utils
-vi.mock('../utils/api', () => ({
+vi.mock('@/utils/api', () => ({
   fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
   fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
   fetchTransactions: vi.fn(() => Promise.resolve([])),
@@ -343,7 +343,7 @@ describe('Wallet Store', () => {
     };
 
     it('should cache transactions in localStorage when refreshed', async () => {
-      const api = await import('../utils/api');
+      const api = await import('@/utils/api');
       vi.mocked(api.fetchTransactions).mockResolvedValue([mockTx] as any);
 
       const store = useWalletStore();
@@ -400,7 +400,7 @@ describe('Wallet Store', () => {
     });
 
     it('should fetch more transactions and append them uniquely', async () => {
-      const api = await import('../utils/api');
+      const api = await import('@/utils/api');
       const store = useWalletStore();
       const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
       store.accounts = [{ address: addr, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];

@@ -4,7 +4,7 @@ import { useApp } from '@/composables/useApp';
 
 import { RIBBITS_PER_PEP, formatFiat } from '@/utils/constants';
 import PepInput from './PepInput.vue';
-import PepIcon from '../PepIcon.vue';
+import PepIcon from '@/components/ui/PepIcon.vue';
 
 interface Props {
   ribbits: number;

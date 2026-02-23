@@ -2,7 +2,7 @@
 import { useApp } from '@/composables/useApp';
 
 import QrcodeVue from 'qrcode.vue';
-import logoUrl from '../../assets/p-icon.svg';
+import logoUrl from '@/assets/p-icon.svg';
 
 const { router, wallet: walletStore } = useApp();
 </script>

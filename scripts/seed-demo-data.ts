@@ -10,8 +10,8 @@
  *   seedDemoData(store);
  */
 
-import type { RawTransaction } from '../src/models/Transaction';
-import { Transaction } from '../src/models/Transaction';
+import type { RawTransaction } from '@/models/Transaction';
+import { Transaction } from '@/models/Transaction';
 
 const RIBBITS_PER_PEP = 100_000_000;
 const DEMO_ADDRESS = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';

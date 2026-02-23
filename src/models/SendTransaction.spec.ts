@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { SendTransaction } from './SendTransaction';
-import type { RecommendedFees } from '../utils/api';
-import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '../utils/constants';
-import { estimateTxSize } from '../utils/crypto';
+import type { RecommendedFees } from '@/utils/api';
+import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
+import { estimateTxSize } from '@/utils/crypto';
 
 function createTx(
   utxoValues: number[] = [],

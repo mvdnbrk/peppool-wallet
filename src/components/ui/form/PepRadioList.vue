@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends string | number">
-import PepIcon from '../PepIcon.vue';
+import PepIcon from '@/components/ui/PepIcon.vue';
 
 interface Option<T> {
   label: string;

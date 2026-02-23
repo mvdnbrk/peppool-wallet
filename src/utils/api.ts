@@ -1,5 +1,5 @@
 import { API_TIMEOUT_MS, APP_NAME, APP_VERSION } from './constants';
-import { RawTransactionSchema, type RawTransaction } from '../models/Transaction';
+import { RawTransactionSchema, type RawTransaction } from '@/models/Transaction';
 import * as v from 'valibot';
 
 const API_BASE = import.meta.env.VITE_MAINNET_API || 'https://peppool.space/api';

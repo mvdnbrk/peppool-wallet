@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import App from './App.vue';
 import { useRoute } from 'vue-router';
-import PepGlobalHeader from './components/ui/PepGlobalHeader.vue';
+import PepGlobalHeader from '@/components/ui/PepGlobalHeader.vue';
 
 // Mock Router
 vi.mock('vue-router', () => ({

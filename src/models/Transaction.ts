@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { RIBBITS_PER_PEP, truncateId } from '../utils/constants';
+import { RIBBITS_PER_PEP, truncateId } from '@/utils/constants';
 
 export const RawTransactionSchema = v.object({
   txid: v.string(),

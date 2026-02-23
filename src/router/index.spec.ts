@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { router, resetSessionCheck } from './index';
-import { useWalletStore } from '../stores/wallet';
+import { useWalletStore } from '@/stores/wallet';
 import { setActivePinia, createPinia } from 'pinia';
 
 // Mock Wallet Store
-vi.mock('../stores/wallet', () => ({
+vi.mock('@/stores/wallet', () => ({
   useWalletStore: vi.fn()
 }));
 

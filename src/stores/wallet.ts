@@ -9,6 +9,7 @@ import {
 import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
 import {
   fetchAddressInfo,
+  hasAddressActivity,
   fetchTransactions,
   fetchTransaction as apiFetchTransaction,
   fetchPepPrice,
@@ -269,6 +270,32 @@ export const useWalletStore = defineStore('wallet', () => {
 
     await lockout.reset();
     await refreshBalance(true);
+    await discoverAccounts(mnemonic);
+  }
+
+  async function discoverAccounts(mnemonic: string) {
+    let index = 1;
+    const foundAccounts: Account[] = [];
+
+    while (index < 20) {
+      // BIP44 gap limit
+      const addr = deriveAddress(mnemonic, index, 0);
+      const active = await hasAddressActivity(addr);
+      if (!active) break;
+
+      foundAccounts.push({
+        address: addr,
+        path: getDerivationPath(index, 0),
+        label: `Account ${index + 1}`
+      });
+      index++;
+    }
+
+    if (foundAccounts.length > 0) {
+      accounts.value = [...accounts.value, ...foundAccounts];
+      localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
+      await syncToChromeStorage();
+    }
   }
 
   function verifyVaultIntegrity(mnemonic: string) {

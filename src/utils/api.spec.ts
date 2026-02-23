@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   fetchAddressInfo,
+  hasAddressActivity,
   fetchPepPrice,
   validateAddress,
   fetchTransactions,
@@ -111,6 +112,29 @@ describe('API Utils', () => {
 
     const balanceRibbits = await fetchAddressInfo('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(balanceRibbits).toBe(RIBBITS_PER_PEP * 1.3);
+  });
+
+  it('should detect address activity based on tx_count', async () => {
+    const dataActive = {
+      chain_stats: { tx_count: 1 },
+      mempool_stats: { tx_count: 0 }
+    };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(dataActive));
+    expect(await hasAddressActivity('addr')).toBe(true);
+
+    const dataMempoolOnly = {
+      chain_stats: { tx_count: 0 },
+      mempool_stats: { tx_count: 1 }
+    };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(dataMempoolOnly));
+    expect(await hasAddressActivity('addr')).toBe(true);
+
+    const dataInactive = {
+      chain_stats: { tx_count: 0 },
+      mempool_stats: { tx_count: 0 }
+    };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(dataInactive));
+    expect(await hasAddressActivity('addr')).toBe(false);
   });
 
   it('should fetch a single transaction correctly', async () => {

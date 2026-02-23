@@ -44,6 +44,32 @@ describe('Wallet Store', () => {
     expect(localStorage.getItem('peppool_accounts')).not.toBeNull();
   });
 
+  it('should sync accounts to chrome.storage.local on wallet creation', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_accounts: expect.any(String),
+        peppool_active_account: '0'
+      })
+    );
+  });
+
+  it('should sync accounts to chrome.storage.local on switchAccount', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+    vi.mocked(global.chrome.storage.local.set).mockClear();
+
+    await store.addAccount('Account 2');
+
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_active_account: '1'
+      })
+    );
+  });
+
   it('should unlock an existing wallet', async () => {
     const store = useWalletStore();
     await store.createWallet('password123');
@@ -426,6 +452,52 @@ describe('Wallet Store', () => {
       const hasNoMore = await store.fetchMoreTransactions();
       expect(hasNoMore).toBe(false);
       expect(store.canLoadMore).toBe(false);
+    });
+  });
+
+  describe('Background Synchronization', () => {
+    it('should sync accounts to chrome.storage on import', async () => {
+      const store = useWalletStore();
+      const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
+      await store.importWallet(mnemonic, 'password123');
+
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peppool_accounts: expect.any(String),
+          peppool_active_account: '0'
+        })
+      );
+    });
+
+    it('should sync active account index on switchAccount', async () => {
+      const store = useWalletStore();
+      store.accounts = [
+        { address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
+        { address: 'addr2', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
+      ];
+
+      await store.switchAccount(1);
+
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peppool_active_account: '1'
+        })
+      );
+    });
+
+    it('should sync accounts on addAccount', async () => {
+      const store = useWalletStore();
+      const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
+      await store.importWallet(mnemonic, 'password123');
+      vi.clearAllMocks();
+
+      await store.addAccount('New Account');
+
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peppool_accounts: expect.stringContaining('New Account')
+        })
+      );
     });
   });
 });

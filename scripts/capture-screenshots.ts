@@ -47,7 +47,7 @@ async function capture() {
 
     const context = await browser.newContext({
         viewport: useFrame ? { width: 1280, height: 800 } : { width: 360, height: 600 },
-        deviceScaleFactor: 2
+        deviceScaleFactor: 1
     });
 
     // Mock chrome.* APIs

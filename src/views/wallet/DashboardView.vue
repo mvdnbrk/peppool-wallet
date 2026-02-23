@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { formatFiat, formatAmount, truncateId } from '@/utils/constants';
+import { formatFiat, formatAmount } from '@/utils/constants';
+import { Address } from '@/models/Address';
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
 
@@ -56,7 +57,7 @@ async function handleLoadMore() {
       <div class="flex flex-col">
         <span class="text-xs font-bold text-white">{{ walletStore.activeAccount?.label }}</span>
         <span class="font-mono text-[10px] font-medium text-slate-400">{{
-          truncateId(walletStore.address || '')
+          new Address(walletStore.address || '').truncated
         }}</span>
       </div>
       <PepIcon name="chevron-right" size="16" class="text-slate-500" />

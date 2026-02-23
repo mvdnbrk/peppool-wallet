@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useApp } from '@/composables/useApp';
-import { truncateId } from '@/utils/constants';
+import { Address } from '@/models/Address';
 
 const { router, wallet: walletStore } = useApp();
 const isAdding = ref(false);
@@ -67,7 +67,7 @@ function handleRename(index: number, event: Event) {
               <div class="flex min-w-0 flex-col">
                 <span class="truncate text-sm font-bold text-white">{{ account.label }}</span>
                 <span class="truncate font-mono text-[10px] text-slate-500">{{
-                  truncateId(account.address)
+                  new Address(account.address).truncated
                 }}</span>
               </div>
             </div>

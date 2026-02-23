@@ -10,12 +10,15 @@ Peppool Wallet is a non-custodial application. We do not have access to your fun
 
 ## Information collection
 
-### 1. Data we do NOT collect
+### 1. Financial data
+Peppool Wallet retrieves your Pepecoin (PEP) balances and transaction history from the public blockchain. This information is processed and cached exclusively on your local device to provide the wallet's core features. We do not store this data on our servers, nor do we track your financial activity.
+
+### 2. Data we do NOT collect
 - **Private keys / secret phrases:** We never see, transmit, or store your keys or phrases on our servers.
 - **Personal identity:** We do not require an account, email address, or any personal identification.
 - **Tracking:** We do not use cookies, trackers, or any third-party analytics scripts.
 
-### 2. Network communication
+### 3. Network communication
 To provide wallet functionality, the extension communicates with:
 - **Peppool Space API (`https://peppool.space/api`):** To fetch your PEP balance, transaction history, and broadcast transactions.
 - **Price APIs:** To fetch current market prices for PEP.

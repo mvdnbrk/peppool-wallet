@@ -10,9 +10,9 @@
 
 This is the source of the Peppool Wallet browser extension.
 
-## Project status: Beta
+## Project status: Release Candidate
 
-This project is currently in beta. Core features are implemented and the wallet is functional, but we are still in active development. Features may change and you should still expect frequent updates as we polish the experience.
+This project is currently in the **Release Candidate (RC)** phase. Core features are implemented, and the wallet is functional. We are currently performing final testing and polish before public store submission.
 
 ## Development Stack
 

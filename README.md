@@ -74,6 +74,10 @@ If you want to use the pre-built extension:
    npm test
    ```
 
+## For Developers
+
+If you are a developer looking to integrate Peppool Wallet into your dApp, please refer to our [dApp Integration Guide](DAPP_INTEGRATION.md). It covers everything from provider discovery to transaction signing using the **WBIP004** standard.
+
 ## Support the project
 
 If you find this project useful and want to support its development:

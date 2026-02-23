@@ -18,6 +18,7 @@ import AutoLockView from '@/views/settings/AutoLockView.vue';
 import PreferencesView from '@/views/settings/PreferencesView.vue';
 import SecurityView from '@/views/settings/SecurityView.vue';
 import AboutView from '@/views/settings/AboutView.vue';
+import ConnectedSitesView from '@/views/settings/ConnectedSitesView.vue';
 import ConnectDappView from '@/views/approval/ConnectDappView.vue';
 import SignMessageView from '@/views/approval/SignMessageView.vue';
 import SignTxView from '@/views/approval/SignTxView.vue';
@@ -38,6 +39,7 @@ const routes = [
   { path: '/settings/preferences', component: PreferencesView },
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },
+  { path: '/settings/connected-sites', component: ConnectedSitesView },
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },
   { path: '/settings/auto-lock', component: AutoLockView },

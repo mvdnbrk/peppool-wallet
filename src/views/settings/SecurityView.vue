@@ -23,6 +23,12 @@ const { router } = useApp();
           icon="chevron-right"
           @click="router.push('/show-mnemonic')"
         />
+        <PepListItem
+          id="security-connected-sites-item"
+          label="Connected sites"
+          icon="chevron-right"
+          @click="router.push('/settings/connected-sites')"
+        />
       </PepList>
 
       <div class="pt-6">

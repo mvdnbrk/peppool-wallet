@@ -73,4 +73,14 @@ describe('AccountsView', () => {
 
     expect(mockWallet.addAccount).toHaveBeenCalled();
   });
+
+  it('should display error message on addAccount failure', async () => {
+    mockWallet.addAccount.mockRejectedValue(new Error('Failed to add'));
+    const wrapper = mount(AccountsView, { global });
+
+    await wrapper.find('#add-account-button').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Failed to add');
+  });
 });

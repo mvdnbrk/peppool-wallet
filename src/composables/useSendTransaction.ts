@@ -109,7 +109,7 @@ export function useSendTransaction() {
       if (!mnemonic) {
         if (!password) throw new Error('Password required');
         mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);
-        walletStore.cacheMnemonic(mnemonic);
+        await walletStore.cacheMnemonic(mnemonic);
       }
 
       const { selectedUtxos } = tx.value.selectUtxos(isMax);

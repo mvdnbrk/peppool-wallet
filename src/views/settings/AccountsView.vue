@@ -5,6 +5,7 @@ import { Address } from '@/models/Address';
 
 const { router, wallet: walletStore } = useApp();
 const isAdding = ref(false);
+const error = ref('');
 
 async function handleSwitch(index: number) {
   await walletStore.switchAccount(index);
@@ -14,8 +15,11 @@ async function handleSwitch(index: number) {
 async function handleAdd() {
   if (isAdding.value) return;
   isAdding.value = true;
+  error.value = '';
   try {
     await walletStore.addAccount();
+  } catch (e: any) {
+    error.value = e.message || 'Failed to add account';
   } finally {
     isAdding.value = false;
   }
@@ -84,7 +88,10 @@ function handleRename(index: number, event: Event) {
         </PepList>
       </div>
 
-      <div class="pt-4">
+      <div class="space-y-4 pt-4">
+        <div v-if="error" class="px-1 text-sm text-red-400">
+          {{ error }}
+        </div>
         <PepButton
           id="add-account-button"
           @click="handleAdd"

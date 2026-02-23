@@ -135,15 +135,26 @@ export const useWalletStore = defineStore('wallet', () => {
 
     const data = await chrome.storage.local.get(['unlocked_until']);
     const unlockedUntil = data.unlocked_until as number | undefined;
+
     if (!unlockedUntil || unlockedUntil <= Date.now()) return false;
 
     isUnlocked.value = true;
+
     try {
-      const sessionData = await chrome.storage.session.get(['mnemonic']);
-      const mnemonic = sessionData.mnemonic as string | undefined;
-      if (mnemonic) plaintextMnemonic.value = mnemonic;
-    } catch {
-      /* ignore */
+      if (chrome.storage.session) {
+        const sessionData = await chrome.storage.session.get(['mnemonic']);
+        const mnemonic = sessionData.mnemonic as string | undefined;
+        if (mnemonic) {
+          plaintextMnemonic.value = mnemonic;
+        } else {
+          isUnlocked.value = false;
+          await chrome.storage.local.remove('unlocked_until');
+          return false;
+        }
+      }
+    } catch (err) {
+      isUnlocked.value = false;
+      return false;
     }
 
     resetLockTimer();
@@ -365,7 +376,9 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function addAccount(label?: string) {
-    if (!plaintextMnemonic.value) return;
+    if (!plaintextMnemonic.value) {
+      throw new Error('Mnemonic not loaded. Please re-authenticate.');
+    }
     const nextIndex = accounts.value.length;
     const newAddress = deriveAddress(plaintextMnemonic.value, nextIndex, 0);
     const newAccount: Account = {
@@ -386,8 +399,15 @@ export const useWalletStore = defineStore('wallet', () => {
     await syncToChromeStorage();
   }
 
-  function cacheMnemonic(mnemonic: string) {
+  async function cacheMnemonic(mnemonic: string | null) {
     plaintextMnemonic.value = mnemonic;
+    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
+      if (mnemonic) {
+        await chrome.storage.session.set({ mnemonic });
+      } else {
+        await chrome.storage.session.remove('mnemonic');
+      }
+    }
   }
 
   function updateVault(encrypted: string) {

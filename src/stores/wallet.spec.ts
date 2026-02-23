@@ -123,6 +123,9 @@ describe('Wallet Store', () => {
     const success = await store.checkSession();
     expect(success).toBe(true);
     expect(store.isUnlocked).toBe(true);
+    expect(store.plaintextMnemonic).toBe(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
   });
 
   it('should import a wallet with a mnemonic', async () => {
@@ -200,6 +203,12 @@ describe('Wallet Store', () => {
     expect(store.accounts[1].path).toBe("m/44'/3434'/1'/0/0");
     expect(store.address).toBe(store.accounts[1].address);
     expect(store.address).not.toBe(store.accounts[0].address);
+  });
+
+  it('should throw error when adding account without mnemonic', async () => {
+    const store = useWalletStore();
+    // No import/unlock, so no mnemonic
+    await expect(store.addAccount()).rejects.toThrow('Mnemonic not loaded');
   });
 
   it('should rename an account correctly', async () => {
@@ -316,7 +325,7 @@ describe('Wallet Store', () => {
     expect(store.plaintextMnemonic).toBeNull();
 
     // cacheMnemonic restores it
-    store.cacheMnemonic(originalMnemonic!);
+    await store.cacheMnemonic(originalMnemonic!);
     expect(store.plaintextMnemonic).toBe(originalMnemonic);
   });
 

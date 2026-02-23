@@ -468,23 +468,10 @@ describe('Wallet Store', () => {
       const mnemonic =
         'suffer dish east miss seat great brother hello motion mountain celery plunge';
 
-      // Mock activity: Account 0 (implicit), Account 1 (used), Account 2 (used), Account 3 (unused)
-      vi.mocked(api.hasAddressActivity).mockImplementation(async (addr) => {
-        if (addr === 'PPv2YksPh6sh6khZPrv6ZAnvpgNoZ6ZAnv') return true; // Account 1
-        if (addr === 'PnyZAnvpgNoZ6ZAnvpgNoZ6ZAnvpgNoZ6A') return true; // Account 2 (dummy addrs for mock)
-        // Actual derivation for this seed:
-        // Index 1: PmvXQD...
-        // Let's use a more realistic mock that matches deriveAddress
-        const addr1 = 'PmnatNRZps6PhksPrv6ZAnvpgNoZ6ZAnv'; // Dummy
-        return addr.startsWith('P'); // All derived start with P, let's refine
-      });
-
-      // Let's use real derived addresses for the mock to be sure
-      const addr1 = 'PmnatNRZps6PhksPrv6ZAnvpgNoZ6ZAnv'; // This is not real, let's calculate
-
-      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(true); // Account 1 used
-      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(true); // Account 2 used
-      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(false); // Account 3 unused
+      // Mock sequential activity checks: Account 1 used, Account 2 used, Account 3 unused
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(true);
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(true);
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(false);
 
       await store.importWallet(mnemonic, 'password123');
 

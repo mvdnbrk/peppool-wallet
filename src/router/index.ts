@@ -18,6 +18,8 @@ import AutoLockView from '@/views/settings/AutoLockView.vue';
 import PreferencesView from '@/views/settings/PreferencesView.vue';
 import SecurityView from '@/views/settings/SecurityView.vue';
 import AboutView from '@/views/settings/AboutView.vue';
+import AccountsView from '@/views/settings/AccountsView.vue';
+import RenameAccountView from '@/views/settings/RenameAccountView.vue';
 
 const routes = [
   { path: '/', component: WelcomeView },
@@ -35,6 +37,8 @@ const routes = [
   { path: '/settings/preferences', component: PreferencesView },
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },
+  { path: '/settings/accounts', component: AccountsView },
+  { path: '/settings/accounts/rename/:index', component: RenameAccountView },
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },
   { path: '/settings/auto-lock', component: AutoLockView },

@@ -4,6 +4,7 @@ import PreferencesView from './PreferencesView.vue';
 import AutoLockView from './AutoLockView.vue';
 import CurrencyView from './CurrencyView.vue';
 import AboutView from './AboutView.vue';
+import AccountsView from './AccountsView.vue';
 import { useApp } from '@/composables/useApp';
 
 import PepList from '@/components/ui/list/PepList.vue';
@@ -103,6 +104,25 @@ describe('Settings Detail Views', () => {
     it('should render about list', () => {
       const wrapper = mount(AboutView, { global });
       expect(wrapper.find('#about-links-list').exists()).toBe(true);
+    });
+  });
+
+  describe('AccountsView', () => {
+    it('should render correct title', () => {
+      const wrapper = mount(AccountsView, {
+        global: {
+          ...global,
+          stubs: {
+            ...global.stubs,
+            PepMainLayout: {
+              template: '<div><slot name="header"/><slot /><slot name="actions"/></div>'
+            },
+            PepPageHeader: { template: '<div>Accounts</div>' },
+            PepList: { template: '<div><slot /></div>' }
+          }
+        }
+      });
+      expect(wrapper.text()).toContain('Accounts');
     });
   });
 });

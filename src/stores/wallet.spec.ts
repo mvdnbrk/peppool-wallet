@@ -202,6 +202,28 @@ describe('Wallet Store', () => {
     expect(store.address).not.toBe(store.accounts[0].address);
   });
 
+  it('should rename an account correctly', async () => {
+    const store = useWalletStore();
+    store.accounts = [{ address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Old Name' }];
+
+    await store.renameAccount(0, 'New Name');
+    expect(store.accounts[0].label).toBe('New Name');
+    expect(JSON.parse(localStorage.getItem('peppool_accounts')!).length).toBe(1);
+    expect(JSON.parse(localStorage.getItem('peppool_accounts')!)[0].label).toBe('New Name');
+  });
+
+  it('should sync accounts to chrome.storage.local on changes', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_accounts: expect.any(String),
+        peppool_active_account: '0'
+      })
+    );
+  });
+
   it('should calculate fiat balance correctly', async () => {
     const store = useWalletStore();
     // Mock an account

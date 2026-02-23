@@ -52,7 +52,14 @@ describe('Router Logic', () => {
   it('should protect sensitive routes (send, receive, settings) when locked', async () => {
     walletStore.isUnlocked = false;
 
-    const sensitiveRoutes = ['/send', '/receive', '/settings', '/settings/preferences'];
+    const sensitiveRoutes = [
+      '/send',
+      '/receive',
+      '/settings',
+      '/settings/preferences',
+      '/settings/accounts',
+      '/settings/accounts/rename/0'
+    ];
     for (const path of sensitiveRoutes) {
       await router.push(path);
       expect(router.currentRoute.value.path).toBe('/');

@@ -16,6 +16,12 @@ function handleLock() {
     <div class="mt-0 flex-1 space-y-2">
       <PepList id="settings-menu-list">
         <PepListItem
+          id="settings-accounts-item"
+          label="Accounts"
+          icon="chevron-right"
+          @click="router.push('/settings/accounts')"
+        />
+        <PepListItem
           id="settings-preferences-item"
           label="Preferences"
           icon="chevron-right"

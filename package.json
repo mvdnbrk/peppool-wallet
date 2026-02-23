@@ -8,6 +8,7 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:compact": "vitest run --reporter=dot --silent",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write --log-level warn \"src/**/*.{ts,vue,css}\" \"*.{html,json}\"",
     "zip": "npm run build && zip -r peppool-wallet-v$npm_package_version.zip dist",

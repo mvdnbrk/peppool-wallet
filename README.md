@@ -10,9 +10,11 @@
 
 This is the source of the Peppool Wallet browser extension.
 
-## Project status: Release Candidate
+## Installation
 
-This project is currently in the **Release Candidate (RC)** phase. Core features are implemented, and the wallet is functional. We are currently performing final testing and polish before public store submission.
+The easiest way to get the Peppool Wallet is from the official Chrome Web Store:
+
+[**Install Peppool Wallet (Chrome Web Store)**](https://chromewebstore.google.com/detail/peppool-wallet/jfdajbjjeejnlelljgobbfmkkbcbggbp)
 
 ## Development Stack
 
@@ -43,28 +45,34 @@ If you want to use the pre-built extension:
 ### Getting Started
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/mvdnbrk/peppool-wallet.git
    cd peppool-wallet
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment:**
+
    ```bash
    cp .env.example .env
    ```
+
    Update `VITE_MAINNET_API` if you wish to point to a custom Electrs/Pepecoin API.
 
 4. **Run for development:**
+
    ```bash
    npm run dev
    ```
 
 5. **Build for production:**
+
    ```bash
    npm run build
    ```

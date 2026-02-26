@@ -97,6 +97,11 @@ export async function fetchAddressInfo(address: string): Promise<number> {
   return confirmedBalance + mempoolBalance;
 }
 
+export async function hasAddressActivity(address: string): Promise<boolean> {
+  const data = await request<AddressInfo>(`/address/${encodeURIComponent(address)}`);
+  return data.chain_stats.tx_count + data.mempool_stats.tx_count > 0;
+}
+
 export async function fetchPepPrice(): Promise<{ USD: number; EUR: number }> {
   return await request<{ USD: number; EUR: number }>('/prices');
 }

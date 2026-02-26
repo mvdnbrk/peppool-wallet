@@ -9,6 +9,7 @@ import {
 import { encrypt, decrypt, isLegacyVault } from '@/utils/encryption';
 import {
   fetchAddressInfo,
+  hasAddressActivity,
   fetchTransactions,
   fetchTransaction as apiFetchTransaction,
   fetchPepPrice,
@@ -96,6 +97,15 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   // ── Actions ──
+  async function syncToChromeStorage() {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      await chrome.storage.local.set({
+        peppool_accounts: JSON.stringify(accounts.value),
+        peppool_active_account: activeAccountIndex.value.toString()
+      });
+    }
+  }
+
   function setCurrency(currency: 'USD' | 'EUR') {
     selectedCurrency.value = currency;
     localStorage.setItem('peppool_currency', currency);
@@ -126,15 +136,26 @@ export const useWalletStore = defineStore('wallet', () => {
 
     const data = await chrome.storage.local.get(['unlocked_until']);
     const unlockedUntil = data.unlocked_until as number | undefined;
+
     if (!unlockedUntil || unlockedUntil <= Date.now()) return false;
 
     isUnlocked.value = true;
+
     try {
-      const sessionData = await chrome.storage.session.get(['mnemonic']);
-      const mnemonic = sessionData.mnemonic as string | undefined;
-      if (mnemonic) plaintextMnemonic.value = mnemonic;
-    } catch {
-      /* ignore */
+      if (chrome.storage.session) {
+        const sessionData = await chrome.storage.session.get(['mnemonic']);
+        const mnemonic = sessionData.mnemonic as string | undefined;
+        if (mnemonic) {
+          plaintextMnemonic.value = mnemonic;
+        } else {
+          isUnlocked.value = false;
+          await chrome.storage.local.remove('unlocked_until');
+          return false;
+        }
+      }
+    } catch (err) {
+      isUnlocked.value = false;
+      return false;
     }
 
     resetLockTimer();
@@ -245,8 +266,36 @@ export const useWalletStore = defineStore('wallet', () => {
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
     localStorage.setItem('peppool_active_account', '0');
 
+    await syncToChromeStorage();
+
     await lockout.reset();
     await refreshBalance(true);
+    await discoverAccounts(mnemonic);
+  }
+
+  async function discoverAccounts(mnemonic: string) {
+    let index = 1;
+    const foundAccounts: Account[] = [];
+
+    while (index < 20) {
+      // BIP44 gap limit
+      const addr = deriveAddress(mnemonic, index, 0);
+      const active = await hasAddressActivity(addr);
+      if (!active) break;
+
+      foundAccounts.push({
+        address: addr,
+        path: getDerivationPath(index, 0),
+        label: `Account ${index + 1}`
+      });
+      index++;
+    }
+
+    if (foundAccounts.length > 0) {
+      accounts.value = [...accounts.value, ...foundAccounts];
+      localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
+      await syncToChromeStorage();
+    }
   }
 
   function verifyVaultIntegrity(mnemonic: string) {
@@ -347,13 +396,16 @@ export const useWalletStore = defineStore('wallet', () => {
     if (!accounts.value[index]) return;
     activeAccountIndex.value = index;
     localStorage.setItem('peppool_active_account', index.toString());
+    await syncToChromeStorage();
     balance.value = 0;
     transactions.value = [];
     await refreshBalance(true);
   }
 
   async function addAccount(label?: string) {
-    if (!plaintextMnemonic.value) return;
+    if (!plaintextMnemonic.value) {
+      throw new Error('Mnemonic not loaded. Please re-authenticate.');
+    }
     const nextIndex = accounts.value.length;
     const newAddress = deriveAddress(plaintextMnemonic.value, nextIndex, 0);
     const newAccount: Account = {
@@ -363,11 +415,26 @@ export const useWalletStore = defineStore('wallet', () => {
     };
     accounts.value.push(newAccount);
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
+    await syncToChromeStorage();
     await switchAccount(nextIndex);
   }
 
-  function cacheMnemonic(mnemonic: string) {
+  async function renameAccount(index: number, label: string) {
+    if (!accounts.value[index]) return;
+    accounts.value[index].label = label;
+    localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
+    await syncToChromeStorage();
+  }
+
+  async function cacheMnemonic(mnemonic: string | null) {
     plaintextMnemonic.value = mnemonic;
+    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
+      if (mnemonic) {
+        await chrome.storage.session.set({ mnemonic });
+      } else {
+        await chrome.storage.session.remove('mnemonic');
+      }
+    }
   }
 
   function updateVault(encrypted: string) {
@@ -426,6 +493,7 @@ export const useWalletStore = defineStore('wallet', () => {
     resetWallet,
     switchAccount,
     addAccount,
+    renameAccount,
     cacheMnemonic,
     updateVault
   };

@@ -27,6 +27,7 @@ vi.mock('../utils/encryption', () => ({
 vi.mock('../utils/api', () => ({
   fetchAddressInfo: vi.fn(() => Promise.resolve(0)),
   fetchTransactions: vi.fn(() => Promise.resolve([])),
+  hasAddressActivity: vi.fn(() => Promise.resolve(false)),
   fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0, EUR: 0 })),
   fetchTipHeight: vi.fn(() => Promise.resolve(0))
 }));

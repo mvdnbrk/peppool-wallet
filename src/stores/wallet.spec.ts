@@ -10,6 +10,7 @@ vi.mock('@/utils/api', () => ({
   fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
   fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
   fetchTransactions: vi.fn(() => Promise.resolve([])),
+  hasAddressActivity: vi.fn(() => Promise.resolve(false)),
   fetchRecommendedFees: vi.fn(() =>
     Promise.resolve({ fastestFee: 1, halfHourFee: 1, hourFee: 1, economyFee: 1, minimumFee: 1 })
   ),
@@ -123,6 +124,9 @@ describe('Wallet Store', () => {
     const success = await store.checkSession();
     expect(success).toBe(true);
     expect(store.isUnlocked).toBe(true);
+    expect(store.plaintextMnemonic).toBe(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
   });
 
   it('should import a wallet with a mnemonic', async () => {
@@ -200,6 +204,34 @@ describe('Wallet Store', () => {
     expect(store.accounts[1].path).toBe("m/44'/3434'/1'/0/0");
     expect(store.address).toBe(store.accounts[1].address);
     expect(store.address).not.toBe(store.accounts[0].address);
+  });
+
+  it('should throw error when adding account without mnemonic', async () => {
+    const store = useWalletStore();
+    // No import/unlock, so no mnemonic
+    await expect(store.addAccount()).rejects.toThrow('Mnemonic not loaded');
+  });
+
+  it('should rename an account correctly', async () => {
+    const store = useWalletStore();
+    store.accounts = [{ address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Old Name' }];
+
+    await store.renameAccount(0, 'New Name');
+    expect(store.accounts[0].label).toBe('New Name');
+    expect(JSON.parse(localStorage.getItem('peppool_accounts')!).length).toBe(1);
+    expect(JSON.parse(localStorage.getItem('peppool_accounts')!)[0].label).toBe('New Name');
+  });
+
+  it('should sync accounts to chrome.storage.local on changes', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_accounts: expect.any(String),
+        peppool_active_account: '0'
+      })
+    );
   });
 
   it('should calculate fiat balance correctly', async () => {
@@ -294,7 +326,7 @@ describe('Wallet Store', () => {
     expect(store.plaintextMnemonic).toBeNull();
 
     // cacheMnemonic restores it
-    store.cacheMnemonic(originalMnemonic!);
+    await store.cacheMnemonic(originalMnemonic!);
     expect(store.plaintextMnemonic).toBe(originalMnemonic);
   });
 
@@ -426,6 +458,39 @@ describe('Wallet Store', () => {
       const hasNoMore = await store.fetchMoreTransactions();
       expect(hasNoMore).toBe(false);
       expect(store.canLoadMore).toBe(false);
+    });
+  });
+
+  describe('Account Discovery', () => {
+    it('should discover multiple used accounts on import', async () => {
+      const api = await import('../utils/api');
+      const store = useWalletStore();
+      const mnemonic =
+        'suffer dish east miss seat great brother hello motion mountain celery plunge';
+
+      // Mock sequential activity checks: Account 1 used, Account 2 used, Account 3 unused
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(true);
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(true);
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(false);
+
+      await store.importWallet(mnemonic, 'password123');
+
+      expect(store.accounts).toHaveLength(3); // Account 1 + 2 + 3 (0, 1, 2 indices)
+      expect(store.accounts[1].label).toBe('Account 2');
+      expect(store.accounts[2].label).toBe('Account 3');
+    });
+
+    it('should stop discovery at first gap', async () => {
+      const api = await import('../utils/api');
+      const store = useWalletStore();
+      const mnemonic =
+        'suffer dish east miss seat great brother hello motion mountain celery plunge';
+
+      vi.mocked(api.hasAddressActivity).mockResolvedValueOnce(false); // Account 1 unused
+
+      await store.importWallet(mnemonic, 'password123');
+
+      expect(store.accounts).toHaveLength(1); // Only Account 1 (index 0)
     });
   });
 });

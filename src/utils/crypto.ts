@@ -2,6 +2,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import * as bip39 from 'bip39';
 import { BIP32Factory } from 'bip32';
 import * as ecc from 'tiny-secp256k1';
+import message from 'bitcoinjs-message';
 import { PEPECOIN } from './networks';
 
 const bip32 = BIP32Factory(ecc);
@@ -152,4 +153,32 @@ export async function createSignedTx(
   psbt.finalizeAllInputs();
 
   return psbt.extractTransaction().toHex();
+}
+
+/**
+ * Sign an arbitrary message with a P2PKH private key.
+ * This uses the standard Bitcoin (Pepecoin) signed message format.
+ */
+export function signMessage(
+  mnemonic: string,
+  messageText: string,
+  accountIndex = 0,
+  addressIndex = 0
+): string {
+  const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
+  const seed = new Uint8Array(seedBuffer);
+  const root = bip32.fromSeed(seed, PEPECOIN);
+  const path = getDerivationPath(accountIndex, addressIndex);
+  const child = root.derivePath(path);
+
+  if (!child.privateKey) throw new Error('Could not derive private key for message signing');
+
+  const signature = message.sign(
+    messageText,
+    Buffer.from(child.privateKey),
+    child.publicKey.length === 33,
+    PEPECOIN.messagePrefix
+  );
+
+  return signature.toString('base64');
 }

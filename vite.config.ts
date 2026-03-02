@@ -57,6 +57,12 @@ export default defineConfig({
     build: {
         chunkSizeWarningLimit: 1500,
         rollupOptions: {
+            input: {
+                main: 'index.html',
+                approval: 'approval.html',
+                'content-script': 'src/content/content.ts',
+                'inpage-script': 'src/content/inpage.ts'
+            },
             output: {
                 manualChunks: {
                     'vendor-vue': ['vue', 'vue-router', 'pinia'],

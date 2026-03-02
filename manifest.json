@@ -22,10 +22,17 @@
     "48": "src/assets/icon48.png",
     "128": "src/assets/icon128.png"
   },
+  "content_scripts": [
+    {
+      "js": ["src/content/content.ts"],
+      "matches": ["<all_urls>"],
+      "run_at": "document_start"
+    }
+  ],
   "web_accessible_resources": [
     {
-      "resources": ["assets/*"],
-      "matches": ["https://peppool.space/*"]
+      "resources": ["assets/*", "src/content/inpage.ts"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

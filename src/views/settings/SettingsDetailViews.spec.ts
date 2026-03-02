@@ -4,6 +4,7 @@ import PreferencesView from './PreferencesView.vue';
 import AutoLockView from './AutoLockView.vue';
 import CurrencyView from './CurrencyView.vue';
 import AboutView from './AboutView.vue';
+import ConnectedSitesView from './ConnectedSitesView.vue';
 import { useApp } from '@/composables/useApp';
 
 import PepList from '@/components/ui/list/PepList.vue';
@@ -103,6 +104,13 @@ describe('Settings Detail Views', () => {
     it('should render about list', () => {
       const wrapper = mount(AboutView, { global });
       expect(wrapper.find('#about-links-list').exists()).toBe(true);
+    });
+  });
+
+  describe('ConnectedSitesView', () => {
+    it('should render correct title', () => {
+      const wrapper = mount(ConnectedSitesView, { global });
+      expect(wrapper.text()).toContain('Connected Sites');
     });
   });
 });

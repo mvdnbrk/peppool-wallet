@@ -18,6 +18,10 @@ import AutoLockView from '@/views/settings/AutoLockView.vue';
 import PreferencesView from '@/views/settings/PreferencesView.vue';
 import SecurityView from '@/views/settings/SecurityView.vue';
 import AboutView from '@/views/settings/AboutView.vue';
+import ConnectedSitesView from '@/views/settings/ConnectedSitesView.vue';
+import ConnectDappView from '@/views/approval/ConnectDappView.vue';
+import SignMessageView from '@/views/approval/SignMessageView.vue';
+import SignTxView from '@/views/approval/SignTxView.vue';
 
 const routes = [
   { path: '/', component: WelcomeView },
@@ -35,9 +39,13 @@ const routes = [
   { path: '/settings/preferences', component: PreferencesView },
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },
+  { path: '/settings/connected-sites', component: ConnectedSitesView },
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },
   { path: '/settings/auto-lock', component: AutoLockView },
+  { path: '/approve/connect', component: ConnectDappView },
+  { path: '/approve/sign-message', component: SignMessageView },
+  { path: '/approve/sign-tx', component: SignTxView },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 
@@ -79,11 +87,12 @@ router.beforeEach(async (to, _from, next) => {
   // Public routes that don't require an unlocked wallet
   const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
   const isPublicRoute = publicRoutes.includes(to.path);
+  const isApprovalRoute = to.path.startsWith('/approve/');
 
-  if (!walletStore.isUnlocked && !isPublicRoute) {
+  if (!walletStore.isUnlocked && !isPublicRoute && !isApprovalRoute) {
     // Redirect any protected route to welcome/login when locked
     next('/');
-  } else if (to.path === '/' && walletStore.isUnlocked) {
+  } else if (to.path === '/' && walletStore.isUnlocked && !isApprovalRoute) {
     next('/dashboard');
   } else {
     next();

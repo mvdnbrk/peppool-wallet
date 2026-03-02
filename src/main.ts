@@ -35,6 +35,32 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 
+// Handle approval window routing
+function handleApprovalRouting() {
+  if (!window.location.pathname.includes('approval.html')) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const method = params.get('method');
+  const query = window.location.search;
+
+  if (method === 'wallet_connect') {
+    router.push('/approve/connect' + query);
+    return;
+  }
+
+  if (method === 'signMessage') {
+    router.push('/approve/sign-message' + query);
+    return;
+  }
+
+  if (method === 'sendTransfer' || method === 'signPsbt') {
+    router.push('/approve/sign-tx' + query);
+    return;
+  }
+}
+
+handleApprovalRouting();
+
 // Expose internals for automated screenshots (DEV only — tree-shaken from production builds)
 if (import.meta.env.DEV) {
   (window as any).__peppool_dev__ = { app, router, pinia };

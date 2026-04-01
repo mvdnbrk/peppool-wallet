@@ -1,0 +1,71 @@
+{
+  "../../../../../@crx/manifest": {
+    "file": "assets/crx-manifest.js-B1SD9UNS.js",
+    "name": "crx-manifest.js",
+    "src": "../../../../../@crx/manifest",
+    "isEntry": true
+  },
+  "_main-CsFQ4I_K.css": {
+    "file": "assets/main-CsFQ4I_K.css",
+    "src": "_main-CsFQ4I_K.css"
+  },
+  "_main-ysiuhX3r.js": {
+    "file": "assets/main-ysiuhX3r.js",
+    "name": "main",
+    "imports": [
+      "_vendor-vue-BNgUlZKr.js",
+      "_vendor-crypto-ViaChNIO.js",
+      "_vendor-zxcvbn-B5OZ_hDE.js"
+    ],
+    "css": [
+      "assets/main-CsFQ4I_K.css"
+    ],
+    "assets": [
+      "assets/logo-CyngzSMV.svg"
+    ]
+  },
+  "_vendor-crypto-ViaChNIO.js": {
+    "file": "assets/vendor-crypto-ViaChNIO.js",
+    "name": "vendor-crypto",
+    "imports": [
+      "_vendor-vue-BNgUlZKr.js"
+    ],
+    "assets": [
+      "assets/secp256k1-Cao5Swmf.wasm"
+    ]
+  },
+  "_vendor-vue-BNgUlZKr.js": {
+    "file": "assets/vendor-vue-BNgUlZKr.js",
+    "name": "vendor-vue"
+  },
+  "_vendor-zxcvbn-B5OZ_hDE.js": {
+    "file": "assets/vendor-zxcvbn-B5OZ_hDE.js",
+    "name": "vendor-zxcvbn"
+  },
+  "node_modules/tiny-secp256k1/lib/secp256k1.wasm": {
+    "file": "assets/secp256k1-Cao5Swmf.wasm",
+    "src": "node_modules/tiny-secp256k1/lib/secp256k1.wasm"
+  },
+  "src/assets/logo.svg": {
+    "file": "assets/logo-CyngzSMV.svg",
+    "src": "src/assets/logo.svg"
+  },
+  "src/background.ts": {
+    "file": "assets/background.ts-CFRfW-mI.js",
+    "name": "background.ts",
+    "src": "src/background.ts",
+    "isEntry": true
+  },
+  "src/content/content.ts": {
+    "file": "assets/content-script--YImiM-i.js",
+    "name": "content-script",
+    "src": "src/content/content.ts",
+    "isEntry": true
+  },
+  "src/content/inpage.ts": {
+    "file": "assets/inpage-script-DSUr1U8U.js",
+    "name": "inpage-script",
+    "src": "src/content/inpage.ts",
+    "isEntry": true
+  }
+}

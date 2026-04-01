@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Peppool Wallet",
+  "version": "0.1.0",
+  "description": "The Pepecoin wallet for everyone.",
+  "homepage_url": "https://peppool.space",
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "src/assets/icon48.png"
+  },
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://peppool.space/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://peppool.space"
+  },
+  "icons": {
+    "16": "src/assets/icon16.png",
+    "48": "src/assets/icon48.png",
+    "128": "src/assets/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "assets/content-script--YImiM-i.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        "assets/*",
+        "src/content/inpage.ts",
+        "assets/content-script--YImiM-i.js"
+      ],
+      "use_dynamic_url": false
+    }
+  ]
+}

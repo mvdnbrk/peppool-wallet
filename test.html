@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Peppool Wallet — dApp test (WBIP004)</title>
+  <title>Peppool Wallet — test</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -64,46 +64,45 @@
   </style>
 </head>
 <body>
-  <h1>Peppool Wallet test (WBIP004)</h1>
-  <p id="phase" class="muted">Waiting for <code>wbip_providers_ready</code> / <code>PepecoinProvider</code>…</p>
+  <h1>Peppool Wallet test</h1>
+  <p id="phase" class="muted">Waiting for <code>pepecoin#initialized</code>…</p>
   <div id="actions" hidden>
     <button type="button" id="connectBtn" class="btn-primary">Connect wallet</button>
     <button type="button" id="disconnectBtn" class="btn-secondary" hidden>Disconnect</button>
   </div>
   <div id="connected" class="connected" hidden>
     <p><label>Connected</label><code id="addressEl"></code></p>
-    <p id="balanceLine" class="muted" hidden>Balance is not exposed via WBIP004 in this build — use the extension to view balance.</p>
+    <p id="balanceLine" class="muted" hidden>Balance: <strong id="balanceEl"></strong> PEP</p>
   </div>
 
   <div id="txSection" class="hint" hidden style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e2e4e8;">
-    <p style="margin: 0 0 0.5rem; font-weight: 600;">Test <code>sendTransfer</code></p>
+    <p style="margin: 0 0 0.5rem; font-weight: 600;">Test <code>requestTransaction</code></p>
     <p class="muted" style="margin: 0 0 0.25rem;">Recipient (fixed)</p>
     <code id="recipientDisplay" style="display: block; font-size: 0.8125rem; word-break: break-all; padding: 0.5rem 0.75rem; background: #f6f7f9; border: 1px solid #e2e4e8; border-radius: 6px;"></code>
-    <p class="muted" style="margin: 0.75rem 0;">Amount: <strong>5</strong> PEP (<span id="ribbitsHint"></span> ribbits)</p>
+    <p class="muted" style="margin: 0.75rem 0;">Amount: <strong>5</strong> PEP</p>
     <button type="button" id="sendTestBtn" class="btn-secondary" disabled>Request transaction</button>
     <p id="txResultEl" class="muted" style="margin-top: 0.75rem;" hidden role="status"></p>
   </div>
 
   <p id="errorEl" class="err" hidden role="alert"></p>
   <p class="hint">
-    <strong>Chrome:</strong> Serve this file over <code>http://localhost</code>. Matches
-    <a href="https://github.com/mvdnbrk/peppool-wallet/pull/1" target="_blank" rel="noopener">PR #1 (WBIP004)</a>:
-    <code>PepecoinProvider.request('wallet_connect')</code>,
-    <code>getAccounts</code>,
-    <code>sendTransfer</code> with <code>amount</code> in <strong>ribbits</strong> (1 PEP = 100,000,000 ribbits).
-    Unlock the wallet before sending.
+    <strong>Chrome:</strong> Serve this file over <code>http://localhost</code> (not <code>file://</code> unless the extension allows file URLs).
+    Per <code>WALLET_CONNECT.md</code>: after <code>pepecoin#initialized</code>, click <strong>Connect wallet</strong> — on the <strong>first</strong> visit per origin the extension opens an <strong>approval</strong> popup; approve to finish connecting. Unlock the wallet in the extension if needed.
   </p>
 
   <script>
     /**
-     * WBIP004 (see inpage.ts): window.PepecoinProvider + wbip_providers_ready
-     * sendTransfer params: { recipient, amount } — amount in ribbits (SignTxView.vue).
+     * Flow matches WALLET_CONNECT.md:
+     * - Gate on pepecoin#initialized (inject may load before DOMContentLoaded).
+     * - Check window.pepecoin?.isPeppool before using the API.
+     * - On load: getConnectionStatus(); if connected, show address (+ getBalance).
+     * - On Connect: connect() → { address, balance }; first time per origin shows approval UI.
+     * - When connected: requestTransaction({ recipientAddress, amount }) — test button sends 5 PEP.
      */
     (function () {
-      var RIBBITS_PER_PEP = 100000000;
+      /** Fixed test recipient & amount (WALLET_CONNECT.md — amount in PEP). */
       var TEST_RECIPIENT = 'PruZV18t6CqM9Dy5KcrrqwAzJzUzWYRkWy';
       var TEST_AMOUNT_PEP = 5;
-      var TEST_AMOUNT_RIBBITS = TEST_AMOUNT_PEP * RIBBITS_PER_PEP;
 
       var phase = document.getElementById('phase');
       var actions = document.getElementById('actions');
@@ -112,29 +111,16 @@
       var connectedEl = document.getElementById('connected');
       var addressEl = document.getElementById('addressEl');
       var balanceLine = document.getElementById('balanceLine');
+      var balanceEl = document.getElementById('balanceEl');
       var errorEl = document.getElementById('errorEl');
       var txSection = document.getElementById('txSection');
       var recipientDisplay = document.getElementById('recipientDisplay');
-      var ribbitsHint = document.getElementById('ribbitsHint');
       var sendTestBtn = document.getElementById('sendTestBtn');
       var txResultEl = document.getElementById('txResultEl');
 
       recipientDisplay.textContent = TEST_RECIPIENT;
-      ribbitsHint.textContent = String(TEST_AMOUNT_RIBBITS);
 
-      var provider = null;
       var bootstrapStarted = false;
-
-      function getProvider() {
-        if (window.PepecoinProvider) return window.PepecoinProvider;
-        var list = window.wbip_providers;
-        if (Array.isArray(list)) {
-          for (var i = 0; i < list.length; i++) {
-            if (list[i] && list[i].id === 'peppool') return list[i];
-          }
-        }
-        return null;
-      }
 
       function showError(msg) {
         errorEl.textContent = msg || '';
@@ -145,40 +131,48 @@
         var raw = err && err.message ? err.message : String(err);
         var lower = raw.toLowerCase();
         if (lower.includes('receiving end does not exist') || lower.includes('could not establish connection')) {
-          return 'Extension messaging failed. Reload the Peppool extension on chrome://extensions, then reload this tab.';
+          return 'Extension messaging failed (background may be inactive). Reload the Peppool extension on chrome://extensions, then reload this tab and try again.';
         }
         if (lower.includes('locked')) {
           return 'Wallet is locked. Open Peppool Wallet and unlock it, then try again.';
         }
         if (lower.includes('not set up') || lower.includes('not configured')) {
-          return 'Wallet not set up. Create or import a wallet in the extension popup.';
+          return 'Wallet not set up in this extension install. Create or import a wallet in the extension popup.';
         }
-        if (lower.includes('rejected')) {
+        if (lower.includes('rejected') || lower.includes('deny')) {
           return 'Request was cancelled in the wallet.';
+        }
+        if (lower.includes('approval window was closed')) {
+          return 'Approval window was closed.';
         }
         return raw;
       }
 
-      function waitForProvider() {
+      function isPeppoolReady() {
+        return window.pepecoin && window.pepecoin.isPeppool === true;
+      }
+
+      /** Doc: always wait for pepecoin#initialized; fallback if event already fired (listener registered late). */
+      function waitForInitialized() {
         return new Promise(function (resolve) {
           var done = false;
           function finish() {
             if (done) return;
             done = true;
-            window.removeEventListener('wbip_providers_ready', onReady);
+            window.removeEventListener('pepecoin#initialized', onInit);
             resolve();
           }
-          function onReady() {
+          function onInit() {
             finish();
           }
-          window.addEventListener('wbip_providers_ready', onReady);
+          window.addEventListener('pepecoin#initialized', onInit);
           queueMicrotask(function () {
-            if (getProvider()) finish();
+            if (isPeppoolReady()) finish();
           });
           var n = 0;
           var poll = setInterval(function () {
             n++;
-            if (getProvider() || n >= 200) {
+            if (isPeppoolReady() || n >= 200) {
               clearInterval(poll);
               finish();
             }
@@ -188,7 +182,6 @@
 
       function setUiDisconnected() {
         connectedEl.hidden = true;
-        balanceLine.hidden = true;
         txSection.hidden = true;
         sendTestBtn.disabled = true;
         txResultEl.hidden = true;
@@ -198,68 +191,84 @@
         phase.textContent = 'Peppool ready. Click Connect wallet — first time per site opens an approval popup.';
       }
 
-      function setUiConnected(address) {
+      function setUiConnected(address, balancePep) {
         connectedEl.hidden = false;
-        balanceLine.hidden = false;
         txSection.hidden = false;
         sendTestBtn.disabled = false;
         addressEl.textContent = address;
         connectBtn.hidden = true;
         disconnectBtn.hidden = false;
         phase.textContent = 'Connected to this site.';
+        if (balancePep != null && !isNaN(balancePep)) {
+          balanceEl.textContent = String(balancePep);
+          balanceLine.hidden = false;
+        } else {
+          balanceLine.hidden = true;
+        }
+      }
+
+      async function refreshBalance() {
+        if (!isPeppoolReady()) return;
+        try {
+          var b = await window.pepecoin.getBalance();
+          balanceEl.textContent = String(b.total);
+          balanceLine.hidden = false;
+        } catch (e) {
+          showError(formatErr(e));
+        }
       }
 
       async function runAfterProviderReady() {
         if (bootstrapStarted) return;
         bootstrapStarted = true;
 
-        await waitForProvider();
-        provider = getProvider();
+        await waitForInitialized();
 
-        if (!provider || typeof provider.request !== 'function') {
-          phase.textContent = 'Peppool Wallet (WBIP004) is not installed or not available on this page.';
+        if (!isPeppoolReady()) {
+          phase.textContent = 'Peppool Wallet is not installed or not available on this page.';
           phase.classList.add('warn');
           actions.hidden = true;
-          console.warn('[Peppool test] PepecoinProvider not found');
+          console.warn('[Peppool test] window.pepecoin.isPeppool is not true');
           return;
         }
 
-        console.log('[Peppool test] Provider ready (WBIP004)');
+        console.log('[Peppool test] Provider ready (pepecoin#initialized / isPeppool)');
         phase.textContent = 'Peppool ready. Click Connect wallet to approve this origin (first visit shows a popup).';
         actions.hidden = false;
 
         try {
-          var accounts = await provider.request('getAccounts', {});
-          if (Array.isArray(accounts) && accounts[0]) {
-            setUiConnected(accounts[0]);
+          var st = await window.pepecoin.getConnectionStatus();
+          if (st.connected && st.address) {
+            setUiConnected(st.address, null);
+            await refreshBalance();
           } else {
             setUiDisconnected();
           }
         } catch (e) {
+          showError(formatErr(e));
           setUiDisconnected();
         }
       }
 
-      window.addEventListener('wbip_providers_ready', function () {
+      // WALLET_CONNECT.md: gate on pepecoin#initialized
+      window.addEventListener('pepecoin#initialized', function () {
         runAfterProviderReady();
       });
 
       connectBtn.addEventListener('click', async function () {
         showError('');
-        provider = getProvider();
-        if (!provider) {
+        if (!isPeppoolReady()) {
           showError('Peppool Wallet is not available.');
           return;
         }
         connectBtn.disabled = true;
         phase.textContent = 'Requesting connection…';
         try {
-          var addresses = await provider.request('wallet_connect', {});
-          var addr = Array.isArray(addresses) ? addresses[0] : addresses;
-          console.log('[Peppool test] wallet_connect ok', addr);
-          setUiConnected(addr);
+          var result = await window.pepecoin.connect();
+          console.log('[Peppool test] connect() ok', result.address, result.balance, 'PEP');
+          setUiConnected(result.address, result.balance);
         } catch (e) {
-          console.error('[Peppool test] wallet_connect failed', e);
+          console.error('[Peppool test] connect() failed', e);
           showError(formatErr(e));
           phase.textContent = 'Peppool ready. Click Connect wallet to try again.';
         } finally {
@@ -269,11 +278,10 @@
 
       disconnectBtn.addEventListener('click', async function () {
         showError('');
-        provider = getProvider();
-        if (!provider) return;
+        if (!isPeppoolReady()) return;
         disconnectBtn.disabled = true;
         try {
-          await provider.request('wallet_disconnect', {});
+          await window.pepecoin.disconnect();
           setUiDisconnected();
         } catch (e) {
           showError(formatErr(e));
@@ -287,8 +295,7 @@
         txResultEl.hidden = true;
         txResultEl.className = 'muted';
         txResultEl.style.marginTop = '0.75rem';
-        provider = getProvider();
-        if (!provider) {
+        if (!isPeppoolReady()) {
           showError('Peppool Wallet is not available.');
           return;
         }
@@ -296,15 +303,15 @@
         txResultEl.textContent = 'Waiting for approval in the extension…';
         txResultEl.hidden = false;
         try {
-          var result = await provider.request('sendTransfer', {
-            recipient: TEST_RECIPIENT,
-            amount: TEST_AMOUNT_RIBBITS
+          var tx = await window.pepecoin.requestTransaction({
+            recipientAddress: TEST_RECIPIENT,
+            amount: TEST_AMOUNT_PEP
           });
-          var txid = result && result.txid ? result.txid : JSON.stringify(result);
-          console.log('[Peppool test] sendTransfer ok', txid);
-          txResultEl.textContent = 'Broadcast. Transaction ID: ' + txid;
+          console.log('[Peppool test] requestTransaction ok', tx.txId);
+          txResultEl.textContent = 'Broadcast. Transaction ID: ' + tx.txId;
+          await refreshBalance();
         } catch (e) {
-          console.error('[Peppool test] sendTransfer failed', e);
+          console.error('[Peppool test] requestTransaction failed', e);
           txResultEl.textContent = formatErr(e);
           txResultEl.className = 'err';
           txResultEl.style.marginTop = '0.75rem';
@@ -313,6 +320,7 @@
         }
       });
 
+      // If inject ran before this script, event may have been missed — still bootstrap
       queueMicrotask(function () {
         runAfterProviderReady();
       });

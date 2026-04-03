@@ -9,6 +9,10 @@ import PepSpinner from '@/components/ui/PepSpinner.vue';
 
 const { connectedSites, isLoading, loadConnectedSites, revokeAccess } = useConnectedSites();
 
+function domainFrom(origin: string): string {
+  return origin.replace(/^https?:\/\//, '');
+}
+
 onMounted(async () => {
   await loadConnectedSites();
 });
@@ -58,15 +62,12 @@ onMounted(async () => {
                 class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800"
               >
                 <span class="text-pepe-green text-xs font-bold">{{
-                  site
-                    .replace(/^https?:\/\//, '')
-                    .charAt(0)
-                    .toUpperCase()
+                  domainFrom(site).charAt(0).toUpperCase()
                 }}</span>
               </div>
               <div class="min-w-0">
                 <p class="truncate text-sm font-medium text-white">
-                  {{ site.replace(/^https?:\/\//, '') }}
+                  {{ domainFrom(site) }}
                 </p>
                 <p class="truncate text-[10px] text-slate-500">{{ site }}</p>
               </div>

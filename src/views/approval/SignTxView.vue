@@ -31,6 +31,7 @@ const txDetails = computed(() => {
     const recipients = Array.isArray(params.recipients)
       ? params.recipients
       : [{ address: params.recipient, amount: params.amount }];
+
     return {
       type: 'Transfer',
       recipients: recipients.map((r: any) => ({

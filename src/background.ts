@@ -129,11 +129,21 @@ async function handleDappRequest(
   // Route methods
   switch (method) {
     case 'wallet_connect':
-    case 'signMessage':
-    case 'sendTransfer':
-    case 'signPsbt':
       openApprovalPopup(request);
       break;
+
+    case 'signMessage':
+    case 'sendTransfer':
+    case 'signPsbt': {
+      const isConnected = await checkPermission(request.origin, 'connect');
+      if (!isConnected) {
+        sendResponse({ error: 'App not connected. Please call wallet_connect first.' });
+        requestQueue.delete(requestId);
+        return;
+      }
+      openApprovalPopup(request);
+      break;
+    }
 
     case 'getAccounts':
       handleGetAccounts(request, sendResponse);

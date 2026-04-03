@@ -27,7 +27,7 @@ describe('ConnectDappView', () => {
     setActivePinia(createPinia());
     localStorage.clear();
     vi.clearAllMocks();
-    
+
     // Default mock implementation for storage
     (global.chrome.storage.local.get as any).mockResolvedValue({});
 
@@ -66,7 +66,7 @@ describe('ConnectDappView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Paddress123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    
+
     // Prevent checkSession from resetting isUnlocked
     vi.spyOn(store, 'checkSession').mockResolvedValue(true);
 

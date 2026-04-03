@@ -28,7 +28,7 @@ export function useConnectedSites() {
     try {
       const data = await chrome.storage.local.get('peppool_permissions');
       const permissions = (data.peppool_permissions || {}) as Permissions;
-      
+
       if (permissions[origin]) {
         delete permissions[origin];
         await chrome.storage.local.set({ peppool_permissions: permissions });

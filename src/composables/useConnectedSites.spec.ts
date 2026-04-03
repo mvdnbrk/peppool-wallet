@@ -19,13 +19,13 @@ describe('useConnectedSites Composable', () => {
     });
 
     const { connectedSites, loadConnectedSites, isLoading } = useConnectedSites();
-    
+
     expect(isLoading.value).toBe(false);
     const promise = loadConnectedSites();
     expect(isLoading.value).toBe(true);
-    
+
     await promise;
-    
+
     expect(isLoading.value).toBe(false);
     expect(connectedSites.value).toEqual(['https://site1.com', 'https://site2.io']);
   });
@@ -40,7 +40,7 @@ describe('useConnectedSites Composable', () => {
 
     const { connectedSites, loadConnectedSites, revokeAccess } = useConnectedSites();
     await loadConnectedSites();
-    
+
     expect(connectedSites.value).toHaveLength(2);
 
     await revokeAccess('https://site1.com');

@@ -51,8 +51,8 @@ onMounted(async () => {
                 <p class="text-[10px] text-slate-500 truncate">{{ site }}</p>
               </div>
             </div>
-            
-            <button 
+
+            <button
               @click="revokeAccess(site)"
               class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex-shrink-0"
               title="Revoke access"

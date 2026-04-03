@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { ref } from 'vue';
-import SendView from './send/SendView.vue';
-import SendStepForm from './send/SendStepForm.vue';
-import SendStepReview from './send/SendStepReview.vue';
-import SendStepSuccess from './send/SendStepSuccess.vue';
+import SendView from '@/views/wallet/send/SendView.vue';
+import SendStepForm from '@/views/wallet/send/SendStepForm.vue';
+import SendStepReview from '@/views/wallet/send/SendStepReview.vue';
+import SendStepSuccess from '@/views/wallet/send/SendStepSuccess.vue';
 import { isValidAddress } from '@/utils/crypto';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import PepCopyableId from '@/components/ui/PepCopyableId.vue';

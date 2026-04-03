@@ -5,18 +5,18 @@ import {
   deriveAddress,
   getDerivationPath,
   parseDerivationPath
-} from '../utils/crypto';
-import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
+} from '@/utils/crypto';
+import { encrypt, decrypt, isLegacyVault } from '@/utils/encryption';
 import {
   fetchAddressInfo,
   fetchTransactions,
   fetchTransaction as apiFetchTransaction,
   fetchPepPrice,
   fetchTipHeight
-} from '../utils/api';
-import { Transaction } from '../models/Transaction';
-import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '../utils/constants';
-import { EXPLORERS, type ExplorerId, pepeExplorer } from '../utils/explorer';
+} from '@/utils/api';
+import { Transaction } from '@/models/Transaction';
+import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
+import { EXPLORERS, type ExplorerId, pepeExplorer } from '@/utils/explorer';
 import { useLockoutStore } from './lockout';
 
 export interface Account {

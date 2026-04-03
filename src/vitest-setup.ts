@@ -48,8 +48,8 @@ vi.mock('./utils/constants', async (importOriginal) => {
   };
 });
 
-import { useApp as mockUseApp } from './composables/__mocks__/useApp';
-import { useLockout as mockUseLockout } from './composables/__mocks__/useLockout';
+import { useApp as mockUseApp } from '@/composables/__mocks__/useApp';
+import { useLockout as mockUseLockout } from '@/composables/__mocks__/useLockout';
 
 // Mock useApp globally
 vi.mock('@/composables/useApp', () => ({

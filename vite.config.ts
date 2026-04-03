@@ -64,6 +64,10 @@ export default defineConfig({
                 'inpage-script': 'src/content/inpage.ts'
             },
             output: {
+                entryFileNames: (chunkInfo) => {
+                    if (chunkInfo.name === 'inpage-script') return 'assets/inpage.js';
+                    return 'assets/[name]-[hash].js';
+                },
                 manualChunks: {
                     'vendor-vue': ['vue', 'vue-router', 'pinia'],
                     'vendor-crypto': ['bitcoinjs-lib', 'bip39', 'bip32', 'tiny-secp256k1'],

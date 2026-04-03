@@ -8,7 +8,7 @@
 function injectInpageScript() {
   try {
     const script = document.createElement('script');
-    script.src = chrome.runtime.getURL('src/content/inpage.ts');
+    script.src = chrome.runtime.getURL('assets/inpage.js');
     script.onload = () => script.remove();
     (document.head || document.documentElement).appendChild(script);
   } catch (err) {

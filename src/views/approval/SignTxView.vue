@@ -224,7 +224,7 @@ async function handleReject() {
   chrome.runtime.sendMessage({
     target: 'peppool-background-response',
     requestId: requestId.value,
-    error: invalidRequest.value || 'User rejected the transaction'
+    error: 'User rejected the transaction'
   });
 
   // Cleanup storage

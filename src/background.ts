@@ -250,19 +250,14 @@ function validateTransferParams(params: any): string | null {
 
   if (!recipients || recipients.length === 0) return 'No recipients specified.';
 
-  const BASE58_RE = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+  const PEP_ADDRESS_RE = /^P[1-9A-HJ-NP-Za-km-z]{25,33}$/;
 
   for (const r of recipients) {
-    if (
-      typeof r.address !== 'string' ||
-      !r.address.startsWith('P') ||
-      r.address.length !== 34 ||
-      !BASE58_RE.test(r.address)
-    ) {
-      return `Invalid recipient address: ${r.address}`;
+    if (typeof r.address !== 'string' || !PEP_ADDRESS_RE.test(r.address)) {
+      return 'Invalid recipient address.';
     }
     if (typeof r.amount !== 'number' || r.amount <= 0 || !Number.isFinite(r.amount)) {
-      return `Invalid amount: ${r.amount}`;
+      return 'Invalid amount.';
     }
   }
 

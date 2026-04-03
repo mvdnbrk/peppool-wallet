@@ -37,6 +37,7 @@ vi.mock('@/utils/crypto', () => ({
   createSignedTx: vi.fn().mockResolvedValue('signed-hex'),
   deriveSigner: vi.fn().mockReturnValue({ publicKey: Buffer.alloc(33), sign: vi.fn() }),
   parseDerivationPath: vi.fn().mockReturnValue({ accountIndex: 0, addressIndex: 0 }),
+  isValidAddress: vi.fn().mockReturnValue(true),
   estimateTxSize: vi
     .fn()
     .mockImplementation((inputs: number, outputs: number) => 148 * inputs + 34 * outputs + 10)
@@ -308,5 +309,34 @@ describe('SignTxView', () => {
 
     // Restore for other tests
     (window as any).location.search = '?id=req123&origin=https://test-dapp.com&method=sendTransfer';
+  });
+
+  it('should show invalid request screen for bad recipient address', async () => {
+    const crypto = await import('@/utils/crypto');
+    vi.mocked(crypto.isValidAddress).mockReturnValue(false);
+
+    (global.chrome.storage.local.get as any).mockImplementation((key: string) => {
+      if (key === 'request_req123') {
+        return Promise.resolve({
+          request_req123: {
+            requestId: 'req123',
+            method: 'sendTransfer',
+            params: { recipient: 'not-a-real-address', amount: 50000000 },
+            origin: 'https://test-dapp.com'
+          }
+        });
+      }
+      return Promise.resolve({});
+    });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+
+    const wrapper = mount(SignTxView, { global: globalConfig });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Invalid Request');
+    expect(wrapper.text()).toContain('Invalid Pepecoin address.');
+    expect(wrapper.find('#approve-transaction-button').exists()).toBe(false);
   });
 });

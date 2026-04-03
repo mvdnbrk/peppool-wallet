@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
-import { deriveSigner, createSignedTx, type UTXO, parseDerivationPath } from '@/utils/crypto';
+import {
+  deriveSigner,
+  createSignedTx,
+  isValidAddress,
+  type UTXO,
+  parseDerivationPath
+} from '@/utils/crypto';
 import { fetchUtxos, broadcastTx, fetchTxHex, fetchRecommendedFees } from '@/utils/api';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
 import { SendTransaction } from '@/models/SendTransaction';
@@ -19,6 +25,7 @@ const method = ref('');
 const requestData = ref<any>(null);
 const password = ref('');
 const error = ref('');
+const invalidRequest = ref('');
 const isProcessing = ref(false);
 
 const isMnemonicLoaded = computed(() => walletStore.isMnemonicLoaded);
@@ -62,6 +69,20 @@ onMounted(async () => {
   const key = `request_${requestId.value}`;
   const data = await chrome.storage.local.get(key);
   requestData.value = data[key];
+
+  // Validate recipient addresses using bitcoinjs-lib
+  if (method.value === 'sendTransfer' && requestData.value?.params) {
+    const params = requestData.value.params;
+    const recipients = Array.isArray(params.recipients)
+      ? params.recipients
+      : [{ address: params.recipient, amount: params.amount }];
+
+    const hasInvalid = recipients.some((r: any) => !isValidAddress(r.address));
+    if (hasInvalid) {
+      invalidRequest.value = 'Invalid Pepecoin address.';
+      return;
+    }
+  }
 
   await walletStore.checkSession();
 });
@@ -203,7 +224,7 @@ async function handleReject() {
   chrome.runtime.sendMessage({
     target: 'peppool-background-response',
     requestId: requestId.value,
-    error: 'User rejected the transaction'
+    error: invalidRequest.value || 'User rejected the transaction'
   });
 
   // Cleanup storage
@@ -215,7 +236,17 @@ async function handleReject() {
 
 <template>
   <PepMainLayout>
-    <div v-if="txDetails" class="space-y-6">
+    <div v-if="invalidRequest" class="space-y-6">
+      <div class="space-y-2 text-center">
+        <h2 class="truncate text-sm font-medium text-slate-400">{{ origin }}</h2>
+        <p class="text-lg font-bold text-white">Invalid Request</p>
+      </div>
+      <div class="rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">
+        {{ invalidRequest }}
+      </div>
+    </div>
+
+    <div v-else-if="txDetails" class="space-y-6">
       <div class="space-y-2 text-center">
         <h2 class="truncate text-sm font-medium text-slate-400">{{ origin }}</h2>
         <p class="text-lg font-bold text-white">Requests {{ txDetails.type }}</p>
@@ -270,7 +301,12 @@ async function handleReject() {
     </div>
 
     <template #actions>
-      <div class="grid grid-cols-2 gap-4">
+      <div v-if="invalidRequest">
+        <PepButton id="reject-transaction-button" variant="secondary" @click="handleReject" block
+          >Close</PepButton
+        >
+      </div>
+      <div v-else class="grid grid-cols-2 gap-4">
         <PepButton
           id="reject-transaction-button"
           variant="secondary"

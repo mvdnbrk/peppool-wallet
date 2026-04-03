@@ -119,7 +119,7 @@ describe('background sendTransfer param validation', () => {
     });
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
     expect(sendResponse).toHaveBeenCalledWith({
-      error: 'Invalid recipient address: foo'
+      error: 'Invalid recipient address.'
     });
     expect(windowsCreateMock).not.toHaveBeenCalled();
   });
@@ -130,9 +130,9 @@ describe('background sendTransfer param validation', () => {
       amount: 100000000
     });
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
-    expect(sendResponse).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining('Invalid recipient address') })
-    );
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'Invalid recipient address.'
+    });
   });
 
   it('should reject sendTransfer with zero amount', async () => {
@@ -141,9 +141,9 @@ describe('background sendTransfer param validation', () => {
       amount: 0
     });
     await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
-    expect(sendResponse).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining('Invalid amount') })
-    );
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'Invalid amount.'
+    });
   });
 
   it('should reject sendTransfer with missing params', async () => {

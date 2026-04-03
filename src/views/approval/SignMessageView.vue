@@ -21,7 +21,14 @@ onMounted(async () => {
   const params = new URLSearchParams(window.location.search);
   requestId.value = params.get('id') || '';
   origin.value = params.get('origin') || '';
-  messageToSign.value = params.get('message') || '';
+
+  // Read the full request from storage (message can be multiline/long)
+  const key = `request_${requestId.value}`;
+  const stored = await chrome.storage.local.get(key);
+  const request = stored[key] as { params?: { message?: string } } | undefined;
+  if (request?.params?.message) {
+    messageToSign.value = request.params.message;
+  }
 
   await walletStore.checkSession();
 });
@@ -105,7 +112,7 @@ async function handleReject() {
       <div class="space-y-4">
         <h3 class="px-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">Message</h3>
         <div
-          class="max-h-48 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900 p-4 font-mono text-sm leading-relaxed break-all"
+          class="max-h-48 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900 p-4 font-mono text-sm leading-relaxed break-all whitespace-pre-wrap"
         >
           {{ messageToSign }}
         </div>

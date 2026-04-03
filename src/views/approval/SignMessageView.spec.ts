@@ -9,7 +9,7 @@ import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 
 // Mock window.location.search
-const mockSearch = '?id=req123&origin=https://test-dapp.com&message=Hello%20Pepecoin';
+const mockSearch = '?id=req123&origin=https://test-dapp.com&method=signMessage';
 Object.defineProperty(window, 'location', {
   value: {
     search: mockSearch,
@@ -36,6 +36,21 @@ describe('SignMessageView', () => {
     setActivePinia(createPinia());
     localStorage.clear();
     vi.clearAllMocks();
+
+    // Mock storage to return the sign message request
+    (global.chrome.storage.local.get as any).mockImplementation(async (key: string) => {
+      if (key === 'request_req123') {
+        return {
+          request_req123: {
+            requestId: 'req123',
+            method: 'signMessage',
+            origin: 'https://test-dapp.com',
+            params: { message: 'Hello Pepecoin' }
+          }
+        };
+      }
+      return {};
+    });
 
     const store = useWalletStore();
     vi.spyOn(store, 'checkSession').mockResolvedValue(true);

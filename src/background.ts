@@ -141,6 +141,17 @@ async function handleDappRequest(
         requestQueue.delete(requestId);
         return;
       }
+
+      // Validate sendTransfer params before opening popup
+      if (method === 'sendTransfer') {
+        const validationError = validateTransferParams(request.params);
+        if (validationError) {
+          sendResponse({ error: validationError });
+          requestQueue.delete(requestId);
+          return;
+        }
+      }
+
       openApprovalPopup(request);
       break;
     }
@@ -222,6 +233,40 @@ async function revokePermission(origin: string) {
   const permissions = (data.peppool_permissions || {}) as Permissions;
   delete permissions[origin];
   await chrome.storage.local.set({ peppool_permissions: permissions });
+}
+
+/**
+ * Validate sendTransfer params before opening the approval popup.
+ * Returns an error string if invalid, null if valid.
+ */
+function validateTransferParams(params: any): string | null {
+  if (!params) return 'Missing transfer parameters.';
+
+  const recipients = Array.isArray(params.recipients)
+    ? params.recipients
+    : params.recipient && params.amount != null
+      ? [{ address: params.recipient, amount: params.amount }]
+      : null;
+
+  if (!recipients || recipients.length === 0) return 'No recipients specified.';
+
+  const BASE58_RE = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+
+  for (const r of recipients) {
+    if (
+      typeof r.address !== 'string' ||
+      !r.address.startsWith('P') ||
+      r.address.length !== 34 ||
+      !BASE58_RE.test(r.address)
+    ) {
+      return `Invalid recipient address: ${r.address}`;
+    }
+    if (typeof r.amount !== 'number' || r.amount <= 0 || !Number.isFinite(r.amount)) {
+      return `Invalid amount: ${r.amount}`;
+    }
+  }
+
+  return null;
 }
 
 /**

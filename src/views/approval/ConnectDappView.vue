@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepCard from '@/components/ui/PepCard.vue';
 
 const walletStore = useWalletStore();
@@ -14,7 +13,6 @@ interface Permissions {
 
 const requestId = ref('');
 const origin = ref('');
-const isUnlocked = computed(() => walletStore.isUnlocked);
 
 onMounted(async () => {
   const params = new URLSearchParams(window.location.search);
@@ -76,19 +74,7 @@ async function handleReject() {
 
 <template>
   <PepMainLayout>
-    <template #header>
-      <PepPageHeader title="Connect dApp" />
-    </template>
-
-    <div v-if="!isUnlocked" class="flex flex-col items-center justify-center space-y-6 py-12">
-      <div class="space-y-2 text-center">
-        <h2 class="text-xl font-bold">Wallet Locked</h2>
-        <p class="text-slate-400">Please unlock your wallet to continue.</p>
-      </div>
-      <PepButton id="unlock-wallet-button" @click="$router.push('/')">Go to Login</PepButton>
-    </div>
-
-    <div v-else class="space-y-6">
+    <div class="space-y-6">
       <div class="space-y-2 text-center">
         <div class="flex justify-center">
           <div
@@ -124,24 +110,24 @@ async function handleReject() {
       <div class="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
         <p class="text-xs font-medium text-slate-400">THIS SITE WILL BE ABLE TO:</p>
         <ul class="space-y-2">
-          <li class="flex items-start space-x-2 text-sm text-slate-300">
-            <span class="text-pepe-green mt-0.5">✓</span>
-            <span>View your wallet address</span>
+          <li class="text-pep-green flex items-start space-x-2 text-sm">
+            <PepIcon name="checkmark-circle" class="mt-0.5 h-4 w-4" />
+            <span class="text-slate-300">View your wallet address</span>
           </li>
-          <li class="flex items-start space-x-2 text-sm text-slate-300">
-            <span class="text-pepe-green mt-0.5">✓</span>
-            <span>Request signatures for transactions</span>
+          <li class="text-pep-green flex items-start space-x-2 text-sm">
+            <PepIcon name="checkmark-circle" class="mt-0.5 h-4 w-4" />
+            <span class="text-slate-300">Request transaction signing</span>
           </li>
         </ul>
       </div>
     </div>
 
-    <template #actions v-if="isUnlocked">
+    <template #actions>
       <div class="grid grid-cols-2 gap-4">
         <PepButton id="reject-connect-button" variant="secondary" @click="handleReject"
-          >Cancel</PepButton
+          >Deny</PepButton
         >
-        <PepButton id="approve-connect-button" @click="handleApprove">Connect</PepButton>
+        <PepButton id="approve-connect-button" @click="handleApprove">Accept</PepButton>
       </div>
     </template>
   </PepMainLayout>

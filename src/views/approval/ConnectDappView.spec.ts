@@ -124,17 +124,5 @@ describe('ConnectDappView', () => {
     expect(window.close).toHaveBeenCalled();
   });
 
-  it('should show login prompt if wallet is locked', async () => {
-    const store = useWalletStore();
-    store.isUnlocked = false;
-
-    const wrapper = mount(ConnectDappView, {
-      global: globalConfig
-    });
-
-    await flushPromises();
-
-    expect(wrapper.text()).toContain('Wallet Locked');
-    expect(wrapper.text()).toContain('Go to Login');
-  });
+  // Locked users are redirected to login by the router guard — no locked state in this view
 });

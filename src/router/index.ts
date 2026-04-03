@@ -55,9 +55,17 @@ export const router = createRouter({
 });
 
 export let sessionChecked = false;
+/** Route to redirect to after unlock (e.g. approval routes when wallet was locked) */
+export let pendingRedirect: string | null = null;
 
 export function resetSessionCheck() {
   sessionChecked = false;
+}
+
+export function consumePendingRedirect(): string | null {
+  const route = pendingRedirect;
+  pendingRedirect = null;
+  return route;
 }
 
 router.beforeEach(async (to, _from, next) => {
@@ -87,12 +95,14 @@ router.beforeEach(async (to, _from, next) => {
   // Public routes that don't require an unlocked wallet
   const publicRoutes = ['/', '/create', '/import', '/forgot-password'];
   const isPublicRoute = publicRoutes.includes(to.path);
-  const isApprovalRoute = to.path.startsWith('/approve/');
 
-  if (!walletStore.isUnlocked && !isPublicRoute && !isApprovalRoute) {
-    // Redirect any protected route to welcome/login when locked
+  if (!walletStore.isUnlocked && !isPublicRoute) {
+    // Save the intended route so we can redirect after unlock
+    if (to.path.startsWith('/approve/')) {
+      pendingRedirect = to.fullPath;
+    }
     next('/');
-  } else if (to.path === '/' && walletStore.isUnlocked && !isApprovalRoute) {
+  } else if (to.path === '/' && walletStore.isUnlocked) {
     next('/dashboard');
   } else {
     next();

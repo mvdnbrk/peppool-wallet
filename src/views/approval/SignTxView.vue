@@ -7,7 +7,6 @@ import { RIBBITS_PER_PEP } from '@/utils/constants';
 import { SendTransaction } from '@/models/SendTransaction';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
@@ -22,7 +21,6 @@ const password = ref('');
 const error = ref('');
 const isProcessing = ref(false);
 
-const isUnlocked = computed(() => walletStore.isUnlocked);
 const isMnemonicLoaded = computed(() => walletStore.isMnemonicLoaded);
 
 const txDetails = computed(() => {
@@ -216,19 +214,7 @@ async function handleReject() {
 
 <template>
   <PepMainLayout>
-    <template #header>
-      <PepPageHeader :title="method === 'sendTransfer' ? 'Send PEP' : 'Sign Transaction'" />
-    </template>
-
-    <div v-if="!isUnlocked" class="flex flex-col items-center justify-center space-y-6 py-12">
-      <div class="space-y-2 text-center">
-        <h2 class="text-xl font-bold">Wallet Locked</h2>
-        <p class="text-slate-400">Please unlock your wallet to continue.</p>
-      </div>
-      <PepButton id="unlock-wallet-button" @click="$router.push('/')">Go to Login</PepButton>
-    </div>
-
-    <div v-else-if="txDetails" class="space-y-6">
+    <div v-if="txDetails" class="space-y-6">
       <div class="space-y-2 text-center">
         <h2 class="truncate text-sm font-medium text-slate-400">{{ origin }}</h2>
         <p class="text-lg font-bold text-white">Requests {{ txDetails.type }}</p>
@@ -282,7 +268,7 @@ async function handleReject() {
       </div>
     </div>
 
-    <template #actions v-if="isUnlocked">
+    <template #actions>
       <div class="grid grid-cols-2 gap-4">
         <PepButton
           id="reject-transaction-button"

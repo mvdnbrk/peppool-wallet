@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
 import { useLockout } from '@/composables/useLockout';
+import { consumePendingRedirect } from '@/router';
 import { ref, computed, watch } from 'vue';
 import { useForm } from '@/utils/form';
 import { UX_DELAY_FAST } from '@/utils/constants';
@@ -49,7 +50,7 @@ async function handleUnlock() {
     const success = await walletStore.unlock(form.password);
 
     if (success) {
-      router.push('/dashboard');
+      router.push(consumePendingRedirect() || '/dashboard');
       return;
     }
 

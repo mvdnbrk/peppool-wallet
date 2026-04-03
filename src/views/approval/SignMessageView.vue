@@ -4,7 +4,6 @@ import { useWalletStore } from '@/stores/wallet';
 import { signMessage } from '@/utils/crypto';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepPageHeader from '@/components/ui/PepPageHeader.vue';
 import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 
 const walletStore = useWalletStore();
@@ -16,7 +15,6 @@ const password = ref('');
 const error = ref('');
 const isProcessing = ref(false);
 
-const isUnlocked = computed(() => walletStore.isUnlocked);
 const isMnemonicLoaded = computed(() => walletStore.isMnemonicLoaded);
 
 onMounted(async () => {
@@ -98,19 +96,7 @@ async function handleReject() {
 
 <template>
   <PepMainLayout>
-    <template #header>
-      <PepPageHeader title="Sign Message" />
-    </template>
-
-    <div v-if="!isUnlocked" class="flex flex-col items-center justify-center space-y-6 py-12">
-      <div class="space-y-2 text-center">
-        <h2 class="text-xl font-bold">Wallet Locked</h2>
-        <p class="text-slate-400">Please unlock your wallet to continue.</p>
-      </div>
-      <PepButton id="unlock-wallet-button" @click="$router.push('/')">Go to Login</PepButton>
-    </div>
-
-    <div v-else class="space-y-6">
+    <div class="space-y-6">
       <div class="space-y-2 text-center">
         <h2 class="truncate text-sm font-medium text-slate-400">{{ origin }}</h2>
         <p class="text-lg font-bold text-white">Requests Signature</p>
@@ -140,7 +126,7 @@ async function handleReject() {
       </div>
     </div>
 
-    <template #actions v-if="isUnlocked">
+    <template #actions>
       <div class="grid grid-cols-2 gap-4">
         <PepButton
           id="reject-signature-button"

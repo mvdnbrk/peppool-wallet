@@ -6,7 +6,10 @@ import logoUrl from '@/assets/logo.svg';
 const { router, route } = useApp();
 
 const shouldRender = computed(() => {
-  return !['/', '/create', '/import', '/reset-wallet', '/forgot-password'].includes(route.path);
+  return (
+    !['/', '/create', '/import', '/reset-wallet', '/forgot-password'].includes(route.path) &&
+    !route.path.startsWith('/approve/')
+  );
 });
 </script>
 

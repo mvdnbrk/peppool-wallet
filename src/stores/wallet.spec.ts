@@ -458,7 +458,8 @@ describe('Wallet Store', () => {
   describe('Background Synchronization', () => {
     it('should sync accounts to chrome.storage on import', async () => {
       const store = useWalletStore();
-      const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
+      const mnemonic =
+        'suffer dish east miss seat great brother hello motion mountain celery plunge';
       await store.importWallet(mnemonic, 'password123');
 
       expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
@@ -487,7 +488,8 @@ describe('Wallet Store', () => {
 
     it('should sync accounts on addAccount', async () => {
       const store = useWalletStore();
-      const mnemonic = 'suffer dish east miss seat great brother hello motion mountain celery plunge';
+      const mnemonic =
+        'suffer dish east miss seat great brother hello motion mountain celery plunge';
       await store.importWallet(mnemonic, 'password123');
       vi.clearAllMocks();
 

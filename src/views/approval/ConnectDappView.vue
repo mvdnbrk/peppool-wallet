@@ -138,7 +138,9 @@ async function handleReject() {
 
     <template #actions v-if="isUnlocked">
       <div class="grid grid-cols-2 gap-4">
-        <PepButton id="reject-connect-button" variant="secondary" @click="handleReject">Cancel</PepButton>
+        <PepButton id="reject-connect-button" variant="secondary" @click="handleReject"
+          >Cancel</PepButton
+        >
         <PepButton id="approve-connect-button" @click="handleApprove">Connect</PepButton>
       </div>
     </template>

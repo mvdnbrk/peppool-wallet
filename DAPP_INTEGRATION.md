@@ -1,18 +1,19 @@
 # Peppool Wallet - dApp Integration Guide
 
-Peppool Wallet follows the **[WBIP004][wbip004]** standard for injected provider discovery. This allows any dApp to interact with the wallet using a standardized JSON-RPC interface.
+Peppool Wallet uses a Pepecoin-native provider discovery standard. Wallets register on `window.pep_providers`, allowing any Pepecoin dApp to discover and interact with them using a standardized JSON-RPC interface.
 
 ---
 
 ## 1. Provider Discovery
 
-The wallet injects a provider object into `window.wbip_providers`. You can find the Peppool provider by searching for the ID `peppool`.
+The wallet injects a provider object into `window.pep_providers`. You can find the Peppool provider by searching for the ID `peppool`.
 
 ```javascript
+// Option A: Check if already injected
 const getProvider = () => {
   if (typeof window === 'undefined') return null;
-  
-  const providers = window.wbip_providers || [];
+
+  const providers = window.pep_providers || [];
   return providers.find(p => p.id === 'peppool') || null;
 };
 
@@ -20,6 +21,28 @@ const provider = getProvider();
 
 if (!provider) {
   console.log('Peppool Wallet not installed');
+}
+```
+
+```javascript
+// Option B: Listen for injection (recommended for SPAs)
+window.addEventListener('pep_providers#peppool', (event) => {
+  const provider = event.detail.provider;
+  console.log('Peppool Wallet detected:', provider.name);
+});
+```
+
+### Provider Shape
+
+Every provider in the `pep_providers` array conforms to:
+
+```typescript
+interface PepProvider {
+  id: string;       // Unique identifier (e.g. 'peppool')
+  name: string;     // Display name
+  icon: string;     // Data URI for wallet icon
+  methods: string[];// Supported RPC methods
+  request: (method: string, params?: any) => Promise<any>;
 }
 ```
 
@@ -89,14 +112,15 @@ console.log('Transaction Broadcasted:', txid);
 ```
 
 ### `signPsbt` (Advanced)
-Sign a Partially Signed Pepecoin Transaction (PSBT). The dApp provides a base64-encoded PSBT, and the wallet signs any inputs matching the user's public key.
+Sign a Partially Signed Pepecoin Transaction (PSBT). The dApp provides a base64-encoded PSBT, and the wallet signs only the inputs that match the user's public key.
 
 ```javascript
-const { psbt } = await provider.request('signPsbt', {
+const { psbt, signedIndexes } = await provider.request('signPsbt', {
   psbt: 'base64_encoded_psbt_string...'
 });
 
-// The returned PSBT contains the signatures
+// psbt: base64-encoded PSBT with signatures added
+// signedIndexes: array of input indexes that were signed (e.g. [0, 2])
 ```
 
 ---
@@ -123,5 +147,3 @@ For any issues, bugs, or feature requests, please open a [GitHub Issue](../../is
 ## Security
 
 If you discover a security vulnerability, please follow our [Security Policy](SECURITY.md).
-
-[wbip004]: https://wbips.netlify.app/wbips/WBIP004

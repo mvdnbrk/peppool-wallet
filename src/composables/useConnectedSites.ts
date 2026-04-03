@@ -32,7 +32,7 @@ export function useConnectedSites() {
       if (permissions[origin]) {
         delete permissions[origin];
         await chrome.storage.local.set({ peppool_permissions: permissions });
-        connectedSites.value = connectedSites.value.filter(site => site !== origin);
+        connectedSites.value = connectedSites.value.filter((site) => site !== origin);
       }
     } catch (err: any) {
       console.error('Failed to revoke access', err);

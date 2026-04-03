@@ -24,23 +24,40 @@ window.close = vi.fn();
 
 // Mock API utils
 vi.mock('@/utils/api', () => ({
-  fetchUtxos: vi.fn().mockResolvedValue([
-    { txid: 'tx1', vout: 0, value: 100000000, status: { confirmed: true } }
-  ]),
+  fetchUtxos: vi
+    .fn()
+    .mockResolvedValue([{ txid: 'tx1', vout: 0, value: 100000000, status: { confirmed: true } }]),
   fetchTxHex: vi.fn().mockResolvedValue('0100000001...'),
   fetchRecommendedFees: vi.fn().mockResolvedValue({ fastestFee: 10 }),
   broadcastTx: vi.fn().mockResolvedValue('mock-txid')
 }));
 
 // Mock crypto utils
-vi.mock('@/utils/crypto', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/crypto')>();
-  return {
-    ...actual,
-    createSignedTx: vi.fn().mockResolvedValue('signed-hex'),
-    deriveSigner: vi.fn().mockReturnValue({ publicKey: Buffer.alloc(33), sign: vi.fn() })
+vi.mock('@/utils/crypto', () => ({
+  createSignedTx: vi.fn().mockResolvedValue('signed-hex'),
+  deriveSigner: vi.fn().mockReturnValue({ publicKey: Buffer.alloc(33), sign: vi.fn() }),
+  parseDerivationPath: vi.fn().mockReturnValue({ accountIndex: 0, addressIndex: 0 }),
+  estimateTxSize: vi
+    .fn()
+    .mockImplementation((inputs: number, outputs: number) => 148 * inputs + 34 * outputs + 10)
+}));
+
+// Mock bitcoinjs-lib for signPsbt tests
+// vi.mock is hoisted — cannot reference local variables, so use vi.hoisted
+const { mockSignInput, mockPsbt } = vi.hoisted(() => {
+  const mockSignInput = vi.fn();
+  const mockPsbt = {
+    inputCount: 2,
+    signInput: mockSignInput,
+    toBase64: vi.fn().mockReturnValue('signed-psbt-base64')
   };
+  return { mockSignInput, mockPsbt };
 });
+vi.mock('bitcoinjs-lib', () => ({
+  Psbt: {
+    fromBase64: vi.fn().mockReturnValue(mockPsbt)
+  }
+}));
 
 describe('SignTxView', () => {
   beforeEach(() => {
@@ -50,7 +67,7 @@ describe('SignTxView', () => {
 
     const store = useWalletStore();
     vi.spyOn(store, 'checkSession').mockResolvedValue(true);
-    
+
     // Mock chrome.storage.local.get for the request data
     (global.chrome.storage.local.get as any).mockImplementation((key: string) => {
       if (key === 'request_req123') {
@@ -96,7 +113,9 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic('suffer dish east miss seat great brother hello motion mountain celery plunge');
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
 
     const wrapper = mount(SignTxView, {
       global: globalConfig
@@ -143,5 +162,151 @@ describe('SignTxView', () => {
     });
 
     expect(window.close).toHaveBeenCalled();
+  });
+
+  it('enforces fee floor via SendTransaction model even when API returns low fee', async () => {
+    const api = await import('@/utils/api');
+    // API returns fee below the 1000 ribbits/byte floor
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({
+      fastestFee: 100,
+      halfHourFee: 50,
+      hourFee: 25,
+      economyFee: 10,
+      minimumFee: 5
+    });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
+
+    const wrapper = mount(SignTxView, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    const crypto = await import('@/utils/crypto');
+    // Fee should use floor of 1000, not the API's 100
+    // With 1 input, 2 outputs: size = 148 + 68 + 10 = 226, fee = ceil(226 * 1000) = 226000
+    const feeArg = vi.mocked(crypto.createSignedTx).mock.calls[0][4];
+    expect(feeArg).toBeGreaterThanOrEqual(226000);
+  });
+
+  it('rejects sendTransfer when balance is insufficient', async () => {
+    const api = await import('@/utils/api');
+    // UTXO only has 1000 ribbits — not enough for 50M ribbits transfer
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'tx1', vout: 0, value: 1000, status: { confirmed: true } }
+    ]);
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
+
+    const wrapper = mount(SignTxView, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Insufficient confirmed balance');
+    expect(api.broadcastTx).not.toHaveBeenCalled();
+  });
+
+  it('signPsbt only signs inputs belonging to the signer', async () => {
+    // Configure for signPsbt method
+    (window as any).location.search = '?id=req123&origin=https://test-dapp.com&method=signPsbt';
+
+    (global.chrome.storage.local.get as any).mockImplementation((key: string) => {
+      if (key === 'request_req123') {
+        return Promise.resolve({
+          request_req123: {
+            requestId: 'req123',
+            method: 'signPsbt',
+            params: { psbt: 'base64-psbt-data' },
+            origin: 'https://test-dapp.com'
+          }
+        });
+      }
+      return Promise.resolve({});
+    });
+
+    // Input 0 succeeds, input 1 throws (not owned)
+    mockSignInput.mockImplementation((index: number) => {
+      if (index === 1) throw new Error('Can not sign for this input');
+    });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
+
+    const wrapper = mount(SignTxView, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
+      target: 'peppool-background-response',
+      requestId: 'req123',
+      result: { psbt: 'signed-psbt-base64', signedIndexes: [0] }
+    });
+
+    // Restore for other tests
+    (window as any).location.search = '?id=req123&origin=https://test-dapp.com&method=sendTransfer';
+  });
+
+  it('signPsbt rejects when no inputs belong to the signer', async () => {
+    (window as any).location.search = '?id=req123&origin=https://test-dapp.com&method=signPsbt';
+
+    (global.chrome.storage.local.get as any).mockImplementation((key: string) => {
+      if (key === 'request_req123') {
+        return Promise.resolve({
+          request_req123: {
+            requestId: 'req123',
+            method: 'signPsbt',
+            params: { psbt: 'base64-psbt-data' },
+            origin: 'https://test-dapp.com'
+          }
+        });
+      }
+      return Promise.resolve({});
+    });
+
+    // All inputs throw
+    mockSignInput.mockImplementation(() => {
+      throw new Error('Can not sign for this input');
+    });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
+
+    const wrapper = mount(SignTxView, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('No inputs in this PSBT belong to your wallet');
+
+    // Restore for other tests
+    (window as any).location.search = '?id=req123&origin=https://test-dapp.com&method=sendTransfer';
   });
 });

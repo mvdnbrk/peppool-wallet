@@ -142,10 +142,16 @@ async function handleReject() {
 
     <template #actions v-if="isUnlocked">
       <div class="grid grid-cols-2 gap-4">
-        <PepButton id="reject-signature-button" variant="secondary" @click="handleReject" :disabled="isProcessing"
+        <PepButton
+          id="reject-signature-button"
+          variant="secondary"
+          @click="handleReject"
+          :disabled="isProcessing"
           >Cancel</PepButton
         >
-        <PepButton id="approve-signature-button" @click="handleApprove" :loading="isProcessing">Sign</PepButton>
+        <PepButton id="approve-signature-button" @click="handleApprove" :loading="isProcessing"
+          >Sign</PepButton
+        >
       </div>
     </template>
   </PepMainLayout>

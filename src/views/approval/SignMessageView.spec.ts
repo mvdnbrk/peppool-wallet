@@ -83,7 +83,9 @@ describe('SignMessageView', () => {
     const store = useWalletStore();
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
-    store.cacheMnemonic('suffer dish east miss seat great brother hello motion mountain celery plunge');
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
 
     const wrapper = mount(SignMessageView, {
       global: globalConfig

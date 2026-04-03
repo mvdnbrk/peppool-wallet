@@ -25,36 +25,56 @@ onMounted(async () => {
         <PepSpinner size="32" />
       </div>
 
-      <div v-else-if="connectedSites.length === 0" class="flex flex-col items-center justify-center py-12 text-center space-y-4">
-        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
+      <div
+        v-else-if="connectedSites.length === 0"
+        class="flex flex-col items-center justify-center space-y-4 py-12 text-center"
+      >
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-slate-500"
+        >
           <PepIcon name="external-link" size="32" />
         </div>
         <div class="space-y-1">
-          <h3 class="text-white font-medium">No connected sites</h3>
-          <p class="text-sm text-slate-400 max-w-[240px]">Websites you've connected to will appear here.</p>
+          <h3 class="font-medium text-white">No connected sites</h3>
+          <p class="max-w-[240px] text-sm text-slate-400">
+            Websites you've connected to will appear here.
+          </p>
         </div>
       </div>
 
       <div v-else class="space-y-3">
-        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1">
+        <p class="px-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
           Authorized Websites
         </p>
-        
+
         <div class="space-y-2">
-          <PepCard v-for="site in connectedSites" :key="site" class="p-4 flex items-center justify-between group">
-            <div class="flex items-center space-x-3 min-w-0">
-              <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700 flex-shrink-0">
-                <span class="text-pepe-green font-bold text-xs">{{ site.replace(/^https?:\/\//, '').charAt(0).toUpperCase() }}</span>
+          <PepCard
+            v-for="site in connectedSites"
+            :key="site"
+            class="group flex items-center justify-between p-4"
+          >
+            <div class="flex min-w-0 items-center space-x-3">
+              <div
+                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800"
+              >
+                <span class="text-pepe-green text-xs font-bold">{{
+                  site
+                    .replace(/^https?:\/\//, '')
+                    .charAt(0)
+                    .toUpperCase()
+                }}</span>
               </div>
               <div class="min-w-0">
-                <p class="text-sm font-medium text-white truncate">{{ site.replace(/^https?:\/\//, '') }}</p>
-                <p class="text-[10px] text-slate-500 truncate">{{ site }}</p>
+                <p class="truncate text-sm font-medium text-white">
+                  {{ site.replace(/^https?:\/\//, '') }}
+                </p>
+                <p class="truncate text-[10px] text-slate-500">{{ site }}</p>
               </div>
             </div>
 
             <button
               @click="revokeAccess(site)"
-              class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors flex-shrink-0"
+              class="flex-shrink-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-400/10 hover:text-red-400"
               title="Revoke access"
             >
               <PepIcon name="clear" size="18" />

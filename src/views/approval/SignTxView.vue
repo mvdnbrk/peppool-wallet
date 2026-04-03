@@ -4,6 +4,7 @@ import { useWalletStore } from '@/stores/wallet';
 import { deriveSigner, createSignedTx, type UTXO, parseDerivationPath } from '@/utils/crypto';
 import { fetchUtxos, broadcastTx, fetchTxHex, fetchRecommendedFees } from '@/utils/api';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
+import { SendTransaction } from '@/models/SendTransaction';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
 import PepPageHeader from '@/components/ui/PepPageHeader.vue';
@@ -119,25 +120,19 @@ async function handleSendTransfer(mnemonic: string) {
   // 1. Fetch requirements
   const [fees, rawUtxos] = await Promise.all([fetchRecommendedFees(), fetchUtxos(address)]);
 
-  const confirmedUtxos = rawUtxos.filter((u) => u.status.confirmed);
-  const feeRate = Math.max(1000, fees.fastestFee);
+  // 2. Coin selection via SendTransaction model (shared with main send flow)
+  const sendTx = new SendTransaction(address);
+  sendTx.utxos = rawUtxos.filter((u) => u.status.confirmed);
+  sendTx.fees = fees;
+  sendTx.amountRibbits = recipient.amount;
+  sendTx.recipient = recipient.address;
 
-  // 2. Simple coin selection
-  let selectedUtxos: any[] = [];
-  let totalIn = 0;
-  const needed = recipient.amount;
-
-  for (const u of confirmedUtxos) {
-    selectedUtxos.push(u);
-    totalIn += u.value;
-    const estFee = Math.ceil((148 * selectedUtxos.length + 34 * 2 + 10) * feeRate);
-    if (totalIn >= needed + estFee) break;
-  }
-
-  const finalFee = Math.ceil((148 * selectedUtxos.length + 34 * 2 + 10) * feeRate);
-  if (totalIn < needed + finalFee) {
+  if (!sendTx.isValid) {
     throw new Error('Insufficient confirmed balance');
   }
+
+  const { selectedUtxos } = sendTx.selectUtxos(false);
+  const finalFee = sendTx.estimatedFeeRibbits;
 
   // 3. Fetch UTXO hexes
   const utxosWithHex: UTXO[] = [];
@@ -178,16 +173,25 @@ async function handleSignPsbt(mnemonic: string) {
   const { accountIndex, addressIndex } = parseDerivationPath(walletStore.activeAccount!.path);
   const signer = deriveSigner(mnemonic, accountIndex, addressIndex);
 
-  psbt.signAllInputs(signer);
+  // Only sign inputs that belong to this signer's key
+  const signedIndexes: number[] = [];
+  for (let i = 0; i < psbt.inputCount; i++) {
+    try {
+      psbt.signInput(i, signer);
+      signedIndexes.push(i);
+    } catch {
+      // Input does not belong to this signer — skip
+    }
+  }
 
-  const result = {
-    psbt: psbt.toBase64()
-  };
+  if (signedIndexes.length === 0) {
+    throw new Error('No inputs in this PSBT belong to your wallet');
+  }
 
   chrome.runtime.sendMessage({
     target: 'peppool-background-response',
     requestId: requestId.value,
-    result
+    result: { psbt: psbt.toBase64(), signedIndexes }
   });
 
   await chrome.storage.local.remove(`request_${requestId.value}`);
@@ -280,10 +284,16 @@ async function handleReject() {
 
     <template #actions v-if="isUnlocked">
       <div class="grid grid-cols-2 gap-4">
-        <PepButton id="reject-transaction-button" variant="secondary" @click="handleReject" :disabled="isProcessing"
+        <PepButton
+          id="reject-transaction-button"
+          variant="secondary"
+          @click="handleReject"
+          :disabled="isProcessing"
           >Cancel</PepButton
         >
-        <PepButton id="approve-transaction-button" @click="handleApprove" :loading="isProcessing">Approve</PepButton>
+        <PepButton id="approve-transaction-button" @click="handleApprove" :loading="isProcessing"
+          >Approve</PepButton
+        >
       </div>
     </template>
   </PepMainLayout>

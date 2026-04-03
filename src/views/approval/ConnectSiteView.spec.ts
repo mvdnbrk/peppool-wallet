@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { useWalletStore } from '@/stores/wallet';
-import ConnectDappView from './ConnectDappView.vue';
+import ConnectSiteView from './ConnectSiteView.vue';
 import PepButton from '@/components/ui/PepButton.vue';
 import PepCard from '@/components/ui/PepCard.vue';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
@@ -22,7 +22,7 @@ Object.defineProperty(window, 'location', {
 // Mock window.close
 window.close = vi.fn();
 
-describe('ConnectDappView', () => {
+describe('ConnectSiteView', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     localStorage.clear();
@@ -50,7 +50,7 @@ describe('ConnectDappView', () => {
     store.accounts = [{ address: 'Paddress123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
     store.activeAccountIndex = 0;
 
-    const wrapper = mount(ConnectDappView, {
+    const wrapper = mount(ConnectSiteView, {
       global: globalConfig
     });
 
@@ -70,7 +70,7 @@ describe('ConnectDappView', () => {
     // Prevent checkSession from resetting isUnlocked
     vi.spyOn(store, 'checkSession').mockResolvedValue(true);
 
-    const wrapper = mount(ConnectDappView, {
+    const wrapper = mount(ConnectSiteView, {
       global: globalConfig
     });
 
@@ -105,7 +105,7 @@ describe('ConnectDappView', () => {
     const store = useWalletStore();
     store.isUnlocked = true;
 
-    const wrapper = mount(ConnectDappView, {
+    const wrapper = mount(ConnectSiteView, {
       global: globalConfig
     });
 

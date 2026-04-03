@@ -5,9 +5,7 @@ let messageListener: (...args: any[]) => any;
 
 // Extend chrome mock for background.ts needs
 const windowsCreateMock = vi.fn().mockResolvedValue({ id: 1 });
-const getLastFocusedMock = vi
-  .fn()
-  .mockResolvedValue({ left: 0, top: 0, width: 1280, height: 800 });
+const getLastFocusedMock = vi.fn().mockResolvedValue({ left: 0, top: 0, width: 1280, height: 800 });
 
 (global.chrome as any).runtime.getURL = (path: string) => `chrome-extension://test-id/${path}`;
 (global.chrome as any).runtime.onMessage = {

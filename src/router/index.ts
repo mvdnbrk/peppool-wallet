@@ -19,7 +19,7 @@ import PreferencesView from '@/views/settings/PreferencesView.vue';
 import SecurityView from '@/views/settings/SecurityView.vue';
 import AboutView from '@/views/settings/AboutView.vue';
 import ConnectedSitesView from '@/views/settings/ConnectedSitesView.vue';
-import ConnectDappView from '@/views/approval/ConnectDappView.vue';
+import ConnectSiteView from '@/views/approval/ConnectSiteView.vue';
 import SignMessageView from '@/views/approval/SignMessageView.vue';
 import SignTxView from '@/views/approval/SignTxView.vue';
 
@@ -43,7 +43,7 @@ const routes = [
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },
   { path: '/settings/auto-lock', component: AutoLockView },
-  { path: '/approve/connect', component: ConnectDappView },
+  { path: '/approve/connect', component: ConnectSiteView },
   { path: '/approve/sign-message', component: SignMessageView },
   { path: '/approve/sign-tx', component: SignTxView },
   { path: '/:pathMatch(.*)*', redirect: '/' }

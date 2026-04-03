@@ -226,11 +226,20 @@ async function openApprovalPopup(request: DappRequest) {
     `approval.html?id=${request.requestId}&origin=${encodeURIComponent(request.origin)}&method=${request.method}`
   );
 
+  // Position near top-right, where extensions typically live
+  const POPUP_WIDTH = 375;
+  const POPUP_HEIGHT = 600;
+  const currentWindow = await chrome.windows.getLastFocused();
+  const left = (currentWindow.left ?? 0) + (currentWindow.width ?? 1280) - POPUP_WIDTH - 16;
+  const top = (currentWindow.top ?? 0) + 16;
+
   const win = await chrome.windows.create({
     url,
     type: 'popup',
-    width: 375,
-    height: 600
+    width: POPUP_WIDTH,
+    height: POPUP_HEIGHT,
+    left,
+    top
   });
 
   if (win && win.id) {

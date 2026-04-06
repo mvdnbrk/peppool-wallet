@@ -80,56 +80,58 @@ async function handleUnlock() {
 </script>
 
 <template>
-  <div class="flex min-h-full flex-col items-center justify-center space-y-8 p-6 text-center">
-    <div class="flex flex-col items-center space-y-4">
-      <img src="/src/assets/logo.svg" class="mx-auto h-24 w-24" alt="Peppool Logo" />
-      <PepWordmark size="xl" />
-      <p class="text-sm text-slate-400">The Pepecoin wallet for everyone</p>
-    </div>
+  <PepMainLayout>
+    <div class="flex flex-1 flex-col items-center justify-center space-y-8 text-center">
+      <div class="flex flex-col items-center space-y-4">
+        <img src="/src/assets/logo.svg" class="mx-auto h-24 w-24" alt="Peppool Logo" />
+        <PepWordmark size="xl" />
+        <p class="text-sm text-slate-400">The Pepecoin wallet for everyone</p>
+      </div>
 
-    <div v-if="walletStore.isCreated" class="w-full">
-      <PepForm id="welcome-unlock-form" :loading="form.isProcessing" @submit="handleUnlock">
-        <PepPasswordInput
-          ref="passwordInput"
-          v-model="form.password"
-          id="password"
-          label="Password"
-          placeholder="Enter your password"
-          :error="loginErrorMessage"
-          :disabled="localIsLockedOut"
-          autofocus
-        />
-      </PepForm>
+      <div v-if="walletStore.isCreated" class="w-full">
+        <PepForm id="welcome-unlock-form" :loading="form.isProcessing" @submit="handleUnlock">
+          <PepPasswordInput
+            ref="passwordInput"
+            v-model="form.password"
+            id="password"
+            label="Password"
+            placeholder="Enter your password"
+            :error="loginErrorMessage"
+            :disabled="localIsLockedOut"
+            autofocus
+          />
+        </PepForm>
 
-      <div class="mt-8 space-y-4">
-        <PepLoadingButton
-          type="submit"
-          form="welcome-unlock-form"
-          :loading="form.isProcessing"
-          :min-loading-ms="UX_DELAY_FAST"
-          :disabled="!canUnlock"
-          class="w-full"
-        >
-          {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
-        </PepLoadingButton>
+        <div class="mt-8 space-y-4">
+          <PepLoadingButton
+            type="submit"
+            form="welcome-unlock-form"
+            :loading="form.isProcessing"
+            :min-loading-ms="UX_DELAY_FAST"
+            :disabled="!canUnlock"
+            class="w-full"
+          >
+            {{ localIsLockedOut ? 'Locked' : 'Unlock' }}
+          </PepLoadingButton>
 
-        <button
-          type="button"
-          @click="router.push('/forgot-password')"
-          class="w-full cursor-pointer text-xs text-slate-500 underline transition-colors hover:text-white hover:no-underline"
-          tabindex="-1"
-        >
-          Forgot your password?
-        </button>
+          <button
+            type="button"
+            @click="router.push('/forgot-password')"
+            class="w-full cursor-pointer text-xs text-slate-500 underline transition-colors hover:text-white hover:no-underline"
+            tabindex="-1"
+          >
+            Forgot your password?
+          </button>
+        </div>
+      </div>
+
+      <div v-else class="w-full space-y-4">
+        <PepButton @click="router.push('/create')" class="w-full"> Create new wallet </PepButton>
+
+        <PepButton @click="router.push('/import')" variant="secondary" class="w-full">
+          Import secret phrase
+        </PepButton>
       </div>
     </div>
-
-    <div v-else class="w-full space-y-4">
-      <PepButton @click="router.push('/create')" class="w-full"> Create new wallet </PepButton>
-
-      <PepButton @click="router.push('/import')" variant="secondary" class="w-full">
-        Import secret phrase
-      </PepButton>
-    </div>
-  </div>
+  </PepMainLayout>
 </template>

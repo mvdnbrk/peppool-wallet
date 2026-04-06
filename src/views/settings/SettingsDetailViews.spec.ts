@@ -38,7 +38,8 @@ describe('Settings Detail Views', () => {
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
-      wallet: mockWallet
+      wallet: mockWallet,
+      route: { path: '/settings' } as any
     } as any);
   });
 

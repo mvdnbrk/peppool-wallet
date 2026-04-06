@@ -31,57 +31,32 @@ onMounted(async () => {
 
       <div
         v-else-if="connectedSites.length === 0"
-        class="flex flex-col items-center justify-center space-y-4 py-12 text-center"
+        class="flex flex-col items-center justify-center py-12 text-center"
       >
-        <div
-          class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-slate-500"
-        >
-          <PepIcon name="external-link" size="32" />
-        </div>
-        <div class="space-y-1">
-          <h3 class="font-medium text-white">No connected sites</h3>
-          <p class="max-w-[240px] text-sm text-slate-400">
-            Websites you've connected to will appear here.
-          </p>
-        </div>
+        <p class="text-sm text-slate-400">Sites you've connected to will appear here.</p>
       </div>
 
-      <div v-else class="space-y-3">
-        <p class="px-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          Authorized Websites
-        </p>
+      <div v-else class="space-y-2">
+        <PepCard
+          v-for="site in connectedSites"
+          :key="site"
+          class="group flex items-center justify-between p-4"
+        >
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-white">
+              {{ domainFrom(site) }}
+            </p>
+            <p class="truncate text-[10px] text-slate-500">{{ site }}</p>
+          </div>
 
-        <div class="space-y-2">
-          <PepCard
-            v-for="site in connectedSites"
-            :key="site"
-            class="group flex items-center justify-between p-4"
+          <button
+            @click="revokeAccess(site)"
+            class="flex-shrink-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-400/10 hover:text-red-400"
+            title="Revoke access"
           >
-            <div class="flex min-w-0 items-center space-x-3">
-              <div
-                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800"
-              >
-                <span class="text-pepe-green text-xs font-bold">{{
-                  domainFrom(site).charAt(0).toUpperCase()
-                }}</span>
-              </div>
-              <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-white">
-                  {{ domainFrom(site) }}
-                </p>
-                <p class="truncate text-[10px] text-slate-500">{{ site }}</p>
-              </div>
-            </div>
-
-            <button
-              @click="revokeAccess(site)"
-              class="flex-shrink-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-400/10 hover:text-red-400"
-              title="Revoke access"
-            >
-              <PepIcon name="clear" size="18" />
-            </button>
-          </PepCard>
-        </div>
+            <PepIcon name="clear" size="18" />
+          </button>
+        </PepCard>
       </div>
     </div>
   </PepMainLayout>

@@ -76,16 +76,6 @@ async function handleReject() {
   <PepMainLayout>
     <div class="space-y-6">
       <div class="space-y-2 text-center">
-        <div class="flex justify-center">
-          <div
-            class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-700 bg-slate-800 shadow-xl"
-          >
-            <!-- dApp Icon would go here if available -->
-            <span class="text-pepe-green text-2xl font-bold">{{
-              origin.charAt(0).toUpperCase()
-            }}</span>
-          </div>
-        </div>
         <h2 class="max-w-full truncate px-4 text-lg font-medium text-white">{{ origin }}</h2>
         <p class="text-sm text-slate-400">wants to connect to your wallet</p>
       </div>
@@ -94,16 +84,11 @@ async function handleReject() {
         <h3 class="px-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
           Selected Account
         </h3>
-        <PepCard class="flex items-center space-x-4 p-4">
-          <div class="bg-pepe-green/20 flex h-10 w-10 items-center justify-center rounded-full">
-            <span class="text-pepe-green font-bold">P</span>
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-white">
-              {{ walletStore.activeAccount?.label || 'Account' }}
-            </p>
-            <p class="truncate text-xs text-slate-400">{{ walletStore.address }}</p>
-          </div>
+        <PepCard class="p-4">
+          <p class="truncate text-sm font-medium text-white">
+            {{ walletStore.activeAccount?.label || 'Account' }}
+          </p>
+          <p class="truncate text-xs text-slate-400">{{ walletStore.address }}</p>
         </PepCard>
       </div>
 

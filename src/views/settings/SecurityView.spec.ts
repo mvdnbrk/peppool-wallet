@@ -33,9 +33,6 @@ describe('SecurityView', () => {
     await wrapper.find('#security-show-mnemonic-item').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/show-mnemonic');
 
-    await wrapper.find('#security-connected-sites-item').trigger('click');
-    expect(pushMock).toHaveBeenCalledWith('/settings/connected-sites');
-
     await wrapper.find('#security-reset-wallet-button').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/reset-wallet');
   });

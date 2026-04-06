@@ -21,7 +21,7 @@ onMounted(async () => {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Connected Sites" backTo="/settings/security" />
+      <PepPageHeader title="Connected Sites" backTo="/settings" />
     </template>
 
     <div class="space-y-6">

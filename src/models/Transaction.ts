@@ -86,10 +86,9 @@ export class Transaction {
 
   get valueRibbits() {
     if (this.isOutgoing) {
-      const others = this.raw.vout.filter((vout) => vout.scriptpubkey_address !== this.userAddress);
-      return others.length > 0
-        ? others.reduce((sum, vout) => sum + vout.value, 0)
-        : this.raw.vout.reduce((sum, vout) => sum + vout.value, 0);
+      return this.raw.vin
+        .filter((vin) => vin.prevout?.scriptpubkey_address === this.userAddress)
+        .reduce((sum, vin) => sum + (vin.prevout?.value ?? 0), 0);
     } else {
       return this.raw.vout
         .filter((vout) => vout.scriptpubkey_address === this.userAddress)

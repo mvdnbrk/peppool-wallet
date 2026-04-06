@@ -19,7 +19,7 @@ function handleBack() {
 </script>
 
 <template>
-  <div class="z-20 mb-8 flex items-center">
+  <div class="z-20 mb-2 flex items-center">
     <button
       id="header-back-button"
       type="button"

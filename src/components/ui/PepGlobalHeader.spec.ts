@@ -35,16 +35,11 @@ describe('PepGlobalHeader', () => {
     } as any);
 
     const wrapper = mount(PepGlobalHeader);
-    expect(wrapper.find('header').exists()).toBe(false);
+    expect(wrapper.find('.relative').exists()).toBe(false);
   });
 
   it('should render on dashboard', () => {
-    vi.mocked(useApp).mockReturnValue({
-      router: { push: pushMock } as any,
-      route: { path: '/dashboard' } as any
-    } as any);
-
     const wrapper = mount(PepGlobalHeader);
-    expect(wrapper.find('header').exists()).toBe(true);
+    expect(wrapper.find('.relative').exists()).toBe(true);
   });
 });

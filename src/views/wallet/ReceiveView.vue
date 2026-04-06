@@ -13,7 +13,7 @@ const { router, wallet: walletStore } = useApp();
       <PepPageHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" />
     </template>
 
-    <div class="flex flex-1 flex-col items-center justify-center space-y-8">
+    <section class="flex items-center justify-center">
       <div class="rounded-2xl bg-white p-4 shadow-xl">
         <qrcode-vue
           :value="walletStore.address || ''"
@@ -28,29 +28,31 @@ const { router, wallet: walletStore } = useApp();
           }"
         />
       </div>
+    </section>
 
-      <div class="w-full space-y-2 text-center">
-        <p class="text-xs font-bold tracking-widest text-slate-500 uppercase">
-          Your Pepecoin Address
-        </p>
-        <div
-          class="flex flex-col items-center space-y-4 rounded-xl border border-slate-700 bg-slate-800 p-4"
+    <section class="mt-4 space-y-2 text-center">
+      <p class="text-xs font-bold tracking-widest text-slate-500 uppercase">
+        Your Pepecoin Address
+      </p>
+      <div
+        class="flex flex-col items-center space-y-4 rounded-xl border border-slate-700 bg-slate-800 p-4"
+      >
+        <el-copyable
+          id="receive-address"
+          class="text-center font-mono text-[11px] leading-relaxed break-all text-slate-300"
         >
-          <el-copyable
-            id="receive-address"
-            class="text-center font-mono text-[11px] leading-relaxed break-all text-slate-300"
-          >
-            {{ walletStore.address }}
-          </el-copyable>
+          {{ walletStore.address }}
+        </el-copyable>
 
-          <PepButton command="--copy" commandfor="receive-address" class="w-full">
-            <span class="in-data-copied:hidden">Copy address</span>
-            <span class="not-in-data-copied:hidden">Address copied!</span>
-          </PepButton>
-        </div>
+        <PepButton command="--copy" commandfor="receive-address" class="w-full">
+          <span class="in-data-copied:hidden">Copy address</span>
+          <span class="not-in-data-copied:hidden">Address copied!</span>
+        </PepButton>
       </div>
-    </div>
+    </section>
 
-    <p class="mt-4 text-center text-xs text-slate-500">Only send Pepecoin (PEP) to this address.</p>
+    <section class="mt-4 text-center">
+      <p class="text-xs text-slate-500">Only send Pepecoin (PEP) to this address.</p>
+    </section>
   </PepMainLayout>
 </template>

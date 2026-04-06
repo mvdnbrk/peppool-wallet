@@ -21,7 +21,8 @@ describe('PreferredExplorerView', () => {
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
-      wallet: mockWallet
+      wallet: mockWallet,
+      route: { path: '/settings/explorer' } as any
     } as any);
   });
 

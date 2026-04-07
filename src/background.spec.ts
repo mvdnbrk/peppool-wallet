@@ -39,13 +39,7 @@ function sendDappMessage(method: string, origin: string, params: any = {}) {
 describe('background dApp permission enforcement', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default: wallet unlocked
-    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
-      if (keys === 'unlocked_until' || (Array.isArray(keys) && keys.includes('unlocked_until'))) {
-        return { unlocked_until: Date.now() + 60_000 };
-      }
-      return {};
-    });
+    (chrome.storage.local.get as any).mockImplementation(async () => ({}));
   });
 
   it('should reject signMessage from disconnected site', async () => {
@@ -55,6 +49,22 @@ describe('background dApp permission enforcement', () => {
       error: 'App not connected. Please call wallet_connect first.'
     });
     expect(windowsCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('should reject getAccounts from disconnected site', async () => {
+    const sendResponse = sendDappMessage('getAccounts', 'https://evil.com');
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'App not connected. Please call wallet_connect first.'
+    });
+  });
+
+  it('should reject wallet_disconnect from disconnected site', async () => {
+    const sendResponse = sendDappMessage('wallet_disconnect', 'https://evil.com');
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'App not connected. Please call wallet_connect first.'
+    });
   });
 
   it('should reject sendTransfer from disconnected site', async () => {
@@ -77,9 +87,6 @@ describe('background dApp permission enforcement', () => {
 
   it('should open approval popup for connected site', async () => {
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
-      if (keys === 'unlocked_until' || (Array.isArray(keys) && keys.includes('unlocked_until'))) {
-        return { unlocked_until: Date.now() + 60_000 };
-      }
       if (keys === 'peppool_permissions') {
         return { peppool_permissions: { 'https://trusted.com': ['connect'] } };
       }
@@ -98,7 +105,6 @@ describe('background dApp permission enforcement', () => {
 
   it('should return accounts directly for wallet_connect from already-connected site', async () => {
     const storageData: Record<string, any> = {
-      unlocked_until: Date.now() + 60_000,
       peppool_permissions: { 'https://trusted.com': ['connect'] },
       peppool_accounts: JSON.stringify([
         { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
@@ -119,16 +125,25 @@ describe('background dApp permission enforcement', () => {
     expect(sendResponse).toHaveBeenCalledWith({ result: ['Ptest123'] });
     expect(windowsCreateMock).not.toHaveBeenCalled();
   });
+
+  it('should open approval popup even when wallet is locked', async () => {
+    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
+      if (keys === 'peppool_permissions') {
+        return { peppool_permissions: { 'https://trusted.com': ['connect'] } };
+      }
+      return {};
+    });
+
+    const validParams = { recipient: 'PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1', amount: 100000000 };
+    sendDappMessage('sendTransfer', 'https://trusted.com', validParams);
+    await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
+  });
 });
 
 describe('background sendTransfer param validation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Wallet unlocked + connected
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
-      if (keys === 'unlocked_until' || (Array.isArray(keys) && keys.includes('unlocked_until'))) {
-        return { unlocked_until: Date.now() + 60_000 };
-      }
       if (keys === 'peppool_permissions') {
         return { peppool_permissions: { 'https://dapp.com': ['connect'] } };
       }

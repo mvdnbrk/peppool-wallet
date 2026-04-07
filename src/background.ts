@@ -117,16 +117,9 @@ async function handleDappRequest(
   // Store the resolver so we can respond later
   requestQueue.set(requestId, sendResponse);
 
-  // Check if wallet is unlocked (required for most methods)
-  const isUnlocked = await checkUnlocked();
-
-  if (!isUnlocked && method !== 'wallet_connect') {
-    sendResponse({ error: 'Wallet is locked. Please unlock Peppool Wallet first.' });
-    requestQueue.delete(requestId);
-    return;
-  }
-
   // Route methods
+  // No unlock gate — popup methods rely on the router guard to show
+  // login first. All methods except wallet_connect require a prior connection.
   switch (method) {
     case 'wallet_connect': {
       const alreadyConnected = await checkPermission(request.origin, 'connect');
@@ -138,6 +131,8 @@ async function handleDappRequest(
       break;
     }
 
+    case 'getAccounts':
+    case 'wallet_disconnect':
     case 'signMessage':
     case 'sendTransfer':
     case 'signPsbt': {
@@ -146,6 +141,16 @@ async function handleDappRequest(
         sendResponse({ error: 'App not connected. Please call wallet_connect first.' });
         requestQueue.delete(requestId);
         return;
+      }
+
+      if (method === 'getAccounts') {
+        handleGetAccounts(request, sendResponse);
+        break;
+      }
+
+      if (method === 'wallet_disconnect') {
+        handleDisconnect(request, sendResponse);
+        break;
       }
 
       // Validate sendTransfer params before opening popup
@@ -162,14 +167,6 @@ async function handleDappRequest(
       break;
     }
 
-    case 'getAccounts':
-      handleGetAccounts(request, sendResponse);
-      break;
-
-    case 'wallet_disconnect':
-      handleDisconnect(request, sendResponse);
-      break;
-
     default:
       sendResponse({ error: `Method ${method} not supported.` });
       requestQueue.delete(requestId);
@@ -177,24 +174,10 @@ async function handleDappRequest(
 }
 
 /**
- * Check if the wallet is currently unlocked
- */
-async function checkUnlocked(): Promise<boolean> {
-  const data = await chrome.storage.local.get(['unlocked_until']);
-  const unlockedUntil = data.unlocked_until as number | undefined;
-  return !!(unlockedUntil && unlockedUntil > Date.now());
-}
-
-/**
  * Handle getAccounts (No popup needed if already connected)
  */
 async function handleGetAccounts(request: DappRequest, sendResponse: (res: any) => void) {
-  const isConnected = await checkPermission(request.origin, 'connect');
-  if (!isConnected) {
-    sendResponse({ error: 'App not connected. Please call wallet_connect first.' });
-    requestQueue.delete(request.requestId);
-    return;
-  }
+  // Permission already checked by the switch-case caller
 
   // Fetch active account from storage
   const activeData = (await chrome.storage.local.get('peppool_active_account')) as any;

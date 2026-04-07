@@ -103,6 +103,34 @@ export function deriveSigner(mnemonic: string, accountIndex = 0, addressIndex = 
   return root.derivePath(getDerivationPath(accountIndex, addressIndex));
 }
 
+export interface AuthKeyPair {
+  address: string;
+  privateKey: Uint8Array;
+  compressed: boolean;
+}
+
+/**
+ * Derive a dedicated auth keypair from m/888'/0'/0'.
+ * This key is never used on-chain — only for API authentication.
+ */
+export function deriveAuthKeyPair(mnemonic: string): AuthKeyPair {
+  const seedBuffer = bip39.mnemonicToSeedSync(mnemonic);
+  const seed = new Uint8Array(seedBuffer);
+  const root = bip32.fromSeed(seed, PEPECOIN);
+  const child = root.derivePath("m/888'/0'/0'");
+
+  const { address } = bitcoin.payments.p2pkh({
+    pubkey: child.publicKey,
+    network: PEPECOIN
+  });
+
+  return {
+    address: address!,
+    privateKey: child.privateKey!,
+    compressed: true
+  };
+}
+
 export async function createSignedTx(
   signer: Signer,
   toAddress: string,

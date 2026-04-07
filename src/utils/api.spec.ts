@@ -12,6 +12,12 @@ import {
   broadcastTx
 } from './api';
 import { RIBBITS_PER_PEP } from './constants';
+import { clearAuth } from './auth';
+
+vi.mock('./auth', () => ({
+  getStoredToken: vi.fn(() => null),
+  clearAuth: vi.fn()
+}));
 
 describe('API Utils', () => {
   let errorSpy: any;
@@ -290,6 +296,23 @@ describe('API Utils', () => {
     await expect(fetchPepPrice()).rejects.toThrow(
       'Method not allowed. Please check API endpoint configuration.'
     );
+  });
+
+  it('should clear auth and retry on 401, succeeding at anonymous rate', async () => {
+    const mockPrices = { USD: 0.0002, EUR: 0.00018 };
+    (vi.mocked(fetch) as any)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        headers: { get: () => 'application/json' }
+      })
+      .mockResolvedValueOnce(mockResponse(mockPrices));
+
+    const prices = await fetchPepPrice();
+
+    expect(clearAuth).toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(prices.USD).toBe(0.0002);
   });
 
   it('should throw server error on 500+ error', async () => {

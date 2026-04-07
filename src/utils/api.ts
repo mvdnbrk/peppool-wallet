@@ -1,13 +1,23 @@
 import { API_TIMEOUT_MS, APP_NAME, APP_VERSION } from './constants';
 import { RawTransactionSchema, type RawTransaction } from '@/models/Transaction';
+import { getStoredToken, clearAuth } from './auth';
 import * as v from 'valibot';
 
 const API_BASE = import.meta.env.VITE_MAINNET_API || 'https://peppool.space/api';
 
-const COMMON_HEADERS = {
-  'X-App-Name': APP_NAME,
-  'X-App-Version': APP_VERSION
-};
+function getHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'X-App-Name': APP_NAME,
+    'X-App-Version': APP_VERSION
+  };
+
+  const token = getStoredToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+}
 
 export async function fetchTipHeight(): Promise<number> {
   const controller = new AbortController();
@@ -15,7 +25,7 @@ export async function fetchTipHeight(): Promise<number> {
   try {
     const response = await fetch(`${API_BASE}/blocks/tip/height`, {
       signal: controller.signal,
-      headers: COMMON_HEADERS
+      headers: getHeaders()
     });
     clearTimeout(id);
     if (!response.ok) throw new Error(`Tip height fetch failed (${response.status})`);
@@ -36,7 +46,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       ...options,
       headers: {
         ...options?.headers,
-        ...COMMON_HEADERS
+        ...getHeaders()
       },
       signal: controller.signal
     });
@@ -44,6 +54,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const contentType = response.headers.get('content-type');
 
     if (!response.ok) {
+      if (response.status === 401) {
+        clearAuth();
+        // Retry once without auth token
+        const retry = await fetch(url, {
+          ...options,
+          headers: { ...options?.headers, ...getHeaders() },
+          signal: controller.signal
+        });
+        if (retry.ok) return await retry.json();
+      }
       if (response.status === 429) {
         throw new Error('Too many requests. Please wait a moment.');
       }
@@ -153,7 +173,7 @@ export async function fetchTxHex(txid: string): Promise<string> {
   try {
     const response = await fetch(`${API_BASE}/tx/${encodeURIComponent(txid)}/hex`, {
       signal: controller.signal,
-      headers: COMMON_HEADERS
+      headers: getHeaders()
     });
     clearTimeout(id);
     if (!response.ok) {
@@ -176,7 +196,7 @@ export async function broadcastTx(txHex: string): Promise<string> {
       method: 'POST',
       body: txHex,
       signal: controller.signal,
-      headers: COMMON_HEADERS
+      headers: getHeaders()
     });
     clearTimeout(id);
 

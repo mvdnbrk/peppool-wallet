@@ -4,6 +4,7 @@ import {
   generateMnemonic,
   validateMnemonic,
   deriveAddress,
+  deriveAuthKeyPair,
   deriveSigner,
   parseDerivationPath,
   createSignedTx,
@@ -163,6 +164,31 @@ describe('Crypto Utils', () => {
       const sig1 = signMessage(mnemonic, 'same message', 0, 0);
       const sig2 = signMessage(mnemonic, 'same message', 1, 0);
       expect(sig1).not.toBe(sig2);
+    });
+  });
+
+  describe('Auth Key Derivation', () => {
+    it('should derive an auth keypair with a valid Pepecoin address', () => {
+      const auth = deriveAuthKeyPair(mnemonic);
+      expect(auth.address.startsWith('P')).toBe(true);
+      expect(auth.privateKey).toBeDefined();
+      expect(auth.privateKey.length).toBe(32);
+      expect(auth.compressed).toBe(true);
+    });
+
+    it('should derive a deterministic auth keypair from the same mnemonic', () => {
+      const auth1 = deriveAuthKeyPair(mnemonic);
+      const auth2 = deriveAuthKeyPair(mnemonic);
+      expect(auth1.address).toBe(auth2.address);
+      expect(Buffer.from(auth1.privateKey).toString('hex')).toBe(
+        Buffer.from(auth2.privateKey).toString('hex')
+      );
+    });
+
+    it('should derive a different address than the wallet address (m/44 vs m/888)', () => {
+      const walletAddress = deriveAddress(mnemonic, 0, 0);
+      const auth = deriveAuthKeyPair(mnemonic);
+      expect(auth.address).not.toBe(walletAddress);
     });
   });
 

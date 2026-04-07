@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
-import { computed } from 'vue';
+import { useGlobalHeader } from '@/composables/useGlobalHeader';
 import logoUrl from '@/assets/logo.svg';
 
-const { router, route } = useApp();
-
-const shouldRender = computed(() => {
-  return (
-    !['/', '/create', '/import', '/reset-wallet', '/forgot-password'].includes(route.path) &&
-    !route.path.startsWith('/approve/')
-  );
-});
+const { router } = useApp();
+const { isVisible } = useGlobalHeader();
 </script>
 
 <template>
-  <header v-if="shouldRender" class="relative">
+  <div v-if="isVisible" class="relative">
     <div class="text-pep-green -mt-px h-4 w-full overflow-hidden">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -52,5 +46,5 @@ const shouldRender = computed(() => {
         </button>
       </div>
     </div>
-  </header>
+  </div>
 </template>

@@ -28,15 +28,11 @@ watch(
 
 <template>
   <div
-    class="flex h-full flex-col bg-slate-900"
+    class="h-full bg-slate-900"
     @mousedown="wallet.resetLockTimer"
     @keydown="wallet.resetLockTimer"
   >
-    <PepGlobalHeader />
-
-    <main class="flex-1 overflow-y-auto">
-      <router-view></router-view>
-    </main>
+    <router-view />
   </div>
 </template>
 

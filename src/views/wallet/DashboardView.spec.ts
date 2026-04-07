@@ -56,7 +56,7 @@ describe('Wallet Views Navigation', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
-      route: { params: { txid: 'test-tx' } } as any
+      route: { path: '/dashboard', params: { txid: 'test-tx' } } as any
     });
   });
 

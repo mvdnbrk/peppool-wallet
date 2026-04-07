@@ -1,12 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import App from './App.vue';
-import { useRoute } from 'vue-router';
-import PepGlobalHeader from '@/components/ui/PepGlobalHeader.vue';
 
 // Mock Router
 vi.mock('vue-router', () => ({
-  useRoute: vi.fn(),
+  useRoute: vi.fn(() => ({ path: '/dashboard' })),
   useRouter: vi.fn(() => ({
     push: vi.fn(),
     replace: vi.fn()
@@ -24,41 +22,12 @@ vi.mock('@/stores/wallet', () => ({
   }))
 }));
 
-// Mock components
-const stubs = {
-  PepWordmark: { template: '<div />' },
-  PepIcon: { template: '<div />' }
-};
-
-describe('App Global Layout', () => {
-  it('should HIDE the header on onboarding pages', () => {
-    const onboardingPaths = ['/', '/create', '/import', '/reset-wallet', '/forgot-password'];
-
-    for (const path of onboardingPaths) {
-      vi.mocked(useRoute).mockReturnValue({ path } as any);
-      const wrapper = mount(App, {
-        global: {
-          stubs,
-          components: { PepGlobalHeader }
-        }
-      });
-      // The component exists in App.vue, but should not render its content
-      expect(wrapper.find('header').exists()).toBe(false);
-    }
-  });
-
-  it('should SHOW the header on dashboard and settings', () => {
-    const appPaths = ['/dashboard', '/settings', '/send', '/receive'];
-
-    for (const path of appPaths) {
-      vi.mocked(useRoute).mockReturnValue({ path } as any);
-      const wrapper = mount(App, {
-        global: {
-          stubs,
-          components: { PepGlobalHeader }
-        }
-      });
-      expect(wrapper.findComponent(PepGlobalHeader).exists()).toBe(true);
-    }
+describe('App Shell', () => {
+  it('should render as a minimal shell without header or layout', () => {
+    const wrapper = mount(App);
+    // App is just a div shell — no header, no main, no layout
+    expect(wrapper.find('header').exists()).toBe(false);
+    expect(wrapper.find('main').exists()).toBe(false);
+    expect(wrapper.element.tagName).toBe('DIV');
   });
 });

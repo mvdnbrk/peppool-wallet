@@ -119,10 +119,12 @@ export async function authenticate(
   }
 }
 
+let authInFlight: Promise<string | null> | null = null;
+
 /**
- * Ensure a valid token exists. Refreshes if expiring soon or if the
+ * Ensure a valid token exists. Refreshes if expired or if the
  * auth address changed (wallet re-created with different seed).
- * Silently falls back to anonymous if auth fails.
+ * Guards against concurrent calls to prevent duplicate tokens.
  */
 export async function ensureAuth(
   address: string,
@@ -132,9 +134,13 @@ export async function ensureAuth(
   const storedAddress = getStoredAddress();
   const token = getStoredToken();
 
-  // Need fresh token: no token, wrong address, or expired/expiring
   if (!token || storedAddress !== address || isTokenExpired()) {
-    await authenticate(address, privateKey, compressed);
+    if (!authInFlight) {
+      authInFlight = authenticate(address, privateKey, compressed).finally(() => {
+        authInFlight = null;
+      });
+    }
+    await authInFlight;
   }
 }
 

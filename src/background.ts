@@ -128,9 +128,15 @@ async function handleDappRequest(
 
   // Route methods
   switch (method) {
-    case 'wallet_connect':
-      openApprovalPopup(request);
+    case 'wallet_connect': {
+      const alreadyConnected = await checkPermission(request.origin, 'connect');
+      if (alreadyConnected) {
+        handleGetAccounts(request, sendResponse);
+      } else {
+        openApprovalPopup(request);
+      }
       break;
+    }
 
     case 'signMessage':
     case 'sendTransfer':

@@ -91,9 +91,33 @@ describe('background dApp permission enforcement', () => {
     await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
   });
 
-  it('should always allow wallet_connect without prior permission', async () => {
+  it('should open approval popup for wallet_connect from new site', async () => {
     sendDappMessage('wallet_connect', 'https://new-site.com');
     await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
+  });
+
+  it('should return accounts directly for wallet_connect from already-connected site', async () => {
+    const storageData: Record<string, any> = {
+      unlocked_until: Date.now() + 60_000,
+      peppool_permissions: { 'https://trusted.com': ['connect'] },
+      peppool_accounts: JSON.stringify([
+        { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
+      ]),
+      peppool_active_account: '0'
+    };
+    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
+      }
+      return result;
+    });
+
+    const sendResponse = sendDappMessage('wallet_connect', 'https://trusted.com');
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({ result: ['Ptest123'] });
+    expect(windowsCreateMock).not.toHaveBeenCalled();
   });
 });
 

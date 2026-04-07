@@ -80,17 +80,12 @@ async function handleReject() {
         <p class="text-sm text-slate-400">wants to connect to your wallet</p>
       </div>
 
-      <div class="space-y-4">
-        <h3 class="px-1 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          Selected Account
-        </h3>
-        <PepCard class="p-4">
-          <p class="truncate text-sm font-medium text-white">
-            {{ walletStore.activeAccount?.label || 'Account' }}
-          </p>
-          <p class="truncate text-xs text-slate-400">{{ walletStore.address }}</p>
-        </PepCard>
-      </div>
+      <PepCard class="p-4">
+        <p class="truncate text-sm font-medium text-white">
+          {{ walletStore.activeAccount?.label || 'Account' }}
+        </p>
+        <p class="truncate text-xs text-slate-400">{{ walletStore.address }}</p>
+      </PepCard>
 
       <div class="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
         <p class="text-xs font-medium text-slate-400">THIS SITE WILL BE ABLE TO:</p>

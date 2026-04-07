@@ -5,11 +5,6 @@ import { useLockoutStore } from './lockout';
 
 import { Transaction } from '@/models/Transaction';
 
-vi.mock('@/utils/auth', () => ({
-  ensureAuth: vi.fn(() => Promise.resolve()),
-  clearAuth: vi.fn()
-}));
-
 // Mock the API and Crypto utils
 vi.mock('@/utils/api', () => ({
   fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),

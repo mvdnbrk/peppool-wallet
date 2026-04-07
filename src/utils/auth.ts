@@ -21,7 +21,7 @@ interface ChallengeResponse {
 
 interface TokenResponse {
   token: string;
-  expires_at: string;
+  expires_at: number;
 }
 
 async function authRequest<T>(path: string, body: Record<string, string>): Promise<T> {
@@ -68,9 +68,9 @@ async function requestToken(address: string, signature: string): Promise<TokenRe
   return await authRequest<TokenResponse>('/v1/auth/token', { address, signature });
 }
 
-function storeToken(token: string, expiresAt: string, address: string) {
+function storeToken(token: string, expiresAt: number, address: string) {
   localStorage.setItem(STORAGE_KEY_TOKEN, token);
-  localStorage.setItem(STORAGE_KEY_EXPIRES, expiresAt);
+  localStorage.setItem(STORAGE_KEY_EXPIRES, expiresAt.toString());
   localStorage.setItem(STORAGE_KEY_ADDRESS, address);
 }
 
@@ -87,7 +87,7 @@ export function getStoredToken(): string | null {
 function getStoredExpiry(): number {
   const expiresAt = localStorage.getItem(STORAGE_KEY_EXPIRES);
   if (!expiresAt) return 0;
-  return new Date(expiresAt).getTime();
+  return parseInt(expiresAt, 10) * 1000;
 }
 
 function getStoredAddress(): string | null {

@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Undo the global auth mock so we can test the real implementation
+vi.unmock('@/utils/auth');
+
 import { authenticate, ensureAuth, clearAuth, getStoredToken } from './auth';
 
 describe('Auth Utils', () => {
@@ -7,7 +11,7 @@ describe('Auth Utils', () => {
   const mockCompressed = true;
   const mockNonce = 'peppool_wallet_auth_abc123';
   const mockToken = 'sanctum-bearer-token-xyz';
-  const mockExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const mockExpiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
 
   let errorSpy: any;
 
@@ -102,7 +106,7 @@ describe('Auth Utils', () => {
 
     it('should skip auth when a valid non-expiring token exists for the same address', async () => {
       localStorage.setItem('peppool_auth_token', mockToken);
-      localStorage.setItem('peppool_auth_expires', mockExpiresAt);
+      localStorage.setItem('peppool_auth_expires', mockExpiresAt.toString());
       localStorage.setItem('peppool_auth_address', mockAddress);
 
       await ensureAuth(mockAddress, mockPrivateKey, mockCompressed);
@@ -112,7 +116,7 @@ describe('Auth Utils', () => {
 
     it('should re-authenticate when token belongs to a different address', async () => {
       localStorage.setItem('peppool_auth_token', 'old-token');
-      localStorage.setItem('peppool_auth_expires', mockExpiresAt);
+      localStorage.setItem('peppool_auth_expires', mockExpiresAt.toString());
       localStorage.setItem('peppool_auth_address', 'PdifferentAddress');
 
       mockFetchSequence(
@@ -127,7 +131,7 @@ describe('Auth Utils', () => {
 
     it('should re-authenticate when token is expired', async () => {
       localStorage.setItem('peppool_auth_token', 'expired-token');
-      localStorage.setItem('peppool_auth_expires', new Date(Date.now() - 1000).toISOString());
+      localStorage.setItem('peppool_auth_expires', (Math.floor(Date.now() / 1000) - 1).toString());
       localStorage.setItem('peppool_auth_address', mockAddress);
 
       mockFetchSequence(
@@ -144,7 +148,7 @@ describe('Auth Utils', () => {
   describe('clearAuth', () => {
     it('should remove all auth storage keys', () => {
       localStorage.setItem('peppool_auth_token', mockToken);
-      localStorage.setItem('peppool_auth_expires', mockExpiresAt);
+      localStorage.setItem('peppool_auth_expires', mockExpiresAt.toString());
       localStorage.setItem('peppool_auth_address', mockAddress);
 
       clearAuth();

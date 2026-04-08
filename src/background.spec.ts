@@ -88,7 +88,11 @@ describe('background dApp permission enforcement', () => {
   it('should open approval popup for connected site', async () => {
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
       if (keys === 'peppool_permissions') {
-        return { peppool_permissions: { 'https://trusted.com': ['connect'] } };
+        return {
+          peppool_permissions: {
+            'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+          }
+        };
       }
       return {};
     });
@@ -105,7 +109,9 @@ describe('background dApp permission enforcement', () => {
 
   it('should return accounts directly for wallet_connect from already-connected site', async () => {
     const storageData: Record<string, any> = {
-      peppool_permissions: { 'https://trusted.com': ['connect'] },
+      peppool_permissions: {
+        'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+      },
       peppool_accounts: JSON.stringify([
         { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
       ]),
@@ -129,7 +135,11 @@ describe('background dApp permission enforcement', () => {
   it('should open approval popup even when wallet is locked', async () => {
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
       if (keys === 'peppool_permissions') {
-        return { peppool_permissions: { 'https://trusted.com': ['connect'] } };
+        return {
+          peppool_permissions: {
+            'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+          }
+        };
       }
       return {};
     });
@@ -145,7 +155,11 @@ describe('background sendTransfer param validation', () => {
     vi.clearAllMocks();
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
       if (keys === 'peppool_permissions') {
-        return { peppool_permissions: { 'https://dapp.com': ['connect'] } };
+        return {
+          peppool_permissions: {
+            'https://dapp.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+          }
+        };
       }
       return {};
     });

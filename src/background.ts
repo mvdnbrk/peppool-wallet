@@ -9,6 +9,8 @@
  *   { type: 'clear-auto-lock' }
  */
 
+import { loadPermissions, savePermissions, hasPermission, revokeOrigin } from '@/utils/permissions';
+
 const ALARM_NAME = 'peppool-auto-lock';
 
 // ── Alarm handler ──────────────────────────────────────────────────────────
@@ -34,10 +36,6 @@ interface DappRequest {
   params: any;
   origin: string;
   tabId?: number;
-}
-
-interface Permissions {
-  [origin: string]: string[];
 }
 
 // In-memory queue (cleared if service worker unloads, but used for active sessions)
@@ -122,7 +120,8 @@ async function handleDappRequest(
   // login first. All methods except wallet_connect require a prior connection.
   switch (method) {
     case 'wallet_connect': {
-      const alreadyConnected = await checkPermission(request.origin, 'connect');
+      const perms = await loadPermissions();
+      const alreadyConnected = hasPermission(perms, request.origin, 'connect');
       if (alreadyConnected) {
         handleGetAccounts(request, sendResponse);
       } else {
@@ -136,7 +135,8 @@ async function handleDappRequest(
     case 'signMessage':
     case 'sendTransfer':
     case 'signPsbt': {
-      const isConnected = await checkPermission(request.origin, 'connect');
+      const permsMap = await loadPermissions();
+      const isConnected = hasPermission(permsMap, request.origin, 'connect');
       if (!isConnected) {
         sendResponse({ error: 'App not connected. Please call wallet_connect first.' });
         requestQueue.delete(requestId);
@@ -200,28 +200,10 @@ async function handleGetAccounts(request: DappRequest, sendResponse: (res: any) 
  * Handle disconnect
  */
 async function handleDisconnect(request: DappRequest, sendResponse: (res: any) => void) {
-  await revokePermission(request.origin);
+  const perms = await loadPermissions();
+  await savePermissions(revokeOrigin(perms, request.origin));
   sendResponse({ result: true });
   requestQueue.delete(request.requestId);
-}
-
-/**
- * Check if a dApp has a specific permission
- */
-async function checkPermission(origin: string, permission: string): Promise<boolean> {
-  const data = await chrome.storage.local.get('peppool_permissions');
-  const permissions = (data.peppool_permissions || {}) as Permissions;
-  return !!permissions[origin]?.includes(permission);
-}
-
-/**
- * Revoke all permissions for an origin
- */
-async function revokePermission(origin: string) {
-  const data = await chrome.storage.local.get('peppool_permissions');
-  const permissions = (data.peppool_permissions || {}) as Permissions;
-  delete permissions[origin];
-  await chrome.storage.local.set({ peppool_permissions: permissions });
 }
 
 /**

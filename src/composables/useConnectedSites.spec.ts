@@ -13,8 +13,8 @@ describe('useConnectedSites Composable', () => {
   it('should load connected sites from storage', async () => {
     (global.chrome.storage.local.get as any).mockResolvedValue({
       peppool_permissions: {
-        'https://site1.com': ['connect'],
-        'https://site2.io': ['connect']
+        'https://site1.com': { accounts: ['Paddr1'], permissions: ['connect'] },
+        'https://site2.io': { accounts: ['Paddr1'], permissions: ['connect'] }
       }
     });
 
@@ -33,8 +33,8 @@ describe('useConnectedSites Composable', () => {
   it('should revoke access and update local state', async () => {
     (global.chrome.storage.local.get as any).mockResolvedValue({
       peppool_permissions: {
-        'https://site1.com': ['connect'],
-        'https://site2.io': ['connect']
+        'https://site1.com': { accounts: ['Paddr1'], permissions: ['connect'] },
+        'https://site2.io': { accounts: ['Paddr1'], permissions: ['connect'] }
       }
     });
 
@@ -48,7 +48,7 @@ describe('useConnectedSites Composable', () => {
     // Verify storage call
     expect(global.chrome.storage.local.set).toHaveBeenCalledWith({
       peppool_permissions: {
-        'https://site2.io': ['connect']
+        'https://site2.io': { accounts: ['Paddr1'], permissions: ['connect'] }
       }
     });
 

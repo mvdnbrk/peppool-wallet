@@ -1,8 +1,5 @@
 import { ref } from 'vue';
-
-export interface Permissions {
-  [origin: string]: string[];
-}
+import { loadPermissions, savePermissions, revokeOrigin } from '@/utils/permissions';
 
 export function useConnectedSites() {
   const connectedSites = ref<string[]>([]);
@@ -13,8 +10,7 @@ export function useConnectedSites() {
     isLoading.value = true;
     error.value = null;
     try {
-      const data = await chrome.storage.local.get('peppool_permissions');
-      const permissions = (data.peppool_permissions || {}) as Permissions;
+      const permissions = await loadPermissions();
       connectedSites.value = Object.keys(permissions);
     } catch (err: any) {
       console.error('Failed to load connected sites', err);
@@ -26,12 +22,10 @@ export function useConnectedSites() {
 
   async function revokeAccess(origin: string) {
     try {
-      const data = await chrome.storage.local.get('peppool_permissions');
-      const permissions = (data.peppool_permissions || {}) as Permissions;
+      const permissions = await loadPermissions();
 
       if (permissions[origin]) {
-        delete permissions[origin];
-        await chrome.storage.local.set({ peppool_permissions: permissions });
+        await savePermissions(revokeOrigin(permissions, origin));
         connectedSites.value = connectedSites.value.filter((site) => site !== origin);
       }
     } catch (err: any) {

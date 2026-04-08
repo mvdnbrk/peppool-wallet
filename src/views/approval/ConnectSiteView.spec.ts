@@ -85,7 +85,10 @@ describe('ConnectSiteView', () => {
     expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
         peppool_permissions: expect.objectContaining({
-          'https://test-dapp.com': ['connect']
+          'https://test-dapp.com': {
+            accounts: ['Paddress123'],
+            permissions: ['connect']
+          }
         })
       })
     );

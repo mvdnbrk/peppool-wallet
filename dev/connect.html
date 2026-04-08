@@ -149,6 +149,26 @@
             margin-bottom: 0.75rem;
         }
 
+        .recipient-row {
+            position: relative;
+        }
+
+        .recipient-row + .recipient-row {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #334155;
+        }
+
+        .btn-remove-recipient {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            color: #f87171;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
         .log {
             background: #0f172a;
             border: 1px solid #334155;
@@ -250,15 +270,20 @@
     <!-- Send Transfer -->
     <div class="card">
         <h2>5. Send Transfer</h2>
-        <div class="field">
-            <label for="send-recipient">Recipient Address</label>
-            <input id="send-recipient" type="text" placeholder="Paddr...">
+        <div id="recipients-list">
+            <div class="recipient-row" data-index="0">
+                <div class="field">
+                    <label>Recipient Address</label>
+                    <input class="r-address" type="text" placeholder="Paddr...">
+                </div>
+                <div class="field">
+                    <label>Amount (ribbits)</label>
+                    <input class="r-amount" type="number" placeholder="100000000" value="100000000">
+                </div>
+            </div>
         </div>
-        <div class="field">
-            <label for="send-amount">Amount (ribbits)</label>
-            <input id="send-amount" type="number" placeholder="100000000" value="100000000">
-        </div>
-        <div class="row">
+        <div class="row" style="margin-top: 0.25rem;">
+            <button id="btn-add-recipient" class="secondary" disabled>+ Recipient</button>
             <button id="btn-send" disabled>Send Transfer</button>
         </div>
         <div id="send-status" class="status" style="margin-top: 0.5rem;">—</div>
@@ -320,6 +345,7 @@
             document.getElementById('btn-accounts').disabled = false;
             document.getElementById('btn-sign').disabled = false;
             document.getElementById('btn-send').disabled = false;
+            document.getElementById('btn-add-recipient').disabled = false;
             document.getElementById('btn-disconnect').disabled = false;
         }
 
@@ -407,15 +433,44 @@
             }
         });
 
+        // --- Add/Remove recipients ---
+        document.getElementById('btn-add-recipient').addEventListener('click', () => {
+            const list = document.getElementById('recipients-list');
+            const index = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'recipient-row';
+            row.dataset.index = index;
+            row.innerHTML = `
+                <button class="btn-remove-recipient" onclick="this.parentElement.remove()">✕ Remove</button>
+                <div class="field">
+                    <label>Recipient Address</label>
+                    <input class="r-address" type="text" placeholder="Paddr...">
+                </div>
+                <div class="field">
+                    <label>Amount (ribbits)</label>
+                    <input class="r-amount" type="number" placeholder="100000000" value="100000000">
+                </div>
+            `;
+            list.appendChild(row);
+        });
+
         // --- sendTransfer ---
         document.getElementById('btn-send').addEventListener('click', async () => {
-            const recipient = document.getElementById('send-recipient').value;
-            const amount = parseInt(document.getElementById('send-amount').value, 10);
-            if (!recipient) { setStatus('send-status', 'Enter a recipient address', 'err'); return; }
-            if (!amount || amount <= 0) { setStatus('send-status', 'Enter a valid amount', 'err'); return; }
+            const rows = document.querySelectorAll('.recipient-row');
+            const recipients = [];
+            for (const row of rows) {
+                const address = row.querySelector('.r-address').value;
+                const amount = parseInt(row.querySelector('.r-amount').value, 10);
+                if (!address) { setStatus('send-status', 'Enter a recipient address', 'err'); return; }
+                if (!amount || amount <= 0) { setStatus('send-status', 'Enter a valid amount', 'err'); return; }
+                recipients.push({ address, amount });
+            }
             setStatus('send-status', 'Requesting approval...', '');
             try {
-                const result = await provider.request('sendTransfer', { recipient, amount });
+                const params = recipients.length === 1
+                    ? { recipient: recipients[0].address, amount: recipients[0].amount }
+                    : { recipients };
+                const result = await provider.request('sendTransfer', params);
                 setStatus('send-status', `txid: ${result.txid}`, 'ok');
                 log('sendTransfer', 'ok', result.txid);
             } catch (err) {

@@ -10,7 +10,10 @@ import {
   fetchTxHex,
   fetchRecommendedFees,
   fetchTipHeight,
-  broadcastTx
+  broadcastTx,
+  fetchInscriptionOutputs,
+  isInscriptionUtxo,
+  type ApiUtxo
 } from './api';
 import { RIBBITS_PER_PEP } from './constants';
 import { clearAuth } from './auth';
@@ -287,6 +290,37 @@ describe('API Utils', () => {
     });
 
     await expect(broadcastTx('deadbeef')).rejects.toThrow('Broadcast failed (500)');
+  });
+
+  it('should fetch inscription outputs for an address', async () => {
+    const mockData = { outputs: ['abc123:0', 'def456:1'] };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockData));
+
+    const outputs = await fetchInscriptionOutputs('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+    expect(outputs).toEqual(['abc123:0', 'def456:1']);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/address/PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU/inscriptions'),
+      expect.anything()
+    );
+  });
+
+  it('isInscriptionUtxo matches against inscription output set', () => {
+    const inscriptionSet = new Set(['abc123:0', 'def456:2']);
+    const inscriptionUtxo: ApiUtxo = {
+      txid: 'abc123',
+      vout: 0,
+      value: 100_000,
+      status: { confirmed: true }
+    };
+    const safeUtxo: ApiUtxo = {
+      txid: 'abc123',
+      vout: 1,
+      value: 500_000_000,
+      status: { confirmed: true }
+    };
+
+    expect(isInscriptionUtxo(inscriptionUtxo, inscriptionSet)).toBe(true);
+    expect(isInscriptionUtxo(safeUtxo, inscriptionSet)).toBe(false);
   });
 
   it('should throw an error when API call fails', async () => {

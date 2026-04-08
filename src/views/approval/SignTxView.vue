@@ -8,7 +8,14 @@ import {
   type UTXO,
   parseDerivationPath
 } from '@/utils/crypto';
-import { fetchUtxos, broadcastTx, fetchTxHex, fetchRecommendedFees } from '@/utils/api';
+import {
+  fetchUtxos,
+  broadcastTx,
+  fetchTxHex,
+  fetchRecommendedFees,
+  fetchInscriptionOutputs,
+  isInscriptionUtxo
+} from '@/utils/api';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
 import { SendTransaction } from '@/models/SendTransaction';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
@@ -137,12 +144,20 @@ async function handleSendTransfer(mnemonic: string) {
   const recipient = recipients[0];
   const address = walletStore.address!;
 
-  // 1. Fetch requirements
-  const [fees, rawUtxos] = await Promise.all([fetchRecommendedFees(), fetchUtxos(address)]);
+  // 1. Fetch requirements (inscription outputs fail gracefully — never block sends)
+  const [fees, rawUtxos, inscriptionOutputs] = await Promise.all([
+    fetchRecommendedFees(),
+    fetchUtxos(address),
+    fetchInscriptionOutputs(address).catch(() => [] as string[])
+  ]);
+
+  const inscriptionSet = new Set(inscriptionOutputs);
 
   // 2. Coin selection via SendTransaction model (shared with main send flow)
   const sendTx = new SendTransaction(address);
-  sendTx.utxos = rawUtxos.filter((u) => u.status.confirmed);
+  sendTx.utxos = rawUtxos.filter(
+    (u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet)
+  );
   sendTx.fees = fees;
   sendTx.amountRibbits = recipient.amount;
   sendTx.recipient = recipient.address;

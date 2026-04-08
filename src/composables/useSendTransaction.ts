@@ -5,7 +5,9 @@ import {
   broadcastTx,
   fetchTxHex,
   validateAddress,
-  fetchRecommendedFees
+  fetchRecommendedFees,
+  fetchInscriptionOutputs,
+  isInscriptionUtxo
 } from '@/utils/api';
 import {
   createSignedTx,
@@ -50,13 +52,18 @@ export function useSendTransaction() {
   async function loadRequirements(isMax: boolean = false) {
     isLoadingRequirements.value = true;
     try {
-      const [fees, utxos] = await Promise.all([
+      const [fees, utxos, inscriptionOutputs] = await Promise.all([
         fetchRecommendedFees(),
-        fetchUtxos(walletStore.address!)
+        fetchUtxos(walletStore.address!),
+        fetchInscriptionOutputs(walletStore.address!).catch(() => [] as string[])
       ]);
 
+      const inscriptionSet = new Set(inscriptionOutputs);
+
       tx.value.fees = fees;
-      tx.value.utxos = utxos.filter((u) => u.status.confirmed);
+      tx.value.utxos = utxos.filter(
+        (u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet)
+      );
 
       if (isMax) {
         tx.value.amountRibbits = tx.value.maxRibbits;

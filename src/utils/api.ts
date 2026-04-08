@@ -161,6 +161,25 @@ export async function fetchUtxos(address: string): Promise<ApiUtxo[]> {
   return await request<ApiUtxo[]>(`/address/${encodeURIComponent(address)}/utxo`);
 }
 
+/**
+ * Fetches inscription output identifiers for an address from the ord indexer.
+ * Returns an array of "txid:vout" strings representing UTXOs that contain inscriptions.
+ */
+export async function fetchInscriptionOutputs(address: string): Promise<string[]> {
+  const data = await request<{ outputs: string[] }>(
+    `/address/${encodeURIComponent(address)}/inscriptions`
+  );
+  return data.outputs;
+}
+
+/**
+ * Returns true if the given UTXO holds an inscription and should be excluded from coin selection.
+ * Matches against a Set of "txid:vout" output identifiers.
+ */
+export function isInscriptionUtxo(utxo: ApiUtxo, inscriptionOutputs: Set<string>): boolean {
+  return inscriptionOutputs.has(`${utxo.txid}:${utxo.vout}`);
+}
+
 export async function fetchTransaction(txid: string): Promise<RawTransaction> {
   const data = await request<unknown>(`/tx/${encodeURIComponent(txid)}`);
   return v.parse(RawTransactionSchema, data);

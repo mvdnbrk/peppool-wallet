@@ -8,7 +8,18 @@ import { RIBBITS_PER_PEP } from '@/utils/constants';
 
 // Mock dependencies
 vi.mock('@/composables/useApp');
-vi.mock('@/utils/api');
+vi.mock('@/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/api')>();
+  return {
+    ...actual,
+    fetchRecommendedFees: vi.fn(),
+    fetchUtxos: vi.fn(),
+    fetchTxHex: vi.fn(),
+    validateAddress: vi.fn(),
+    broadcastTx: vi.fn(),
+    fetchInscriptionOutputs: vi.fn()
+  };
+});
 vi.mock('@/utils/crypto', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/crypto')>();
   return {
@@ -45,6 +56,7 @@ describe('useSendTransaction Composable', () => {
     ];
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
     vi.mocked(api.fetchUtxos).mockResolvedValue(mixedUtxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
 
     const { tx, loadRequirements, isLoadingRequirements } = useSendTransaction();
 
@@ -55,6 +67,36 @@ describe('useSendTransaction Composable', () => {
     expect(tx.value.utxos).toHaveLength(1);
     expect(tx.value.utxos[0].txid).toBe('c1');
     expect(tx.value.fees?.fastestFee).toBe(1000);
+  });
+
+  it('should exclude inscription-bearing UTXOs from spendable balance', async () => {
+    const utxos = [
+      { txid: 'safe1', vout: 0, value: 300_000_000, status: { confirmed: true } },
+      { txid: 'inscribed1', vout: 1, value: 100_000_000, status: { confirmed: true } },
+      { txid: 'safe2', vout: 0, value: 200_000_000, status: { confirmed: true } }
+    ];
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
+
+    const { tx, loadRequirements } = useSendTransaction();
+    await loadRequirements();
+
+    expect(tx.value.utxos).toHaveLength(2);
+    expect(tx.value.utxos.map((u: any) => u.txid)).toEqual(['safe1', 'safe2']);
+  });
+
+  it('should still load UTXOs when inscription API fails', async () => {
+    const utxos = [{ txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }];
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockRejectedValue(new Error('Ord indexer down'));
+
+    const { tx, loadRequirements } = useSendTransaction();
+    await loadRequirements();
+
+    expect(tx.value.utxos).toHaveLength(1);
+    expect(tx.value.utxos[0].txid).toBe('c1');
   });
 
   it('should calculate display balance correctly', async () => {

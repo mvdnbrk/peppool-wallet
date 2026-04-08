@@ -29,7 +29,9 @@ vi.mock('@/utils/api', () => ({
     .mockResolvedValue([{ txid: 'tx1', vout: 0, value: 100000000, status: { confirmed: true } }]),
   fetchTxHex: vi.fn().mockResolvedValue('0100000001...'),
   fetchRecommendedFees: vi.fn().mockResolvedValue({ fastestFee: 10 }),
-  broadcastTx: vi.fn().mockResolvedValue('mock-txid')
+  broadcastTx: vi.fn().mockResolvedValue('mock-txid'),
+  fetchInscriptionOutputs: vi.fn().mockResolvedValue([]),
+  isInscriptionUtxo: vi.fn().mockReturnValue(false)
 }));
 
 // Mock crypto utils
@@ -195,6 +197,36 @@ describe('SignTxView', () => {
     // With 1 input, 2 outputs: size = 148 + 68 + 10 = 226, fee = ceil(226 * 1000) = 226000
     const feeArg = vi.mocked(crypto.createSignedTx).mock.calls[0][4];
     expect(feeArg).toBeGreaterThanOrEqual(226000);
+  });
+
+  it('excludes inscription UTXOs from dApp sendTransfer coin selection', async () => {
+    const api = await import('@/utils/api');
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'safe1', vout: 0, value: 100_000_000, status: { confirmed: true } },
+      { txid: 'inscribed1', vout: 2, value: 50_000_000, status: { confirmed: true } }
+    ]);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:2']);
+    vi.mocked(api.isInscriptionUtxo).mockImplementation((utxo: any, set: Set<string>) =>
+      set.has(`${utxo.txid}:${utxo.vout}`)
+    );
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    store.cacheMnemonic(
+      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    );
+
+    const wrapper = mount(SignTxView, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    // The inscribed UTXO (inscribed1:2) should not have been fetched for signing
+    expect(api.fetchTxHex).toHaveBeenCalledWith('safe1');
+    expect(api.fetchTxHex).not.toHaveBeenCalledWith('inscribed1');
   });
 
   it('rejects sendTransfer when balance is insufficient', async () => {

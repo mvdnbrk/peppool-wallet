@@ -4,6 +4,8 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.0) - 2026-04-08
+
 ### Added
 - Make wallet inscription aware by excluding inscription UTXOs from coin selection ([#10](https://github.com/mvdnbrk/peppool-wallet/pull/10))
 - Multi-account UI and per-account dApp permissions ([#2](https://github.com/mvdnbrk/peppool-wallet/pull/2))

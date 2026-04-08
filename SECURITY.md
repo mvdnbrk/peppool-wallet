@@ -8,8 +8,8 @@ Currently, only the latest version of Peppool Wallet is supported for security u
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
-| < 0.1   | :x:                |
+| 0.2.x   | :white_check_mark: |
+| < 0.2   | :x:                |
 
 ## Reporting a vulnerability
 

@@ -285,13 +285,13 @@ describe('API Utils', () => {
     const inscriptionUtxo: ApiUtxo = {
       txid: 'abc123',
       vout: 0,
-      value: 100,
+      value: 100_000,
       status: { confirmed: true }
     };
     const safeUtxo: ApiUtxo = {
       txid: 'abc123',
       vout: 1,
-      value: 200,
+      value: 500_000_000,
       status: { confirmed: true }
     };
 

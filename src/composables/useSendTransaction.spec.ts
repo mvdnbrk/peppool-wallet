@@ -72,7 +72,7 @@ describe('useSendTransaction Composable', () => {
   it('should exclude inscription-bearing UTXOs from spendable balance', async () => {
     const utxos = [
       { txid: 'safe1', vout: 0, value: 300_000_000, status: { confirmed: true } },
-      { txid: 'inscribed1', vout: 1, value: 100_000_000, status: { confirmed: true } },
+      { txid: 'inscribed1', vout: 1, value: 100_000, status: { confirmed: true } },
       { txid: 'safe2', vout: 0, value: 200_000_000, status: { confirmed: true } }
     ];
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);

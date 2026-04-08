@@ -203,7 +203,7 @@ describe('SignTxView', () => {
     const api = await import('@/utils/api');
     vi.mocked(api.fetchUtxos).mockResolvedValue([
       { txid: 'safe1', vout: 0, value: 100_000_000, status: { confirmed: true } },
-      { txid: 'inscribed1', vout: 2, value: 50_000_000, status: { confirmed: true } }
+      { txid: 'inscribed1', vout: 2, value: 100_000, status: { confirmed: true } }
     ]);
     vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:2']);
     vi.mocked(api.isInscriptionUtxo).mockImplementation((utxo: any, set: Set<string>) =>

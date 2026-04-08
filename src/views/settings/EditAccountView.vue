@@ -27,7 +27,7 @@ onMounted(() => {
 
 async function handleSave() {
   if (!label.value.trim()) {
-    error.value = 'Label cannot be empty';
+    error.value = 'Name cannot be empty';
     return;
   }
 
@@ -54,11 +54,11 @@ async function handleSave() {
     </template>
 
     <PepForm id="edit-account-form" @submit="handleSave">
-      <PepInputGroup label="Account Label">
+      <PepInputGroup label="Account Name">
         <PepInput
-          id="account-label-input"
+          id="account-name-input"
           v-model="label"
-          placeholder="Enter new account label"
+          placeholder="Enter account name"
           :error="error"
           autofocus
         />

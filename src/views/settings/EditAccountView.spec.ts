@@ -87,7 +87,7 @@ describe('EditAccountView', () => {
     await input.vm.$emit('update:modelValue', '');
     await wrapper.find('#save-account-name-button').trigger('click');
 
-    expect(wrapper.text()).toContain('Label cannot be empty');
+    expect(wrapper.text()).toContain('Name cannot be empty');
     expect(mockWallet.renameAccount).not.toHaveBeenCalled();
   });
 

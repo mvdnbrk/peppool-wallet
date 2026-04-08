@@ -192,6 +192,31 @@ describe('background dApp permission enforcement', () => {
     expect(windowsCreateMock).not.toHaveBeenCalled();
   });
 
+  it('should return all approved accounts for getAccounts', async () => {
+    const storageData: Record<string, any> = {
+      peppool_permissions: {
+        'https://trusted.com': { accounts: ['Ptest123', 'Pother456'], permissions: ['connect'] }
+      },
+      peppool_accounts: JSON.stringify([
+        { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
+        { address: 'Pother456', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
+      ]),
+      peppool_active_account: '0'
+    };
+    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
+      }
+      return result;
+    });
+
+    const sendResponse = sendDappMessage('getAccounts', 'https://trusted.com');
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({ result: ['Ptest123', 'Pother456'] });
+  });
+
   it('should open approval popup even when wallet is locked', async () => {
     const storageData: Record<string, any> = {
       peppool_permissions: {

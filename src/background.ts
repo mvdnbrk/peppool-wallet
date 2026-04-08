@@ -213,21 +213,15 @@ async function isActiveAccountAuthorized(
  */
 async function handleGetAccounts(request: DappRequest, sendResponse: (res: any) => void) {
   const perms = await loadPermissions();
-  const address = await getActiveAddress();
+  const accounts = perms[request.origin]?.accounts ?? [];
 
-  if (!address) {
-    sendResponse({ error: 'No accounts found.' });
+  if (accounts.length === 0) {
+    sendResponse({ error: 'No accounts connected for this site.' });
     requestQueue.delete(request.requestId);
     return;
   }
 
-  if (!perms[request.origin]?.accounts.includes(address)) {
-    sendResponse({ error: 'Active account is not connected to this site.' });
-    requestQueue.delete(request.requestId);
-    return;
-  }
-
-  sendResponse({ result: [address] });
+  sendResponse({ result: accounts });
   requestQueue.delete(request.requestId);
 }
 

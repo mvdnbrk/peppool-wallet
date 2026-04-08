@@ -19,7 +19,8 @@ describe('ForgotPasswordView', () => {
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
-      wallet: mockWallet
+      wallet: mockWallet,
+      route: { path: '/forgot-password' } as any
     } as any);
   });
 

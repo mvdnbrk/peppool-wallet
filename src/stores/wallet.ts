@@ -3,10 +3,11 @@ import { ref, computed, readonly } from 'vue';
 import {
   generateMnemonic,
   deriveAddress,
+  deriveAuthKeyPair,
   getDerivationPath,
   parseDerivationPath
-} from '../utils/crypto';
-import { encrypt, decrypt, isLegacyVault } from '../utils/encryption';
+} from '@/utils/crypto';
+import { encrypt, decrypt, isLegacyVault } from '@/utils/encryption';
 import {
   fetchAddressInfo,
   hasAddressActivity,
@@ -14,10 +15,11 @@ import {
   fetchTransaction as apiFetchTransaction,
   fetchPepPrice,
   fetchTipHeight
-} from '../utils/api';
-import { Transaction } from '../models/Transaction';
-import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '../utils/constants';
-import { EXPLORERS, type ExplorerId, pepeExplorer } from '../utils/explorer';
+} from '@/utils/api';
+import { ensureAuth, clearAuth } from '@/utils/auth';
+import { Transaction } from '@/models/Transaction';
+import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
+import { EXPLORERS, type ExplorerId, pepeExplorer } from '@/utils/explorer';
 import { useLockoutStore } from './lockout';
 
 export interface Account {
@@ -176,6 +178,16 @@ export const useWalletStore = defineStore('wallet', () => {
     await setAutoLockAlarm(lockDuration.value);
   }
 
+  async function refreshAuth() {
+    if (!plaintextMnemonic.value) return;
+    try {
+      const authKey = deriveAuthKeyPair(plaintextMnemonic.value);
+      await ensureAuth(authKey.address, authKey.privateKey, authKey.compressed);
+    } catch {
+      /* auth is best-effort — anonymous rate is the fallback */
+    }
+  }
+
   async function refreshTransactions() {
     if (!address.value) return;
     try {
@@ -214,6 +226,7 @@ export const useWalletStore = defineStore('wallet', () => {
   async function refreshBalance(force = false) {
     if (!address.value) return;
     try {
+      await refreshAuth();
       const currentPrices = await fetchPepPrice();
       prices.value = currentPrices;
       localStorage.setItem('peppool_price_usd', currentPrices.USD.toString());
@@ -371,6 +384,7 @@ export const useWalletStore = defineStore('wallet', () => {
     balance.value = 0;
     prices.value = { USD: 0, EUR: 0 };
     transactions.value = [];
+    clearAuth();
 
     // Selective wipe of peppool-prefixed keys
     const keys = Object.keys(localStorage);
@@ -381,7 +395,7 @@ export const useWalletStore = defineStore('wallet', () => {
     }
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove('unlocked_until');
+      await chrome.storage.local.remove(['unlocked_until', 'peppool_permissions']);
       await chrome.storage.session?.remove('mnemonic');
     }
 

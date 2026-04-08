@@ -13,7 +13,8 @@ describe('SecurityView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useApp).mockReturnValue({
-      router: { push: pushMock } as any
+      router: { push: pushMock } as any,
+      route: { path: '/settings/security' } as any
     } as any);
   });
 

@@ -48,9 +48,16 @@ vi.mock('./utils/constants', async (importOriginal) => {
   };
 });
 
-import { useApp as mockUseApp } from './composables/__mocks__/useApp';
-import { useLockout as mockUseLockout } from './composables/__mocks__/useLockout';
+// Mock auth globally to prevent tests from hitting the real API
+vi.mock('@/utils/auth', () => ({
+  ensureAuth: vi.fn(() => Promise.resolve()),
+  clearAuth: vi.fn(),
+  getStoredToken: vi.fn(() => null),
+  authenticate: vi.fn(() => Promise.resolve(null))
+}));
 
+import { useApp as mockUseApp } from '@/composables/__mocks__/useApp';
+import { useLockout as mockUseLockout } from '@/composables/__mocks__/useLockout';
 // Mock useApp globally
 vi.mock('@/composables/useApp', () => ({
   useApp: mockUseApp

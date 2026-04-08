@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peppool Wallet Connect</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .row:last-child {
+            margin-bottom: 0;
+        }
+
+        button {
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: #334155;
+        }
+
+        button.danger {
+            background: #dc2626;
+        }
+
+        .status {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+            word-break: break-all;
+            min-height: 1.25rem;
+            line-height: 1.4;
+        }
+
+        .status.ok {
+            color: #4ade80;
+        }
+
+        .status.err {
+            color: #f87171;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.found {
+            background: #166534;
+            color: #4ade80;
+        }
+
+        .badge.missing {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            width: 100%;
+            font-family: monospace;
+        }
+
+        input::placeholder {
+            color: #475569;
+        }
+
+        label {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .field {
+            margin-bottom: 0.75rem;
+        }
+
+        .recipient-row {
+            position: relative;
+        }
+
+        .recipient-row + .recipient-row {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #334155;
+        }
+
+        .btn-remove-recipient {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            color: #f87171;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .log {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .log .entry {
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .log .entry:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .log .time {
+            color: #475569;
+        }
+
+        .log .method {
+            color: #38bdf8;
+        }
+
+        .log .ok {
+            color: #4ade80;
+        }
+
+        .log .err {
+            color: #f87171;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #1e293b;
+            margin: 1.5rem 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Peppool Wallet Connect</h1>
+    <p class="subtitle">Reference implementation of the <code>pep_providers</code> standard</p>
+
+    <!-- Provider Discovery -->
+    <div class="card">
+        <h2>1. Provider Discovery</h2>
+        <div class="row">
+            <span>window.pep_providers:</span>
+            <span id="discovery-status" class="badge missing">checking...</span>
+        </div>
+        <div class="row">
+            <span>Discovery event:</span>
+            <span id="event-status" class="badge missing">waiting...</span>
+        </div>
+        <div id="provider-info" class="status" style="margin-top: 0.5rem;"></div>
+    </div>
+
+    <!-- Connect -->
+    <div class="card">
+        <h2>2. Connect</h2>
+        <div class="row">
+            <button id="btn-connect" disabled>Connect Wallet</button>
+            <span id="connect-status" class="status">—</span>
+        </div>
+    </div>
+
+    <!-- Get Accounts -->
+    <div class="card">
+        <h2>3. Get Accounts</h2>
+        <div class="row">
+            <button id="btn-accounts" disabled>Get Accounts</button>
+            <span id="accounts-status" class="status">—</span>
+        </div>
+    </div>
+
+    <!-- Sign Message -->
+    <div class="card">
+        <h2>4. Sign Message</h2>
+        <div class="field">
+            <label for="sign-message">Message</label>
+            <input id="sign-message" type="text" placeholder="Hello Pepecoin!" value="Hello Pepecoin!">
+        </div>
+        <div class="row">
+            <button id="btn-sign" disabled>Sign Message</button>
+        </div>
+        <div id="sign-status" class="status" style="margin-top: 0.5rem;">—</div>
+    </div>
+
+    <!-- Send Transfer -->
+    <div class="card">
+        <h2>5. Send Transfer</h2>
+        <div id="recipients-list">
+            <div class="recipient-row" data-index="0">
+                <div class="field">
+                    <label>Recipient Address</label>
+                    <input class="r-address" type="text" placeholder="Paddr...">
+                </div>
+                <div class="field">
+                    <label>Amount (ribbits)</label>
+                    <input class="r-amount" type="number" placeholder="100000000" value="100000000">
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 0.25rem;">
+            <button id="btn-add-recipient" class="secondary" disabled>+ Recipient</button>
+            <button id="btn-send" disabled>Send Transfer</button>
+        </div>
+        <div id="send-status" class="status" style="margin-top: 0.5rem;">—</div>
+    </div>
+
+    <!-- Disconnect -->
+    <div class="card">
+        <h2>6. Disconnect</h2>
+        <div class="row">
+            <button id="btn-disconnect" class="danger" disabled>Disconnect</button>
+            <span id="disconnect-status" class="status">—</span>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Event Log -->
+    <div class="card">
+        <h2>Event Log</h2>
+        <div id="log" class="log">
+            <div class="entry"><span class="time">—</span> Waiting for provider...</div>
+        </div>
+    </div>
+
+    <script>
+        let provider = null;
+
+        // --- Logging ---
+        const logEl = document.getElementById('log');
+        function log(method, type, msg) {
+            const time = new Date().toLocaleTimeString();
+            const cls = type === 'ok' ? 'ok' : type === 'err' ? 'err' : '';
+            const entry = document.createElement('div');
+            entry.className = 'entry';
+            entry.innerHTML = `<span class="time">${time}</span> <span class="method">${method}</span> <span class="${cls}">${escapeHtml(String(msg))}</span>`;
+            logEl.prepend(entry);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // --- Status helpers ---
+        function setStatus(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = 'status' + (type ? ` ${type}` : '');
+        }
+
+        function setBadge(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = `badge ${type}`;
+        }
+
+        // --- Enable buttons once provider is found ---
+        function enableButtons() {
+            document.getElementById('btn-connect').disabled = false;
+            document.getElementById('btn-accounts').disabled = false;
+            document.getElementById('btn-sign').disabled = false;
+            document.getElementById('btn-send').disabled = false;
+            document.getElementById('btn-add-recipient').disabled = false;
+            document.getElementById('btn-disconnect').disabled = false;
+        }
+
+        function showProviderInfo(p) {
+            const info = document.getElementById('provider-info');
+            info.textContent = `id: ${p.id} | name: ${p.name} | methods: ${p.methods.join(', ')}`;
+        }
+
+        // --- Discovery: check immediately ---
+        function checkProviders() {
+            const providers = window.pep_providers || [];
+            const p = providers.find(p => p.id === 'peppool');
+            if (p) {
+                provider = p;
+                setBadge('discovery-status', 'found', 'found');
+                showProviderInfo(p);
+                enableButtons();
+                log('discovery', 'ok', 'Provider found via window.pep_providers');
+                return true;
+            }
+            setBadge('discovery-status', 'not found', 'missing');
+            return false;
+        }
+
+        // --- Discovery: listen for event ---
+        window.addEventListener('pep_providers#peppool', (e) => {
+            setBadge('event-status', 'received', 'found');
+            log('event', 'ok', 'pep_providers#peppool event fired');
+            if (!provider && e.detail?.provider) {
+                provider = e.detail.provider;
+                setBadge('discovery-status', 'found', 'found');
+                showProviderInfo(provider);
+                enableButtons();
+            }
+        });
+
+        // Check on load (provider may already be injected)
+        if (!checkProviders()) {
+            // Retry after a short delay in case content script hasn't run yet
+            setTimeout(checkProviders, 500);
+            setTimeout(checkProviders, 2000);
+        }
+
+        // --- wallet_connect ---
+        document.getElementById('btn-connect').addEventListener('click', async () => {
+            setStatus('connect-status', 'Requesting...', '');
+            try {
+                const result = await provider.request('wallet_connect');
+                const addr = Array.isArray(result) ? result[0] : result;
+                setStatus('connect-status', addr, 'ok');
+                log('wallet_connect', 'ok', addr);
+            } catch (err) {
+                setStatus('connect-status', err.message, 'err');
+                log('wallet_connect', 'err', err.message);
+            }
+        });
+
+        // --- getAccounts ---
+        document.getElementById('btn-accounts').addEventListener('click', async () => {
+            setStatus('accounts-status', 'Fetching...', '');
+            try {
+                const accounts = await provider.request('getAccounts');
+                const text = Array.isArray(accounts) ? accounts.join(', ') : JSON.stringify(accounts);
+                setStatus('accounts-status', text, 'ok');
+                log('getAccounts', 'ok', text);
+            } catch (err) {
+                setStatus('accounts-status', err.message, 'err');
+                log('getAccounts', 'err', err.message);
+            }
+        });
+
+        // --- signMessage ---
+        document.getElementById('btn-sign').addEventListener('click', async () => {
+            const message = document.getElementById('sign-message').value;
+            if (!message) { setStatus('sign-status', 'Enter a message', 'err'); return; }
+            setStatus('sign-status', 'Requesting signature...', '');
+            try {
+                const result = await provider.request('signMessage', { message });
+                const text = `sig: ${result.signature}\naddr: ${result.address}`;
+                setStatus('sign-status', text, 'ok');
+                log('signMessage', 'ok', `Signed by ${result.address}`);
+            } catch (err) {
+                setStatus('sign-status', err.message, 'err');
+                log('signMessage', 'err', err.message);
+            }
+        });
+
+        // --- Add/Remove recipients ---
+        document.getElementById('btn-add-recipient').addEventListener('click', () => {
+            const list = document.getElementById('recipients-list');
+            const index = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'recipient-row';
+            row.dataset.index = index;
+            row.innerHTML = `
+                <button class="btn-remove-recipient" onclick="this.parentElement.remove()">✕ Remove</button>
+                <div class="field">
+                    <label>Recipient Address</label>
+                    <input class="r-address" type="text" placeholder="Paddr...">
+                </div>
+                <div class="field">
+                    <label>Amount (ribbits)</label>
+                    <input class="r-amount" type="number" placeholder="100000000" value="100000000">
+                </div>
+            `;
+            list.appendChild(row);
+        });
+
+        // --- sendTransfer ---
+        document.getElementById('btn-send').addEventListener('click', async () => {
+            const rows = document.querySelectorAll('.recipient-row');
+            const recipients = [];
+            for (const row of rows) {
+                const address = row.querySelector('.r-address').value;
+                const amount = parseInt(row.querySelector('.r-amount').value, 10);
+                if (!address) { setStatus('send-status', 'Enter a recipient address', 'err'); return; }
+                if (!amount || amount <= 0) { setStatus('send-status', 'Enter a valid amount', 'err'); return; }
+                recipients.push({ address, amount });
+            }
+            setStatus('send-status', 'Requesting approval...', '');
+            try {
+                const params = recipients.length === 1
+                    ? { recipient: recipients[0].address, amount: recipients[0].amount }
+                    : { recipients };
+                const result = await provider.request('sendTransfer', params);
+                setStatus('send-status', `txid: ${result.txid}`, 'ok');
+                log('sendTransfer', 'ok', result.txid);
+            } catch (err) {
+                setStatus('send-status', err.message, 'err');
+                log('sendTransfer', 'err', err.message);
+            }
+        });
+
+        // --- wallet_disconnect ---
+        document.getElementById('btn-disconnect').addEventListener('click', async () => {
+            setStatus('disconnect-status', 'Disconnecting...', '');
+            try {
+                await provider.request('wallet_disconnect');
+                setStatus('disconnect-status', 'Disconnected', 'ok');
+                log('wallet_disconnect', 'ok', 'Session revoked');
+            } catch (err) {
+                setStatus('disconnect-status', err.message, 'err');
+                log('wallet_disconnect', 'err', err.message);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

@@ -74,6 +74,9 @@ describe('Settings Views Navigation', () => {
     await wrapper.find('#settings-preferences-item').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/settings/preferences');
 
+    await wrapper.find('#settings-connected-sites-item').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/settings/connected-sites');
+
     await wrapper.find('#settings-about-item').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/settings/about');
   });

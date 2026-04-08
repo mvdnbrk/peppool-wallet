@@ -34,15 +34,15 @@ describe('Transaction Model', () => {
     expect(tx.isOutgoing).toBe(true);
   });
 
-  it('should calculate outgoing value correctly (excluding change)', () => {
+  it('should calculate outgoing value as total debited from wallet (inputs)', () => {
     const tx = new Transaction(mockRawTx, userAddress);
-    expect(tx.valueRibbits).toBe(50000000);
-    expect(tx.valuePep).toBe(0.5);
+    expect(tx.valueRibbits).toBe(100000000);
+    expect(tx.valuePep).toBe(1);
   });
 
   it('should format amount correctly with sign', () => {
     const tx = new Transaction(mockRawTx, userAddress);
-    expect(tx.formattedAmount).toBe('-0.5');
+    expect(tx.formattedAmount).toBe('-1');
   });
 
   it('should identify incoming transactions correctly', () => {
@@ -75,7 +75,7 @@ describe('Transaction Model', () => {
     expect(tx.txidShort).toBe('12345678...90abcdef');
   });
 
-  it('should sum all outputs for self-send (consolidation) transactions', () => {
+  it('should use input value for self-send (consolidation) transactions', () => {
     const selfSendRaw: RawTransaction = {
       ...mockRawTx,
       vout: [
@@ -85,7 +85,7 @@ describe('Transaction Model', () => {
     };
     const tx = new Transaction(selfSendRaw, userAddress);
     expect(tx.isOutgoing).toBe(true);
-    expect(tx.valueRibbits).toBe(90000000);
+    expect(tx.valueRibbits).toBe(100000000);
   });
 
   describe('Status Display', () => {

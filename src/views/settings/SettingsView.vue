@@ -10,8 +10,10 @@ function handleLock() {
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col p-6">
-    <PepPageHeader title="Settings" backTo="/dashboard" />
+  <PepMainLayout>
+    <template #header>
+      <PepPageHeader title="Settings" backTo="/dashboard" />
+    </template>
 
     <div class="mt-0 flex-1 space-y-2">
       <PepList id="settings-menu-list">
@@ -26,6 +28,12 @@ function handleLock() {
           label="Preferences"
           icon="chevron-right"
           @click="router.push('/settings/preferences')"
+        />
+        <PepListItem
+          id="settings-connected-sites-item"
+          label="Connected sites"
+          icon="chevron-right"
+          @click="router.push('/settings/connected-sites')"
         />
         <PepListItem
           id="settings-security-item"
@@ -45,5 +53,5 @@ function handleLock() {
         <PepButton @click="handleLock" variant="secondary" class="w-full"> Lock Wallet </PepButton>
       </div>
     </div>
-  </div>
+  </PepMainLayout>
 </template>

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepInput from './PepInput.vue';
-import PepIcon from '../PepIcon.vue';
+import PepIcon from '@/components/ui/PepIcon.vue';
 import PepInputGroup from './PepInputGroup.vue';
 
 // Global registration mock for component tests

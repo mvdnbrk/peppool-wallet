@@ -1,6 +1,6 @@
 # Privacy policy
 
-**Effective Date:** February 20, 2026
+**Effective Date:** April 8, 2026
 
 Peppool Wallet is committed to protecting your privacy. The Pepecoin wallet for everyone. This policy explains how we handle information within our browser extension.
 
@@ -24,6 +24,9 @@ To provide wallet functionality, the extension communicates directly with:
 - **Price APIs:** To fetch current market prices for PEP.
 
 When making these requests, your IP address is visible to the network infrastructure as a standard part of HTTP communication. We do not log or link this IP address to any user identity.
+
+### 4. dApp connections
+When you visit a website that requests a wallet connection, the extension injects a small script into the page to enable communication. No data is shared with any site until you explicitly approve the connection. Connected sites can only see your wallet address and request transaction signing — each request requires your approval. You can revoke any site's access at any time from the extension settings.
 
 ## Data security
 

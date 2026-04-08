@@ -5,6 +5,7 @@ import AutoLockView from './AutoLockView.vue';
 import CurrencyView from './CurrencyView.vue';
 import AboutView from './AboutView.vue';
 import AccountsView from './AccountsView.vue';
+import ConnectedSitesView from './ConnectedSitesView.vue';
 import { useApp } from '@/composables/useApp';
 
 import PepList from '@/components/ui/list/PepList.vue';
@@ -39,7 +40,8 @@ describe('Settings Detail Views', () => {
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
-      wallet: mockWallet
+      wallet: mockWallet,
+      route: { path: '/settings' } as any
     } as any);
   });
 
@@ -123,6 +125,13 @@ describe('Settings Detail Views', () => {
         }
       });
       expect(wrapper.text()).toContain('Accounts');
+    });
+  });
+
+  describe('ConnectedSitesView', () => {
+    it('should render correct title', () => {
+      const wrapper = mount(ConnectedSitesView, { global });
+      expect(wrapper.text()).toContain('Connected Sites');
     });
   });
 });

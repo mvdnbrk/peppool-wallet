@@ -3,10 +3,10 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
 import { useLockoutStore } from './lockout';
 
-import { Transaction } from '../models/Transaction';
+import { Transaction } from '@/models/Transaction';
 
 // Mock the API and Crypto utils
-vi.mock('../utils/api', () => ({
+vi.mock('@/utils/api', () => ({
   fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
   fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
   fetchTransactions: vi.fn(() => Promise.resolve([])),
@@ -43,6 +43,32 @@ describe('Wallet Store', () => {
     expect(store.accounts[0].path).toBe("m/44'/3434'/0'/0/0");
     expect(localStorage.getItem('peppool_vault')).not.toBeNull();
     expect(localStorage.getItem('peppool_accounts')).not.toBeNull();
+  });
+
+  it('should sync accounts to chrome.storage.local on wallet creation', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_accounts: expect.any(String),
+        peppool_active_account: '0'
+      })
+    );
+  });
+
+  it('should sync accounts to chrome.storage.local on switchAccount', async () => {
+    const store = useWalletStore();
+    await store.createWallet('password123');
+    vi.mocked(global.chrome.storage.local.set).mockClear();
+
+    await store.addAccount('Account 2');
+
+    expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_active_account: '1'
+      })
+    );
   });
 
   it('should unlock an existing wallet', async () => {
@@ -155,6 +181,10 @@ describe('Wallet Store', () => {
     expect(store.prices.USD).toBe(0);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
     expect(localStorage.getItem('other_app_key')).toBe('keep-me');
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith([
+      'unlocked_until',
+      'peppool_permissions'
+    ]);
   });
 
   it('encryptedMnemonic should be exposed as readonly', async () => {
@@ -375,7 +405,7 @@ describe('Wallet Store', () => {
     };
 
     it('should cache transactions in localStorage when refreshed', async () => {
-      const api = await import('../utils/api');
+      const api = await import('@/utils/api');
       vi.mocked(api.fetchTransactions).mockResolvedValue([mockTx] as any);
 
       const store = useWalletStore();
@@ -432,7 +462,7 @@ describe('Wallet Store', () => {
     });
 
     it('should fetch more transactions and append them uniquely', async () => {
-      const api = await import('../utils/api');
+      const api = await import('@/utils/api');
       const store = useWalletStore();
       const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
       store.accounts = [{ address: addr, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
@@ -491,6 +521,54 @@ describe('Wallet Store', () => {
       await store.importWallet(mnemonic, 'password123');
 
       expect(store.accounts).toHaveLength(1); // Only Account 1 (index 0)
+    });
+  });
+
+  describe('Background Synchronization', () => {
+    it('should sync accounts to chrome.storage on import', async () => {
+      const store = useWalletStore();
+      const mnemonic =
+        'suffer dish east miss seat great brother hello motion mountain celery plunge';
+      await store.importWallet(mnemonic, 'password123');
+
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peppool_accounts: expect.any(String),
+          peppool_active_account: '0'
+        })
+      );
+    });
+
+    it('should sync active account index on switchAccount', async () => {
+      const store = useWalletStore();
+      store.accounts = [
+        { address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
+        { address: 'addr2', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
+      ];
+
+      await store.switchAccount(1);
+
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peppool_active_account: '1'
+        })
+      );
+    });
+
+    it('should sync accounts on addAccount', async () => {
+      const store = useWalletStore();
+      const mnemonic =
+        'suffer dish east miss seat great brother hello motion mountain celery plunge';
+      await store.importWallet(mnemonic, 'password123');
+      vi.clearAllMocks();
+
+      await store.addAccount('New Account');
+
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          peppool_accounts: expect.stringContaining('New Account')
+        })
+      );
     });
   });
 });

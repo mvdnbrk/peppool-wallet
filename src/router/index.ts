@@ -20,6 +20,10 @@ import SecurityView from '@/views/settings/SecurityView.vue';
 import AboutView from '@/views/settings/AboutView.vue';
 import AccountsView from '@/views/settings/AccountsView.vue';
 import RenameAccountView from '@/views/settings/RenameAccountView.vue';
+import ConnectedSitesView from '@/views/settings/ConnectedSitesView.vue';
+import ConnectSiteView from '@/views/approval/ConnectSiteView.vue';
+import SignMessageView from '@/views/approval/SignMessageView.vue';
+import SignTxView from '@/views/approval/SignTxView.vue';
 
 const routes = [
   { path: '/', component: WelcomeView },
@@ -39,9 +43,13 @@ const routes = [
   { path: '/settings/about', component: AboutView },
   { path: '/settings/accounts', component: AccountsView },
   { path: '/settings/accounts/rename/:index', component: RenameAccountView },
+  { path: '/settings/connected-sites', component: ConnectedSitesView },
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },
   { path: '/settings/auto-lock', component: AutoLockView },
+  { path: '/approve/connect', component: ConnectSiteView },
+  { path: '/approve/sign-message', component: SignMessageView },
+  { path: '/approve/sign-tx', component: SignTxView },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 
@@ -51,9 +59,17 @@ export const router = createRouter({
 });
 
 export let sessionChecked = false;
+/** Route to redirect to after unlock (e.g. approval routes when wallet was locked) */
+export let pendingRedirect: string | null = null;
 
 export function resetSessionCheck() {
   sessionChecked = false;
+}
+
+export function consumePendingRedirect(): string | null {
+  const route = pendingRedirect;
+  pendingRedirect = null;
+  return route;
 }
 
 router.beforeEach(async (to, _from, next) => {
@@ -85,7 +101,10 @@ router.beforeEach(async (to, _from, next) => {
   const isPublicRoute = publicRoutes.includes(to.path);
 
   if (!walletStore.isUnlocked && !isPublicRoute) {
-    // Redirect any protected route to welcome/login when locked
+    // Save the intended route so we can redirect after unlock
+    if (to.path.startsWith('/approve/')) {
+      pendingRedirect = to.fullPath;
+    }
     next('/');
   } else if (to.path === '/' && walletStore.isUnlocked) {
     next('/dashboard');

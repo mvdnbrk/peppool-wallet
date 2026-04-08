@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { router, resetSessionCheck } from './index';
-import { useWalletStore } from '../stores/wallet';
+import { router, resetSessionCheck, pendingRedirect, consumePendingRedirect } from './index';
+import { useWalletStore } from '@/stores/wallet';
 import { setActivePinia, createPinia } from 'pinia';
 
 // Mock Wallet Store
-vi.mock('../stores/wallet', () => ({
+vi.mock('@/stores/wallet', () => ({
   useWalletStore: vi.fn()
 }));
 
@@ -58,7 +58,8 @@ describe('Router Logic', () => {
       '/settings',
       '/settings/preferences',
       '/settings/accounts',
-      '/settings/accounts/rename/0'
+      '/settings/accounts/rename/0',
+      '/settings/connected-sites'
     ];
     for (const path of sensitiveRoutes) {
       await router.push(path);
@@ -111,5 +112,25 @@ describe('Router Logic', () => {
     walletStore.isUnlocked = false;
     await router.push('/nonexistent-page');
     expect(router.currentRoute.value.path).toBe('/');
+  });
+
+  it('should redirect locked approval routes to login and store pendingRedirect', async () => {
+    walletStore.isUnlocked = false;
+    await router.push('/approve/connect?id=req1&origin=https://dapp.com');
+    expect(router.currentRoute.value.path).toBe('/');
+    expect(pendingRedirect).toBe('/approve/connect?id=req1&origin=https://dapp.com');
+  });
+
+  it('should consume pendingRedirect and clear it', () => {
+    // pendingRedirect was set by previous test; consume it
+    const redirect = consumePendingRedirect();
+    expect(redirect).toContain('/approve/connect');
+    expect(consumePendingRedirect()).toBeNull();
+  });
+
+  it('should allow approval routes when unlocked', async () => {
+    walletStore.isUnlocked = true;
+    await router.push('/approve/connect');
+    expect(router.currentRoute.value.path).toBe('/approve/connect');
   });
 });

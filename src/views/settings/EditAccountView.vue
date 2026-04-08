@@ -1,21 +1,27 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useApp } from '@/composables/useApp';
 
 const { router, wallet: walletStore } = useApp();
 const route = useRoute();
 const index = parseInt(route.params.index as string);
+const isNew = computed(() => index < 0);
 
 const label = ref('');
 const error = ref('');
+const isSaving = ref(false);
 
 onMounted(() => {
-  const account = walletStore.accounts[index];
-  if (account) {
-    label.value = account.label;
+  if (isNew.value) {
+    label.value = `Account ${walletStore.accounts.length + 1}`;
   } else {
-    router.replace('/settings/accounts');
+    const account = walletStore.accounts[index];
+    if (account) {
+      label.value = account.label;
+    } else {
+      router.replace('/settings/accounts');
+    }
   }
 });
 
@@ -25,11 +31,18 @@ async function handleSave() {
     return;
   }
 
+  isSaving.value = true;
   try {
-    await walletStore.renameAccount(index, label.value.trim());
+    if (isNew.value) {
+      await walletStore.addAccount(label.value.trim());
+    } else {
+      await walletStore.renameAccount(index, label.value.trim());
+    }
     router.back();
   } catch (e: any) {
-    error.value = e.message || 'Failed to rename account';
+    error.value = e.message || 'Failed to save account';
+  } finally {
+    isSaving.value = false;
   }
 }
 </script>
@@ -37,7 +50,7 @@ async function handleSave() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Edit Account" backTo="/settings/accounts" />
+      <PepPageHeader :title="isNew ? 'New Account' : 'Edit Account'" backTo="/settings/accounts" />
     </template>
 
     <PepForm id="edit-account-form" @submit="handleSave">
@@ -53,7 +66,9 @@ async function handleSave() {
     </PepForm>
 
     <template #actions>
-      <PepButton id="save-account-name-button" block @click="handleSave"> Save Changes </PepButton>
+      <PepButton id="save-account-name-button" block @click="handleSave" :loading="isSaving">
+        {{ isNew ? 'Add Account' : 'Save Changes' }}
+      </PepButton>
     </template>
   </PepMainLayout>
 </template>

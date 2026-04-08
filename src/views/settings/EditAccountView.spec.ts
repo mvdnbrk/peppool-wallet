@@ -28,7 +28,8 @@ describe('EditAccountView', () => {
     vi.clearAllMocks();
     mockWallet = {
       accounts: [{ address: 'addr1', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }],
-      renameAccount: vi.fn().mockResolvedValue(undefined)
+      renameAccount: vi.fn().mockResolvedValue(undefined),
+      addAccount: vi.fn().mockResolvedValue(undefined)
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock, replace: replaceMock } as any,
@@ -88,5 +89,29 @@ describe('EditAccountView', () => {
 
     expect(wrapper.text()).toContain('Label cannot be empty');
     expect(mockWallet.renameAccount).not.toHaveBeenCalled();
+  });
+
+  it('should default label to next account number when creating new account', async () => {
+    vi.mocked(useRoute).mockReturnValue({ params: { index: '-1' } } as any);
+    const wrapper = mount(EditAccountView, { global });
+    await flushPromises();
+
+    const input = wrapper.findComponent(PepInput);
+    expect(input.props('modelValue')).toBe('Account 2');
+  });
+
+  it('should call addAccount with label when saving new account', async () => {
+    vi.mocked(useRoute).mockReturnValue({ params: { index: '-1' } } as any);
+    const wrapper = mount(EditAccountView, { global });
+    await flushPromises();
+
+    const input = wrapper.findComponent(PepInput);
+    await input.vm.$emit('update:modelValue', 'Savings');
+    await wrapper.find('#save-account-name-button').trigger('click');
+    await flushPromises();
+
+    expect(mockWallet.addAccount).toHaveBeenCalledWith('Savings');
+    expect(mockWallet.renameAccount).not.toHaveBeenCalled();
+    expect(backMock).toHaveBeenCalled();
   });
 });

@@ -22,8 +22,7 @@ describe('AccountsView', () => {
         { address: 'addr2', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
       ],
       activeAccountIndex: 0,
-      switchAccount: vi.fn().mockResolvedValue(undefined),
-      addAccount: vi.fn().mockResolvedValue(undefined)
+      switchAccount: vi.fn().mockResolvedValue(undefined)
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
@@ -67,20 +66,10 @@ describe('AccountsView', () => {
     expect(pushMock).toHaveBeenCalledWith('/settings/accounts/edit/0');
   });
 
-  it('should call addAccount on button click', async () => {
+  it('should navigate to new account page on add button click', async () => {
     const wrapper = mount(AccountsView, { global });
     await wrapper.find('#add-account-button').trigger('click');
 
-    expect(mockWallet.addAccount).toHaveBeenCalled();
-  });
-
-  it('should display error message on addAccount failure', async () => {
-    mockWallet.addAccount.mockRejectedValue(new Error('Failed to add'));
-    const wrapper = mount(AccountsView, { global });
-
-    await wrapper.find('#add-account-button').trigger('click');
-    await flushPromises();
-
-    expect(wrapper.text()).toContain('Failed to add');
+    expect(pushMock).toHaveBeenCalledWith('/settings/accounts/edit/-1');
   });
 });

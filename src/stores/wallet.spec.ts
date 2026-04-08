@@ -177,6 +177,10 @@ describe('Wallet Store', () => {
     expect(store.prices.USD).toBe(0);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
     expect(localStorage.getItem('other_app_key')).toBe('keep-me');
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith([
+      'unlocked_until',
+      'peppool_permissions'
+    ]);
   });
 
   it('encryptedMnemonic should be exposed as readonly', async () => {

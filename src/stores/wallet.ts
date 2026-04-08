@@ -357,7 +357,7 @@ export const useWalletStore = defineStore('wallet', () => {
     }
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove('unlocked_until');
+      await chrome.storage.local.remove(['unlocked_until', 'peppool_permissions']);
       await chrome.storage.session?.remove('mnemonic');
     }
 

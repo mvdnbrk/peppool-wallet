@@ -65,6 +65,9 @@ describe('Settings Views Navigation', () => {
   it('SettingsView: should navigate to sub-sections', async () => {
     const wrapper = mount(SettingsView, { global });
 
+    await wrapper.find('#settings-accounts-item').trigger('click');
+    expect(pushMock).toHaveBeenCalledWith('/settings/accounts');
+
     await wrapper.find('#settings-security-item').trigger('click');
     expect(pushMock).toHaveBeenCalledWith('/settings/security');
 

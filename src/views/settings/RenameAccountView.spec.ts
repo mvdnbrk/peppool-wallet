@@ -73,7 +73,7 @@ describe('RenameAccountView', () => {
     const input = wrapper.findComponent(PepInput);
 
     await input.vm.$emit('update:modelValue', 'New Name');
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#save-account-name-button').trigger('click');
 
     expect(mockWallet.renameAccount).toHaveBeenCalledWith(0, 'New Name');
     expect(backMock).toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe('RenameAccountView', () => {
     const input = wrapper.findComponent(PepInput);
 
     await input.vm.$emit('update:modelValue', '');
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find('#save-account-name-button').trigger('click');
 
     expect(wrapper.text()).toContain('Label cannot be empty');
     expect(mockWallet.renameAccount).not.toHaveBeenCalled();

@@ -40,26 +40,20 @@ async function handleSave() {
       <PepPageHeader title="Rename Account" backTo="/settings/accounts" />
     </template>
 
-    <div class="flex flex-1 flex-col">
-      <PepForm id="rename-account-form" @submit="handleSave" class="flex flex-1 flex-col">
-        <div class="flex-1">
-          <PepInputGroup label="Account Label">
-            <PepInput
-              id="account-label-input"
-              v-model="label"
-              placeholder="Enter new account label"
-              :error="error"
-              autofocus
-            />
-          </PepInputGroup>
-        </div>
+    <PepForm id="rename-account-form" @submit="handleSave">
+      <PepInputGroup label="Account Label">
+        <PepInput
+          id="account-label-input"
+          v-model="label"
+          placeholder="Enter new account label"
+          :error="error"
+          autofocus
+        />
+      </PepInputGroup>
+    </PepForm>
 
-        <div class="pt-6">
-          <PepButton id="save-account-name-button" type="submit" class="w-full">
-            Save Changes
-          </PepButton>
-        </div>
-      </PepForm>
-    </div>
+    <template #actions>
+      <PepButton id="save-account-name-button" block @click="handleSave"> Save Changes </PepButton>
+    </template>
   </PepMainLayout>
 </template>

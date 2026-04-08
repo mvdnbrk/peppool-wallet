@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
 import { useConnectedSites } from '@/composables/useConnectedSites';
-import PepMainLayout from '@/components/ui/PepMainLayout.vue';
-import PepPageHeader from '@/components/ui/PepPageHeader.vue';
-import PepCard from '@/components/ui/PepCard.vue';
-import PepIcon from '@/components/ui/PepIcon.vue';
-import PepSpinner from '@/components/ui/PepSpinner.vue';
+import { onMounted } from 'vue';
 
 const { connectedSites, isLoading, loadConnectedSites, revokeAccess } = useConnectedSites();
 
@@ -42,12 +37,9 @@ onMounted(async () => {
           :key="site"
           class="group flex items-center justify-between p-4"
         >
-          <div class="min-w-0">
-            <p class="truncate text-sm font-medium text-white">
-              {{ domainFrom(site) }}
-            </p>
-            <p class="truncate text-[10px] text-slate-500">{{ site }}</p>
-          </div>
+          <p class="min-w-0 truncate text-sm font-medium text-white">
+            {{ domainFrom(site) }}
+          </p>
 
           <button
             @click="revokeAccess(site)"

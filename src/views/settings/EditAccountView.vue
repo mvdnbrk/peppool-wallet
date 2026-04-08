@@ -50,7 +50,7 @@ async function handleSave() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader :title="isNew ? 'New Account' : 'Edit Account'" backTo="/settings/accounts" />
+      <PepPageHeader :title="isNew ? 'New Account' : 'Edit Account'" />
     </template>
 
     <PepForm id="edit-account-form" @submit="handleSave">

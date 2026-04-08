@@ -19,7 +19,7 @@ import PreferencesView from '@/views/settings/PreferencesView.vue';
 import SecurityView from '@/views/settings/SecurityView.vue';
 import AboutView from '@/views/settings/AboutView.vue';
 import AccountsView from '@/views/settings/AccountsView.vue';
-import RenameAccountView from '@/views/settings/RenameAccountView.vue';
+import EditAccountView from '@/views/settings/EditAccountView.vue';
 import ConnectedSitesView from '@/views/settings/ConnectedSitesView.vue';
 import ConnectSiteView from '@/views/approval/ConnectSiteView.vue';
 import SignMessageView from '@/views/approval/SignMessageView.vue';
@@ -42,7 +42,7 @@ const routes = [
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },
   { path: '/settings/accounts', component: AccountsView },
-  { path: '/settings/accounts/rename/:index', component: RenameAccountView },
+  { path: '/settings/accounts/edit/:index', component: EditAccountView },
   { path: '/settings/connected-sites', component: ConnectedSitesView },
   { path: '/settings/currency', component: CurrencyView },
   { path: '/settings/explorer', component: PreferredExplorerView },

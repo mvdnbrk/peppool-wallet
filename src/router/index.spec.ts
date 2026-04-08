@@ -58,7 +58,7 @@ describe('Router Logic', () => {
       '/settings',
       '/settings/preferences',
       '/settings/accounts',
-      '/settings/accounts/rename/0',
+      '/settings/accounts/edit/0',
       '/settings/connected-sites'
     ];
     for (const path of sensitiveRoutes) {

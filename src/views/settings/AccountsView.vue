@@ -25,9 +25,9 @@ async function handleAdd() {
   }
 }
 
-function handleRename(index: number, event: Event) {
+function handleEdit(index: number, event: Event) {
   event.stopPropagation();
-  router.push(`/settings/accounts/rename/${index}`);
+  router.push(`/settings/accounts/edit/${index}`);
 }
 </script>
 
@@ -77,8 +77,8 @@ function handleRename(index: number, event: Event) {
 
           <button
             type="button"
-            :id="`rename-account-button-${index}`"
-            @click="handleRename(index, $event)"
+            :id="`edit-account-button-${index}`"
+            @click="handleEdit(index, $event)"
             class="hover:text-pep-green-light rounded-lg p-2 text-slate-500 transition-colors"
           >
             <PepIcon name="edit" size="18" />

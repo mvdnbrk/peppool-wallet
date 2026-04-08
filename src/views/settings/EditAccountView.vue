@@ -37,10 +37,10 @@ async function handleSave() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Rename Account" backTo="/settings/accounts" />
+      <PepPageHeader title="Edit Account" backTo="/settings/accounts" />
     </template>
 
-    <PepForm id="rename-account-form" @submit="handleSave">
+    <PepForm id="edit-account-form" @submit="handleSave">
       <PepInputGroup label="Account Label">
         <PepInput
           id="account-label-input"

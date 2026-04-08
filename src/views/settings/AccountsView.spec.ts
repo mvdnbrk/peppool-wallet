@@ -60,11 +60,11 @@ describe('AccountsView', () => {
     expect(backMock).toHaveBeenCalled();
   });
 
-  it('should navigate to rename page', async () => {
+  it('should navigate to edit page', async () => {
     const wrapper = mount(AccountsView, { global });
-    await wrapper.find('#rename-account-button-0').trigger('click');
+    await wrapper.find('#edit-account-button-0').trigger('click');
 
-    expect(pushMock).toHaveBeenCalledWith('/settings/accounts/rename/0');
+    expect(pushMock).toHaveBeenCalledWith('/settings/accounts/edit/0');
   });
 
   it('should call addAccount on button click', async () => {

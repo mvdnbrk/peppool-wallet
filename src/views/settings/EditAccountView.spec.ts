@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import RenameAccountView from './RenameAccountView.vue';
+import EditAccountView from './EditAccountView.vue';
 import { useApp } from '@/composables/useApp';
 import { useRoute } from 'vue-router';
 import PepButton from '@/components/ui/PepButton.vue';
@@ -21,7 +21,7 @@ vi.mock('vue-router', async () => {
   };
 });
 
-describe('RenameAccountView', () => {
+describe('EditAccountView', () => {
   let mockWallet: any;
 
   beforeEach(() => {
@@ -53,7 +53,7 @@ describe('RenameAccountView', () => {
   };
 
   it('should initialize with current account label', async () => {
-    const wrapper = mount(RenameAccountView, { global });
+    const wrapper = mount(EditAccountView, { global });
     await flushPromises();
     const input = wrapper.findComponent(PepInput);
     expect(input.props('modelValue')).toBe('Account 1');
@@ -63,13 +63,13 @@ describe('RenameAccountView', () => {
     vi.mocked(useRoute).mockReturnValue({
       params: { index: '99' }
     } as any);
-    mount(RenameAccountView, { global });
+    mount(EditAccountView, { global });
     await flushPromises();
     expect(replaceMock).toHaveBeenCalledWith('/settings/accounts');
   });
 
   it('should call renameAccount and navigate back on save', async () => {
-    const wrapper = mount(RenameAccountView, { global });
+    const wrapper = mount(EditAccountView, { global });
     const input = wrapper.findComponent(PepInput);
 
     await input.vm.$emit('update:modelValue', 'New Name');
@@ -80,7 +80,7 @@ describe('RenameAccountView', () => {
   });
 
   it('should show error if label is empty', async () => {
-    const wrapper = mount(RenameAccountView, { global });
+    const wrapper = mount(EditAccountView, { global });
     const input = wrapper.findComponent(PepInput);
 
     await input.vm.$emit('update:modelValue', '');

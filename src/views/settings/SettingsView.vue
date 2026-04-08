@@ -24,6 +24,12 @@ function handleLock() {
           @click="router.push('/settings/preferences')"
         />
         <PepListItem
+          id="settings-connected-sites-item"
+          label="Connected sites"
+          icon="chevron-right"
+          @click="router.push('/settings/connected-sites')"
+        />
+        <PepListItem
           id="settings-security-item"
           label="Security"
           icon="chevron-right"

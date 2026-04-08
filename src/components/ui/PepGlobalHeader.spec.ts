@@ -38,6 +38,16 @@ describe('PepGlobalHeader', () => {
     expect(wrapper.find('.relative').exists()).toBe(false);
   });
 
+  it('should NOT render on approval pages', () => {
+    vi.mocked(useApp).mockReturnValue({
+      router: { push: pushMock } as any,
+      route: { path: '/approve/connect' } as any
+    } as any);
+
+    const wrapper = mount(PepGlobalHeader);
+    expect(wrapper.find('header').exists()).toBe(false);
+  });
+
   it('should render on dashboard', () => {
     const wrapper = mount(PepGlobalHeader);
     expect(wrapper.find('.relative').exists()).toBe(true);

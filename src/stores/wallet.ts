@@ -98,6 +98,15 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   // ── Actions ──
+  async function syncToChromeStorage() {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      await chrome.storage.local.set({
+        peppool_accounts: JSON.stringify(accounts.value),
+        peppool_active_account: activeAccountIndex.value.toString()
+      });
+    }
+  }
+
   function setCurrency(currency: 'USD' | 'EUR') {
     selectedCurrency.value = currency;
     localStorage.setItem('peppool_currency', currency);
@@ -258,6 +267,8 @@ export const useWalletStore = defineStore('wallet', () => {
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
     localStorage.setItem('peppool_active_account', '0');
 
+    await syncToChromeStorage();
+
     await lockout.reset();
     await refreshBalance(true);
   }
@@ -361,6 +372,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (!accounts.value[index]) return;
     activeAccountIndex.value = index;
     localStorage.setItem('peppool_active_account', index.toString());
+    await syncToChromeStorage();
     balance.value = 0;
     transactions.value = [];
     await refreshBalance(true);
@@ -377,6 +389,7 @@ export const useWalletStore = defineStore('wallet', () => {
     };
     accounts.value.push(newAccount);
     localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
+    await syncToChromeStorage();
     await switchAccount(nextIndex);
   }
 

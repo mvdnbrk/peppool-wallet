@@ -121,7 +121,9 @@ async function handleDappRequest(
   switch (method) {
     case 'wallet_connect': {
       const perms = await loadPermissions();
-      const alreadyConnected = hasPermission(perms, request.origin, 'connect');
+      const alreadyConnected =
+        hasPermission(perms, request.origin, 'connect') &&
+        (await isActiveAccountAuthorized(perms, request.origin));
       if (alreadyConnected) {
         handleGetAccounts(request, sendResponse);
       } else {
@@ -153,6 +155,13 @@ async function handleDappRequest(
         break;
       }
 
+      // Signing operations require the active account to be authorized
+      if (!(await isActiveAccountAuthorized(permsMap, request.origin))) {
+        sendResponse({ error: 'Active account is not connected to this site.' });
+        requestQueue.delete(requestId);
+        return;
+      }
+
       // Validate sendTransfer params before opening popup
       if (method === 'sendTransfer') {
         const validationError = validateTransferParams(request.params);
@@ -174,25 +183,51 @@ async function handleDappRequest(
 }
 
 /**
- * Handle getAccounts (No popup needed if already connected)
+ * Returns the active account's address from chrome.storage, or null.
  */
-async function handleGetAccounts(request: DappRequest, sendResponse: (res: any) => void) {
-  // Permission already checked by the switch-case caller
-
-  // Fetch active account from storage
+async function getActiveAddress(): Promise<string | null> {
   const activeData = (await chrome.storage.local.get('peppool_active_account')) as any;
   const activeAccountIndex = parseInt(activeData.peppool_active_account || '0');
 
   const accountsData = (await chrome.storage.local.get('peppool_accounts')) as any;
   const accountsRaw = accountsData.peppool_accounts as string | undefined;
   const accounts = accountsRaw ? JSON.parse(accountsRaw) : [];
-  const activeAccount = accounts[activeAccountIndex];
+  return accounts[activeAccountIndex]?.address || null;
+}
 
-  if (activeAccount) {
-    sendResponse({ result: [activeAccount.address] });
-  } else {
+/**
+ * Checks if the active account is authorized for the given origin.
+ */
+async function isActiveAccountAuthorized(
+  perms: Awaited<ReturnType<typeof loadPermissions>>,
+  origin: string
+): Promise<boolean> {
+  const address = await getActiveAddress();
+  if (!address) return false;
+  const sitePermission = perms[origin];
+  return !!sitePermission?.accounts.includes(address);
+}
+
+/**
+ * Handle getAccounts (No popup needed if already connected)
+ */
+async function handleGetAccounts(request: DappRequest, sendResponse: (res: any) => void) {
+  const perms = await loadPermissions();
+  const address = await getActiveAddress();
+
+  if (!address) {
     sendResponse({ error: 'No accounts found.' });
+    requestQueue.delete(request.requestId);
+    return;
   }
+
+  if (!perms[request.origin]?.accounts.includes(address)) {
+    sendResponse({ error: 'Active account is not connected to this site.' });
+    requestQueue.delete(request.requestId);
+    return;
+  }
+
+  sendResponse({ result: [address] });
   requestQueue.delete(request.requestId);
 }
 

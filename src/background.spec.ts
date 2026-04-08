@@ -85,20 +85,80 @@ describe('background dApp permission enforcement', () => {
     expect(windowsCreateMock).not.toHaveBeenCalled();
   });
 
-  it('should open approval popup for connected site', async () => {
+  it('should open approval popup for connected site with authorized account', async () => {
+    const storageData: Record<string, any> = {
+      peppool_permissions: {
+        'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+      },
+      peppool_accounts: JSON.stringify([
+        { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
+      ]),
+      peppool_active_account: '0'
+    };
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
-      if (keys === 'peppool_permissions') {
-        return {
-          peppool_permissions: {
-            'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
-          }
-        };
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
       }
-      return {};
+      return result;
     });
 
     const validParams = { recipient: 'PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1', amount: 100000000 };
     sendDappMessage('sendTransfer', 'https://trusted.com', validParams);
+    await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
+  });
+
+  it('should reject signing when active account is not authorized for origin', async () => {
+    const storageData: Record<string, any> = {
+      peppool_permissions: {
+        'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+      },
+      peppool_accounts: JSON.stringify([
+        { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
+        { address: 'Pother456', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
+      ]),
+      peppool_active_account: '1'
+    };
+    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
+      }
+      return result;
+    });
+
+    const validParams = { recipient: 'PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1', amount: 100000000 };
+    const sendResponse = sendDappMessage('sendTransfer', 'https://trusted.com', validParams);
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'Active account is not connected to this site.'
+    });
+    expect(windowsCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('should re-prompt wallet_connect when active account is not authorized', async () => {
+    const storageData: Record<string, any> = {
+      peppool_permissions: {
+        'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+      },
+      peppool_accounts: JSON.stringify([
+        { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' },
+        { address: 'Pother456', path: "m/44'/3434'/1'/0/0", label: 'Account 2' }
+      ]),
+      peppool_active_account: '1'
+    };
+    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
+      }
+      return result;
+    });
+
+    sendDappMessage('wallet_connect', 'https://trusted.com');
     await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
   });
 
@@ -133,15 +193,22 @@ describe('background dApp permission enforcement', () => {
   });
 
   it('should open approval popup even when wallet is locked', async () => {
+    const storageData: Record<string, any> = {
+      peppool_permissions: {
+        'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+      },
+      peppool_accounts: JSON.stringify([
+        { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
+      ]),
+      peppool_active_account: '0'
+    };
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
-      if (keys === 'peppool_permissions') {
-        return {
-          peppool_permissions: {
-            'https://trusted.com': { accounts: ['Ptest123'], permissions: ['connect'] }
-          }
-        };
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
       }
-      return {};
+      return result;
     });
 
     const validParams = { recipient: 'PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1', amount: 100000000 };
@@ -151,17 +218,25 @@ describe('background dApp permission enforcement', () => {
 });
 
 describe('background sendTransfer param validation', () => {
+  const storageData: Record<string, any> = {
+    peppool_permissions: {
+      'https://dapp.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+    },
+    peppool_accounts: JSON.stringify([
+      { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
+    ]),
+    peppool_active_account: '0'
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
-      if (keys === 'peppool_permissions') {
-        return {
-          peppool_permissions: {
-            'https://dapp.com': { accounts: ['Ptest123'], permissions: ['connect'] }
-          }
-        };
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
       }
-      return {};
+      return result;
     });
   });
 

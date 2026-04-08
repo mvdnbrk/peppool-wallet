@@ -66,9 +66,12 @@ async function handleSave() {
     </PepForm>
 
     <template #actions>
-      <PepButton id="save-account-name-button" block @click="handleSave" :loading="isSaving">
-        {{ isNew ? 'Add Account' : 'Save Changes' }}
-      </PepButton>
+      <div class="grid grid-cols-2 gap-4">
+        <PepButton id="cancel-button" variant="secondary" @click="router.back()">Cancel</PepButton>
+        <PepButton id="save-account-name-button" @click="handleSave" :loading="isSaving">{{
+          isNew ? 'Add Account' : 'Save Changes'
+        }}</PepButton>
+      </div>
     </template>
   </PepMainLayout>
 </template>

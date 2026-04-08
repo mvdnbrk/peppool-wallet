@@ -70,7 +70,7 @@ function handleAdd() {
     </PepList>
 
     <template #actions>
-      <PepButton id="add-account-button" @click="handleAdd" variant="secondary" block>
+      <PepButton id="add-account-button" @click="handleAdd" variant="secondary" class="w-full">
         Add New Account
       </PepButton>
     </template>

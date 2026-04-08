@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formatFiat, formatAmount } from '@/utils/constants';
-import { Address } from '@/models/Address';
+
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
 
@@ -54,12 +54,7 @@ async function handleLoadMore() {
       @click="router.push('/settings/accounts')"
       class="mb-2 flex cursor-pointer items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-slate-800/50"
     >
-      <div class="flex flex-col">
-        <span class="text-xs font-bold text-white">{{ walletStore.activeAccount?.label }}</span>
-        <span class="font-mono text-[10px] font-medium text-slate-400">{{
-          new Address(walletStore.address || '').truncated
-        }}</span>
-      </div>
+      <span class="text-xs font-bold text-white">{{ walletStore.activeAccount?.label }}</span>
       <PepIcon name="chevron-right" size="16" class="text-slate-500" />
     </div>
 

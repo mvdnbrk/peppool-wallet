@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
-import { Address } from '@/models/Address';
 
 const { router, wallet: walletStore } = useApp();
 
@@ -50,12 +49,7 @@ function handleAdd() {
             <span v-else class="text-xs font-bold">P</span>
           </div>
 
-          <div class="flex min-w-0 flex-col">
-            <span class="truncate text-sm font-bold text-white">{{ account.label }}</span>
-            <span class="truncate font-mono text-[10px] text-slate-500">{{
-              new Address(account.address).truncated
-            }}</span>
-          </div>
+          <span class="truncate text-sm font-bold text-white">{{ account.label }}</span>
         </div>
 
         <button

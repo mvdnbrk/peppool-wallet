@@ -6,7 +6,6 @@ import {
   fetchTxHex,
   validateAddress,
   fetchRecommendedFees,
-  fetchInscriptionOutputs,
   isInscriptionUtxo
 } from '@/utils/api';
 import { useInscriptionStore } from '@/stores/inscriptions';
@@ -59,14 +58,7 @@ export function useSendTransaction() {
         fetchUtxos(walletStore.address!)
       ]);
 
-      // Use cached inscription outputs, fall back to API if cache is empty
-      let inscriptionSet = inscriptionStore.getOutputsSet();
-      if (inscriptionSet.size === 0) {
-        const fresh = await fetchInscriptionOutputs(walletStore.address!).catch(
-          () => [] as string[]
-        );
-        inscriptionSet = new Set(fresh);
-      }
+      const inscriptionSet = await inscriptionStore.getOutputsSet(walletStore.address!);
 
       tx.value.fees = fees;
       tx.value.utxos = utxos.filter(

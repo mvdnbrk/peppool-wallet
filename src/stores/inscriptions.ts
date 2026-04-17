@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, readonly } from 'vue';
-import { fetchAddressInscriptions, fetchInscription } from '@/utils/api';
+import { fetchAddressInscriptions, fetchInscription, fetchInscriptionOutputs } from '@/utils/api';
 import type { Inscription } from '@/models/Inscription';
 
 const BATCH_SIZE = 5;
@@ -105,10 +105,15 @@ export const useInscriptionStore = defineStore('inscriptions', () => {
   }
 
   /**
-   * Returns the cached inscription outputs as a Set for UTXO exclusion.
+   * Returns inscription outputs as a Set for UTXO exclusion.
+   * Uses cache if synced, otherwise fetches from API directly.
    */
-  function getOutputsSet(): Set<string> {
-    return new Set(outputs.value);
+  async function getOutputsSet(address: string): Promise<Set<string>> {
+    if (lastSyncedHeight.value > 0) {
+      return new Set(outputs.value);
+    }
+    const fresh = await fetchInscriptionOutputs(address).catch(() => [] as string[]);
+    return new Set(fresh);
   }
 
   /**

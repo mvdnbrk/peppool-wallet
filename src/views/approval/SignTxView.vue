@@ -13,7 +13,6 @@ import {
   broadcastTx,
   fetchTxHex,
   fetchRecommendedFees,
-  fetchInscriptionOutputs,
   isInscriptionUtxo
 } from '@/utils/api';
 import { useInscriptionStore } from '@/stores/inscriptions';
@@ -149,11 +148,7 @@ async function handleSendTransfer(mnemonic: string) {
   // 1. Fetch requirements (inscription outputs from cache, API fallback)
   const [fees, rawUtxos] = await Promise.all([fetchRecommendedFees(), fetchUtxos(address)]);
 
-  let inscriptionSet = inscriptionStore.getOutputsSet();
-  if (inscriptionSet.size === 0) {
-    const fresh = await fetchInscriptionOutputs(address).catch(() => [] as string[]);
-    inscriptionSet = new Set(fresh);
-  }
+  const inscriptionSet = await inscriptionStore.getOutputsSet(address);
 
   // 2. Coin selection via SendTransaction model (shared with main send flow)
   const sendTx = new SendTransaction(address);

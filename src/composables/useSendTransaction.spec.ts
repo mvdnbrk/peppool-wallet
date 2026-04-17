@@ -29,9 +29,13 @@ vi.mock('@/utils/crypto', async (importOriginal) => {
     isValidAddress: vi.fn()
   };
 });
+const { mockGetOutputsSet } = vi.hoisted(() => {
+  const mockGetOutputsSet = vi.fn(() => Promise.resolve(new Set<string>()));
+  return { mockGetOutputsSet };
+});
 vi.mock('@/stores/inscriptions', () => ({
   useInscriptionStore: vi.fn(() => ({
-    getOutputsSet: vi.fn(() => new Set<string>())
+    getOutputsSet: mockGetOutputsSet
   }))
 }));
 
@@ -82,7 +86,7 @@ describe('useSendTransaction Composable', () => {
     ];
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
     vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
+    mockGetOutputsSet.mockResolvedValue(new Set(['inscribed1:1']));
 
     const { tx, loadRequirements } = useSendTransaction();
     await loadRequirements();

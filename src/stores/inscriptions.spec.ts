@@ -138,7 +138,7 @@ describe('Inscription Store', () => {
     vi.mocked(fetchInscription).mockResolvedValue(mockInscription('abc123i0'));
 
     await store.sync('Paddr1', 100);
-    const set = store.getOutputsSet();
+    const set = await store.getOutputsSet('Paddr1');
     expect(set.has('abc123:0')).toBe(true);
     expect(set.has('def456:1')).toBe(true);
     expect(set.has('xyz789:0')).toBe(false);

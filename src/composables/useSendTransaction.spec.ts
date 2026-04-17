@@ -29,6 +29,11 @@ vi.mock('@/utils/crypto', async (importOriginal) => {
     isValidAddress: vi.fn()
   };
 });
+vi.mock('@/stores/inscriptions', () => ({
+  useInscriptionStore: vi.fn(() => ({
+    getOutputsSet: vi.fn(() => new Set<string>())
+  }))
+}));
 
 describe('useSendTransaction Composable', () => {
   let mockWallet: any;

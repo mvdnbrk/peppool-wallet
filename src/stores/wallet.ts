@@ -21,6 +21,7 @@ import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
 import { EXPLORERS, type ExplorerId, pepeExplorer } from '@/utils/explorer';
 import { useLockoutStore } from './lockout';
+import { useInscriptionStore } from './inscriptions';
 
 export interface Account {
   address: string;
@@ -51,6 +52,7 @@ async function clearAutoLockAlarm() {
 
 export const useWalletStore = defineStore('wallet', () => {
   const lockout = useLockoutStore();
+  const inscriptionStore = useInscriptionStore();
 
   // ── State ──
   const accounts = ref<Account[]>(JSON.parse(localStorage.getItem('peppool_accounts') || '[]'));
@@ -244,6 +246,7 @@ export const useWalletStore = defineStore('wallet', () => {
       localStorage.setItem('peppool_balance', balance.value.toString());
 
       await refreshTransactions();
+      inscriptionStore.sync(address.value, tipHeight).catch(() => {});
       await resetLockTimer();
     } catch (e) {
       console.error('Failed to refresh balance', e);

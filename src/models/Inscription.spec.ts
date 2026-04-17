@@ -4,7 +4,6 @@ import { toInscription, type RawInscriptionResponse } from './Inscription';
 const mockRawResponse: RawInscriptionResponse = {
   id: '5f48e29eabc123def456e2f3i0',
   number: 17212333,
-  content_type: 'image/png',
   effective_content_type: 'image/png',
   content_length: 793,
   value: 100000,
@@ -28,22 +27,12 @@ describe('Inscription Model', () => {
     });
   });
 
-  it('prefers effective_content_type over content_type', () => {
+  it('uses effective_content_type as contentType (handles delegates)', () => {
     const raw: RawInscriptionResponse = {
       ...mockRawResponse,
-      content_type: 'application/octet-stream',
       effective_content_type: 'image/webp'
     };
     expect(toInscription(raw).contentType).toBe('image/webp');
-  });
-
-  it('falls back to content_type when effective_content_type is empty', () => {
-    const raw: RawInscriptionResponse = {
-      ...mockRawResponse,
-      content_type: 'text/plain',
-      effective_content_type: ''
-    };
-    expect(toInscription(raw).contentType).toBe('text/plain');
   });
 
   it('handles null properties', () => {

@@ -19,7 +19,6 @@ export type Inscription = v.InferOutput<typeof InscriptionSchema>;
 export const RawInscriptionResponseSchema = v.object({
   id: v.string(),
   number: v.number(),
-  content_type: v.string(),
   effective_content_type: v.string(),
   content_length: v.number(),
   value: v.number(),
@@ -34,7 +33,7 @@ export function toInscription(raw: RawInscriptionResponse): Inscription {
   return {
     id: raw.id,
     number: raw.number,
-    contentType: raw.effective_content_type || raw.content_type,
+    contentType: raw.effective_content_type,
     contentLength: raw.content_length,
     value: raw.value,
     satpoint: raw.satpoint,

@@ -15,6 +15,7 @@ const mockInscription = (id: string): Inscription => ({
   number: 1,
   contentType: 'image/png',
   contentLength: 100,
+  height: 500000,
   value: 100000,
   satpoint: `${id.replace('i0', '')}:0:0`,
   timestamp: 1700000000,

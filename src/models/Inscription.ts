@@ -7,6 +7,7 @@ export const InscriptionSchema = v.object({
   contentLength: v.number(),
   value: v.number(),
   satpoint: v.string(),
+  height: v.number(),
   timestamp: v.number(),
   properties: v.nullable(v.record(v.string(), v.unknown()))
 });
@@ -21,6 +22,7 @@ export const RawInscriptionResponseSchema = v.object({
   number: v.number(),
   effective_content_type: v.string(),
   content_length: v.nullable(v.number()),
+  height: v.number(),
   value: v.number(),
   satpoint: v.string(),
   timestamp: v.number(),
@@ -35,6 +37,7 @@ export function toInscription(raw: RawInscriptionResponse): Inscription {
     number: raw.number,
     contentType: raw.effective_content_type,
     contentLength: raw.content_length ?? 0,
+    height: raw.height,
     value: raw.value,
     satpoint: raw.satpoint,
     timestamp: raw.timestamp,

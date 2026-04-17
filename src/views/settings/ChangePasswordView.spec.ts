@@ -55,7 +55,7 @@ describe('ChangePasswordView', () => {
 
     mockWallet = {
       isUnlocked: true,
-      plaintextMnemonic: 'test mnemonic',
+      getMnemonic: vi.fn(() => Promise.resolve('test mnemonic')),
       lockout: { lockoutUntil: 0, failedAttempts: 0, isLockedOut: false },
       unlock: vi.fn(),
       updateVault: vi.fn()

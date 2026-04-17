@@ -116,7 +116,8 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 
@@ -182,7 +183,8 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 
@@ -214,7 +216,8 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 
@@ -240,7 +243,8 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 
@@ -281,7 +285,8 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 
@@ -327,7 +332,8 @@ describe('SignTxView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 

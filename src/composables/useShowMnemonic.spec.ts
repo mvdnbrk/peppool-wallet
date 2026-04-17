@@ -1,14 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useShowMnemonic } from './useShowMnemonic';
 import { useApp } from '@/composables/useApp';
-import * as encryption from '@/utils/encryption';
 import { defineComponent, createApp } from 'vue';
 
 // Mock dependencies
 vi.mock('@/composables/useApp');
-vi.mock('@/utils/encryption', () => ({
-  decrypt: vi.fn()
-}));
 
 // Helper to test composables that use lifecycle hooks
 function withSetup<T>(composable: () => T): [T, ReturnType<typeof createApp>] {
@@ -32,7 +28,7 @@ describe('useShowMnemonic Composable', () => {
     vi.clearAllMocks();
     mockWallet = {
       unlock: vi.fn(),
-      plaintextMnemonic: 'test mnemonic',
+      getMnemonic: vi.fn(() => Promise.resolve('test mnemonic')),
       encryptedMnemonic: 'encrypted'
     };
     vi.mocked(useApp).mockReturnValue({
@@ -59,16 +55,15 @@ describe('useShowMnemonic Composable', () => {
     expect(mockWallet.unlock).toHaveBeenCalledWith('correct-pass');
   });
 
-  it('should use fallback decryption if plaintext is not in store', async () => {
+  it('should use getMnemonic to decrypt on demand', async () => {
     mockWallet.unlock.mockResolvedValue(true);
-    mockWallet.plaintextMnemonic = null;
-    vi.mocked(encryption.decrypt).mockResolvedValue('decrypted-fallback');
+    mockWallet.getMnemonic.mockResolvedValue('decrypted mnemonic');
 
     const [composable] = withSetup(() => useShowMnemonic());
     await composable.reveal('correct-pass');
 
-    expect(composable.mnemonic.value).toBe('decrypted-fallback');
-    expect(encryption.decrypt).toHaveBeenCalledWith('encrypted', 'correct-pass');
+    expect(composable.mnemonic.value).toBe('decrypted mnemonic');
+    expect(mockWallet.getMnemonic).toHaveBeenCalled();
   });
 
   it('should set error and return false when password is incorrect', async () => {

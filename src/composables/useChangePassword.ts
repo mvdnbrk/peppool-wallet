@@ -40,11 +40,7 @@ export function useChangePassword() {
     }
 
     // Re-encrypt with new password
-    const mnemonic = walletStore.plaintextMnemonic;
-    if (!mnemonic) {
-      throw new ChangePasswordError('general', 'Could not access wallet data. Please try again.');
-    }
-
+    const mnemonic = await walletStore.getMnemonic();
     const newEncrypted = await encrypt(mnemonic, newPassword);
     walletStore.updateVault(newEncrypted);
 

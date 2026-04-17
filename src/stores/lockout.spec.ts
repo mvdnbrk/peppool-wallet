@@ -16,11 +16,13 @@ vi.mock('../utils/crypto', async (importOriginal) => {
 
 // Mock encryption
 vi.mock('../utils/encryption', () => ({
-  encrypt: vi.fn(() => Promise.resolve('vault')),
+  encrypt: vi.fn(() => Promise.resolve('pbkdf2:vault')),
   decrypt: vi.fn((v, p) =>
     p === 'correct' ? Promise.resolve('mnemonic') : Promise.reject(new Error('fail'))
   ),
-  isLegacyVault: vi.fn(() => false)
+  isLegacyVault: vi.fn(() => false),
+  deriveKeyBytes: vi.fn(() => Promise.resolve(new Uint8Array(32))),
+  extractSalt: vi.fn(() => new Uint8Array(16))
 }));
 
 // Mock API

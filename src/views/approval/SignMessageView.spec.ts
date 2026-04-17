@@ -82,8 +82,8 @@ describe('SignMessageView', () => {
   it('should request password if mnemonic is not cached', async () => {
     const store = useWalletStore();
     store.isUnlocked = true;
-    // ensure no mnemonic
-    store.cacheMnemonic(null as any);
+    // ensure no mnemonic loaded
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(false);
 
     const wrapper = mount(SignMessageView, {
       global: globalConfig
@@ -98,7 +98,8 @@ describe('SignMessageView', () => {
     const store = useWalletStore();
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
-    store.cacheMnemonic(
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
       'suffer dish east miss seat great brother hello motion mountain celery plunge'
     );
 

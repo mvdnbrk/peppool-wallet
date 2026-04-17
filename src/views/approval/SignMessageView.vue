@@ -38,9 +38,7 @@ async function handleApprove() {
   error.value = '';
 
   try {
-    let mnemonic = walletStore.plaintextMnemonic;
-
-    if (!mnemonic) {
+    if (!walletStore.isMnemonicLoaded) {
       if (!password.value) {
         error.value = 'Please enter your password';
         return;
@@ -52,15 +50,10 @@ async function handleApprove() {
         isProcessing.value = false;
         return;
       }
-      mnemonic = walletStore.plaintextMnemonic;
-    }
-
-    if (!mnemonic) {
-      error.value = 'Could not access mnemonic';
-      return;
     }
 
     isProcessing.value = true;
+    const mnemonic = await walletStore.getMnemonic();
 
     const signature = signMessage(mnemonic, messageToSign.value, walletStore.activeAccountIndex, 0);
 

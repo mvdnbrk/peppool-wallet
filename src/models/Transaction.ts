@@ -47,9 +47,11 @@ export class Transaction {
   get txid() {
     return this.raw.txid;
   }
+
   get fee() {
     return this.raw.fee / RIBBITS_PER_PEP;
   }
+
   get isConfirmed() {
     return this.raw.status.confirmed;
   }
@@ -86,14 +88,14 @@ export class Transaction {
 
   get valueRibbits() {
     if (this.isOutgoing) {
-      return this.raw.vin
-        .filter((vin) => vin.prevout?.scriptpubkey_address === this.userAddress)
-        .reduce((sum, vin) => sum + (vin.prevout?.value ?? 0), 0);
-    } else {
       return this.raw.vout
-        .filter((vout) => vout.scriptpubkey_address === this.userAddress)
+        .filter((vout) => vout.scriptpubkey_address !== this.userAddress)
         .reduce((sum, vout) => sum + vout.value, 0);
     }
+
+    return this.raw.vout
+      .filter((vout) => vout.scriptpubkey_address === this.userAddress)
+      .reduce((sum, vout) => sum + vout.value, 0);
   }
 
   get valuePep() {
@@ -108,9 +110,11 @@ export class Transaction {
   get txidStart() {
     return truncateId(this.txid).start;
   }
+
   get txidEnd() {
     return truncateId(this.txid).end;
   }
+
   get txidShort() {
     return `${this.txid.slice(0, 8)}...${this.txid.slice(-8)}`;
   }

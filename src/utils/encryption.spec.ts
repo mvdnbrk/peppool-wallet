@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encrypt, decrypt, isLegacyVault } from './encryption';
+import { encrypt, decrypt, deriveKeyBytes, decryptWithKey, importKey } from './encryption';
 
 describe('Encryption Utils', () => {
   it('should encrypt and decrypt a message correctly', async () => {
@@ -20,30 +20,26 @@ describe('Encryption Utils', () => {
     await expect(decrypt(encrypted, 'wrong-password')).rejects.toThrow();
   });
 
-  it('should identify legacy vaults', () => {
-    expect(isLegacyVault('no-prefix-base64')).toBe(true);
-    expect(isLegacyVault('pbkdf2:prefixed-base64')).toBe(false);
+  it('should reject invalid vault format', async () => {
+    await expect(decrypt('no-prefix-base64', 'password')).rejects.toThrow('Invalid vault format');
   });
 
-  it('should decrypt legacy (v1) format correctly', async () => {
-    const text = 'legacy text';
-    const password = 'password';
+  it('should decrypt with a non-extractable CryptoKey via decryptWithKey', async () => {
+    const message = 'mnemonic phrase for key test';
+    const password = 'test-password';
 
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
-    const key = await crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, ['encrypt']);
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      new TextEncoder().encode(text)
+    const encrypted = await encrypt(message, password);
+    const keyBytes = await deriveKeyBytes(password, encrypted);
+    const cryptoKey = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
+
+    const decrypted = await decryptWithKey(encrypted, cryptoKey);
+    expect(decrypted).toBe(message);
+  });
+
+  it('decryptWithKey rejects invalid vault format', async () => {
+    const fakeKey = await importKey(new Uint8Array(32).buffer, ['decrypt']);
+    await expect(decryptWithKey('no-prefix-base64', fakeKey)).rejects.toThrow(
+      'Invalid vault format'
     );
-
-    const legacyResult = new Uint8Array(iv.length + encrypted.byteLength);
-    legacyResult.set(iv);
-    legacyResult.set(new Uint8Array(encrypted), iv.length);
-    const legacyBase64 = btoa(String.fromCharCode(...legacyResult));
-
-    const decrypted = await decrypt(legacyBase64, password);
-    expect(decrypted).toBe(text);
   });
 });

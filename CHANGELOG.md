@@ -4,6 +4,14 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.1) - 2026-04-18
+
+### Changed
+- Harden session key storage with non-extractable CryptoKey, scoped mnemonic access, and buffer zeroing ([#13](https://github.com/mvdnbrk/peppool-wallet/pull/13))
+
+### Fixed
+- Show net amount for outgoing transactions ([#15](https://github.com/mvdnbrk/peppool-wallet/pull/15))
+
 ## [0.2.0](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.0) - 2026-04-08
 
 ### Added

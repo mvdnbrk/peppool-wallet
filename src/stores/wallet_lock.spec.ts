@@ -14,9 +14,12 @@ vi.mock('../utils/crypto', async (importOriginal) => {
 
 // Mock encryption
 vi.mock('../utils/encryption', () => ({
-  encrypt: vi.fn(() => Promise.resolve('vault')),
+  encrypt: vi.fn(() => Promise.resolve('pbkdf2:vault')),
   decrypt: vi.fn(() => Promise.resolve('mnemonic')),
-  isLegacyVault: vi.fn(() => false)
+  deriveKeyBytes: vi.fn(() => Promise.resolve(new Uint8Array(32))),
+  extractSalt: vi.fn(() => new Uint8Array(16)),
+  importKey: vi.fn(() => Promise.resolve({ type: 'secret' } as CryptoKey)),
+  decryptWithKey: vi.fn(() => Promise.resolve('mnemonic'))
 }));
 
 // Mock API
@@ -44,7 +47,7 @@ describe('Wallet Lock vs Reset Behavior', () => {
     localStorage.setItem('peppool_form_send', '{"recipient":"foo","amount":"10"}');
 
     expect(store.isUnlocked).toBe(true);
-    expect(store.encryptedMnemonic).toBe('vault');
+    expect(store.encryptedMnemonic).toBe('pbkdf2:vault');
     expect(store.address).toBe('Paddress');
 
     // 2. Perform lock
@@ -52,12 +55,12 @@ describe('Wallet Lock vs Reset Behavior', () => {
 
     // CHECK: Still has the wallet
     expect(store.isCreated).toBe(true);
-    expect(store.encryptedMnemonic).toBe('vault');
+    expect(store.encryptedMnemonic).toBe('pbkdf2:vault');
     expect(store.address).toBe('Paddress');
 
     // CHECK: Session data is cleared
     expect(store.isUnlocked).toBe(false);
-    expect(store.plaintextMnemonic).toBeNull();
+    expect(store.isMnemonicLoaded).toBe(false);
     expect(localStorage.getItem('peppool_transactions')).toBeNull();
 
     // CHECK: Form data is wiped for privacy

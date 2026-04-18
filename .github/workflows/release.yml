@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run tests
+        run: npm test
+
       - name: Run build
         run: npm run build
 
@@ -34,6 +37,5 @@ jobs:
         with:
           files: peppool-wallet-${{ github.ref_name }}.zip
           draft: false
-          prerelease: true # Mark as alpha/beta
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

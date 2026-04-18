@@ -112,11 +112,12 @@ export function useSendTransaction() {
     isSending = true;
 
     try {
-      let mnemonic = walletStore.plaintextMnemonic;
-      if (!mnemonic) {
+      let mnemonic: string;
+      if (walletStore.isMnemonicLoaded) {
+        mnemonic = await walletStore.withMnemonic((m) => m);
+      } else {
         if (!password) throw new Error('Password required');
         mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);
-        await walletStore.cacheMnemonic(mnemonic);
       }
 
       const { selectedUtxos } = tx.value.selectUtxos(isMax);

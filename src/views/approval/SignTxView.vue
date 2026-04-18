@@ -100,9 +100,7 @@ async function handleApprove() {
   error.value = '';
 
   try {
-    let mnemonic = walletStore.plaintextMnemonic;
-
-    if (!mnemonic) {
+    if (!walletStore.isMnemonicLoaded) {
       if (!password.value) {
         error.value = 'Please enter your password';
         return;
@@ -114,21 +112,16 @@ async function handleApprove() {
         isProcessing.value = false;
         return;
       }
-      mnemonic = walletStore.plaintextMnemonic;
-    }
-
-    if (!mnemonic) {
-      error.value = 'Could not access mnemonic';
-      return;
     }
 
     isProcessing.value = true;
-
-    if (method.value === 'sendTransfer') {
-      await handleSendTransfer(mnemonic);
-    } else if (method.value === 'signPsbt') {
-      await handleSignPsbt(mnemonic);
-    }
+    await walletStore.withMnemonic(async (mnemonic) => {
+      if (method.value === 'sendTransfer') {
+        await handleSendTransfer(mnemonic);
+      } else if (method.value === 'signPsbt') {
+        await handleSignPsbt(mnemonic);
+      }
+    });
   } catch (err: any) {
     console.error('Transaction failed', err);
     error.value = err.message || 'Transaction failed';

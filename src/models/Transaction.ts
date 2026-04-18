@@ -47,9 +47,11 @@ export class Transaction {
   get txid() {
     return this.raw.txid;
   }
+
   get fee() {
     return this.raw.fee / RIBBITS_PER_PEP;
   }
+
   get isConfirmed() {
     return this.raw.status.confirmed;
   }
@@ -108,9 +110,11 @@ export class Transaction {
   get txidStart() {
     return truncateId(this.txid).start;
   }
+
   get txidEnd() {
     return truncateId(this.txid).end;
   }
+
   get txidShort() {
     return `${this.txid.slice(0, 8)}...${this.txid.slice(-8)}`;
   }

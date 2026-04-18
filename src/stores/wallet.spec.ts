@@ -141,18 +141,16 @@ describe('Wallet Store', () => {
       unlocked_until: Date.now() + 10000
     });
 
-    // Mock chrome.storage.session.get
+    // Mock chrome.storage.session.get — store returns dataKey as hex string
     (global.chrome.storage.session.get as any).mockResolvedValue({
-      mnemonic: 'suffer dish east miss seat great brother hello motion mountain celery plunge'
+      dataKey: '0102030405060708091011121314151617181920212223242526272829303132' // 32-byte AES key as hex
     });
 
     const store = useWalletStore();
     const success = await store.checkSession();
     expect(success).toBe(true);
     expect(store.isUnlocked).toBe(true);
-    expect(store.plaintextMnemonic).toBe(
-      'suffer dish east miss seat great brother hello motion mountain celery plunge'
-    );
+    expect(store.isMnemonicLoaded).toBe(true);
   });
 
   it('should import a wallet with a mnemonic', async () => {
@@ -239,7 +237,7 @@ describe('Wallet Store', () => {
   it('should throw error when adding account without mnemonic', async () => {
     const store = useWalletStore();
     // No import/unlock, so no mnemonic
-    await expect(store.addAccount()).rejects.toThrow('Mnemonic not loaded');
+    await expect(store.addAccount()).rejects.toThrow('Wallet is locked');
   });
 
   it('should rename an account correctly', async () => {
@@ -343,44 +341,22 @@ describe('Wallet Store', () => {
     vi.useRealTimers();
   });
 
-  it('cacheMnemonic should update the mnemonic in the store', async () => {
+  it('withMnemonic decrypts on demand using session key', async () => {
     const store = useWalletStore();
     await store.createWallet('password123');
 
-    // After creation, plaintextMnemonic should be set
-    expect(store.plaintextMnemonic).not.toBeNull();
-    const originalMnemonic = store.plaintextMnemonic;
-
-    // Lock clears it
-    store.lock();
-    expect(store.plaintextMnemonic).toBeNull();
-
-    // cacheMnemonic restores it
-    await store.cacheMnemonic(originalMnemonic!);
-    expect(store.plaintextMnemonic).toBe(originalMnemonic);
+    expect(store.isMnemonicLoaded).toBe(true);
+    const mnemonic = await store.withMnemonic((m) => m);
+    expect(mnemonic.split(' ')).toHaveLength(12);
   });
 
-  it('plaintextMnemonic should be exposed as readonly', async () => {
+  it('withMnemonic throws when wallet is locked', async () => {
     const store = useWalletStore();
     await store.createWallet('password123');
 
-    // Verify it's a Ref and contains a value
-    expect(store.plaintextMnemonic).toBeTruthy();
-
-    const original = store.plaintextMnemonic;
-
-    // Direct assignment should be a no-op (readonly ref)
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    try {
-      (store as any).plaintextMnemonic = 'hacked';
-    } catch {
-      // Expected for readonly in some environments
-    }
-
-    // Should still be the original value, not 'hacked'
-    expect(store.plaintextMnemonic).toBe(original);
-    warnSpy.mockRestore();
+    await store.lock();
+    expect(store.isMnemonicLoaded).toBe(false);
+    await expect(store.withMnemonic((m) => m)).rejects.toThrow('Wallet is locked');
   });
 
   describe('Transaction Caching', () => {

@@ -1,6 +1,5 @@
 import { ref, onScopeDispose } from 'vue';
 import { useApp } from '@/composables/useApp';
-import { decrypt } from '@/utils/encryption';
 
 export function useShowMnemonic() {
   const { wallet: walletStore } = useApp();
@@ -22,11 +21,7 @@ export function useShowMnemonic() {
         return false;
       }
 
-      if (walletStore.plaintextMnemonic) {
-        mnemonic.value = walletStore.plaintextMnemonic;
-      } else {
-        mnemonic.value = await decrypt(walletStore.encryptedMnemonic!, password);
-      }
+      mnemonic.value = await walletStore.withMnemonic((m) => m);
 
       step.value = 2;
       return true;

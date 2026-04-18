@@ -38,9 +38,7 @@ async function handleApprove() {
   error.value = '';
 
   try {
-    let mnemonic = walletStore.plaintextMnemonic;
-
-    if (!mnemonic) {
+    if (!walletStore.isMnemonicLoaded) {
       if (!password.value) {
         error.value = 'Please enter your password';
         return;
@@ -52,26 +50,26 @@ async function handleApprove() {
         isProcessing.value = false;
         return;
       }
-      mnemonic = walletStore.plaintextMnemonic;
-    }
-
-    if (!mnemonic) {
-      error.value = 'Could not access mnemonic';
-      return;
     }
 
     isProcessing.value = true;
+    await walletStore.withMnemonic(async (mnemonic) => {
+      const signature = signMessage(
+        mnemonic,
+        messageToSign.value,
+        walletStore.activeAccountIndex,
+        0
+      );
 
-    const signature = signMessage(mnemonic, messageToSign.value, walletStore.activeAccountIndex, 0);
-
-    chrome.runtime.sendMessage({
-      target: 'peppool-background-response',
-      requestId: requestId.value,
-      result: {
-        signature,
-        address: walletStore.address,
-        message: messageToSign.value
-      }
+      chrome.runtime.sendMessage({
+        target: 'peppool-background-response',
+        requestId: requestId.value,
+        result: {
+          signature,
+          address: walletStore.address,
+          message: messageToSign.value
+        }
+      });
     });
 
     // Cleanup storage

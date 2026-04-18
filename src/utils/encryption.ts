@@ -38,7 +38,7 @@ async function deriveKey(
   );
 }
 
-function importKey(rawBytes: ArrayBuffer, usage: KeyUsage[]): Promise<CryptoKey> {
+export function importKey(rawBytes: ArrayBuffer, usage: KeyUsage[]): Promise<CryptoKey> {
   return crypto.subtle.importKey('raw', rawBytes, { name: 'AES-GCM' }, false, usage);
 }
 
@@ -69,6 +69,14 @@ export async function deriveKeyBytes(password: string, vault: string): Promise<U
  * Decrypts a v2 vault string using pre-derived raw key bytes.
  */
 export async function decryptWithKeyBytes(vault: string, keyBytes: Uint8Array): Promise<string> {
+  const key = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
+  return decryptWithKey(vault, key);
+}
+
+/**
+ * Decrypts a v2 vault string using a non-extractable CryptoKey.
+ */
+export async function decryptWithKey(vault: string, key: CryptoKey): Promise<string> {
   if (!vault.startsWith(FORMAT_PREFIX)) {
     throw new Error('Key-based decryption requires a v2 vault');
   }
@@ -79,7 +87,6 @@ export async function decryptWithKeyBytes(vault: string, keyBytes: Uint8Array): 
   const iv = raw.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
   const data = raw.slice(SALT_LENGTH + IV_LENGTH);
 
-  const key = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
   const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
 
   return new TextDecoder().decode(decrypted);

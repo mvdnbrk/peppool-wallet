@@ -99,8 +99,8 @@ describe('SignMessageView', () => {
     store.isUnlocked = true;
     store.activeAccountIndex = 0;
     vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
-    vi.spyOn(store, 'getMnemonic').mockResolvedValue(
-      'suffer dish east miss seat great brother hello motion mountain celery plunge'
+    vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) =>
+      fn('suffer dish east miss seat great brother hello motion mountain celery plunge')
     );
 
     const wrapper = mount(SignMessageView, {

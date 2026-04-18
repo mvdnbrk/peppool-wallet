@@ -21,7 +21,7 @@ export function useShowMnemonic() {
         return false;
       }
 
-      mnemonic.value = await walletStore.getMnemonic();
+      mnemonic.value = await walletStore.withMnemonic((m) => m);
 
       step.value = 2;
       return true;

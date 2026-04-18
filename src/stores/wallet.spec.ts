@@ -143,7 +143,7 @@ describe('Wallet Store', () => {
 
     // Mock chrome.storage.session.get — store returns dataKey as hex string
     (global.chrome.storage.session.get as any).mockResolvedValue({
-      dataKey: '01020304' // dummy key bytes as hex — enough to pass session check
+      dataKey: '0102030405060708091011121314151617181920212223242526272829303132' // 32-byte AES key as hex
     });
 
     const store = useWalletStore();
@@ -341,22 +341,22 @@ describe('Wallet Store', () => {
     vi.useRealTimers();
   });
 
-  it('getMnemonic decrypts on demand using cached key bytes', async () => {
+  it('withMnemonic decrypts on demand using session key', async () => {
     const store = useWalletStore();
     await store.createWallet('password123');
 
     expect(store.isMnemonicLoaded).toBe(true);
-    const mnemonic = await store.getMnemonic();
+    const mnemonic = await store.withMnemonic((m) => m);
     expect(mnemonic.split(' ')).toHaveLength(12);
   });
 
-  it('getMnemonic throws when wallet is locked', async () => {
+  it('withMnemonic throws when wallet is locked', async () => {
     const store = useWalletStore();
     await store.createWallet('password123');
 
     await store.lock();
     expect(store.isMnemonicLoaded).toBe(false);
-    await expect(store.getMnemonic()).rejects.toThrow('Wallet is locked');
+    await expect(store.withMnemonic((m) => m)).rejects.toThrow('Wallet is locked');
   });
 
   describe('Transaction Caching', () => {

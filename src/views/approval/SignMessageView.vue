@@ -53,18 +53,23 @@ async function handleApprove() {
     }
 
     isProcessing.value = true;
-    const mnemonic = await walletStore.getMnemonic();
+    await walletStore.withMnemonic(async (mnemonic) => {
+      const signature = signMessage(
+        mnemonic,
+        messageToSign.value,
+        walletStore.activeAccountIndex,
+        0
+      );
 
-    const signature = signMessage(mnemonic, messageToSign.value, walletStore.activeAccountIndex, 0);
-
-    chrome.runtime.sendMessage({
-      target: 'peppool-background-response',
-      requestId: requestId.value,
-      result: {
-        signature,
-        address: walletStore.address,
-        message: messageToSign.value
-      }
+      chrome.runtime.sendMessage({
+        target: 'peppool-background-response',
+        requestId: requestId.value,
+        result: {
+          signature,
+          address: walletStore.address,
+          message: messageToSign.value
+        }
+      });
     });
 
     // Cleanup storage

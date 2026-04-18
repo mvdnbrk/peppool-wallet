@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { encrypt, decrypt, isLegacyVault } from './encryption';
+import {
+  encrypt,
+  decrypt,
+  isLegacyVault,
+  deriveKeyBytes,
+  decryptWithKey,
+  importKey
+} from './encryption';
 
 describe('Encryption Utils', () => {
   it('should encrypt and decrypt a message correctly', async () => {
@@ -23,6 +30,25 @@ describe('Encryption Utils', () => {
   it('should identify legacy vaults', () => {
     expect(isLegacyVault('no-prefix-base64')).toBe(true);
     expect(isLegacyVault('pbkdf2:prefixed-base64')).toBe(false);
+  });
+
+  it('should decrypt with a non-extractable CryptoKey via decryptWithKey', async () => {
+    const message = 'mnemonic phrase for key test';
+    const password = 'test-password';
+
+    const encrypted = await encrypt(message, password);
+    const keyBytes = await deriveKeyBytes(password, encrypted);
+    const cryptoKey = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
+
+    const decrypted = await decryptWithKey(encrypted, cryptoKey);
+    expect(decrypted).toBe(message);
+  });
+
+  it('decryptWithKey rejects legacy vaults', async () => {
+    const fakeKey = await importKey(new Uint8Array(32).buffer, ['decrypt']);
+    await expect(decryptWithKey('legacy-base64', fakeKey)).rejects.toThrow(
+      'Key-based decryption requires a v2 vault'
+    );
   });
 
   it('should decrypt legacy (v1) format correctly', async () => {

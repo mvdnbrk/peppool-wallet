@@ -17,7 +17,7 @@ describe('useChangePassword Composable', () => {
     vi.clearAllMocks();
     mockWallet = {
       unlock: vi.fn(),
-      getMnemonic: vi.fn(() => Promise.resolve('test mnemonic')),
+      withMnemonic: vi.fn((fn: any) => Promise.resolve(fn('test mnemonic'))),
       updateVault: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
@@ -62,7 +62,7 @@ describe('useChangePassword Composable', () => {
 
   it('should throw error if mnemonic cannot be decrypted', async () => {
     mockWallet.unlock.mockResolvedValue(true);
-    mockWallet.getMnemonic.mockRejectedValue(new Error('Wallet is locked'));
+    mockWallet.withMnemonic.mockRejectedValue(new Error('Wallet is locked'));
     const { performChange } = useChangePassword();
     await expect(performChange('old', 'new-pass-12345678', 'new-pass-12345678')).rejects.toThrow(
       'Wallet is locked'

@@ -114,7 +114,7 @@ export function useSendTransaction() {
     try {
       let mnemonic: string;
       if (walletStore.isMnemonicLoaded) {
-        mnemonic = await walletStore.getMnemonic();
+        mnemonic = await walletStore.withMnemonic((m) => m);
       } else {
         if (!password) throw new Error('Password required');
         mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);

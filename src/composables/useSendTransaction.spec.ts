@@ -42,7 +42,7 @@ describe('useSendTransaction Composable', () => {
       prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn(),
       isMnemonicLoaded: true,
-      getMnemonic: vi.fn(() => Promise.resolve('test mnemonic'))
+      withMnemonic: vi.fn((fn: any) => Promise.resolve(fn('test mnemonic')))
     };
     vi.mocked(useApp).mockReturnValue({
       wallet: mockWallet
@@ -174,7 +174,7 @@ describe('useSendTransaction Composable', () => {
       { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
     ] as any;
     mockWallet.isMnemonicLoaded = true;
-    mockWallet.getMnemonic = vi.fn(() => Promise.resolve('mnemonic'));
+    mockWallet.withMnemonic = vi.fn((fn: any) => Promise.resolve(fn('mnemonic')));
     vi.mocked(api.fetchTxHex).mockRejectedValue(new Error('Network error'));
 
     await expect(send('password', false)).rejects.toThrow('Network error');

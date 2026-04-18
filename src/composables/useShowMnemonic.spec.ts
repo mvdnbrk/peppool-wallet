@@ -28,7 +28,7 @@ describe('useShowMnemonic Composable', () => {
     vi.clearAllMocks();
     mockWallet = {
       unlock: vi.fn(),
-      getMnemonic: vi.fn(() => Promise.resolve('test mnemonic')),
+      withMnemonic: vi.fn((fn: any) => Promise.resolve(fn('test mnemonic'))),
       encryptedMnemonic: 'encrypted'
     };
     vi.mocked(useApp).mockReturnValue({
@@ -55,15 +55,17 @@ describe('useShowMnemonic Composable', () => {
     expect(mockWallet.unlock).toHaveBeenCalledWith('correct-pass');
   });
 
-  it('should use getMnemonic to decrypt on demand', async () => {
+  it('should use withMnemonic to decrypt on demand', async () => {
     mockWallet.unlock.mockResolvedValue(true);
-    mockWallet.getMnemonic.mockResolvedValue('decrypted mnemonic');
+    mockWallet.withMnemonic.mockImplementation((fn: any) =>
+      Promise.resolve(fn('decrypted mnemonic'))
+    );
 
     const [composable] = withSetup(() => useShowMnemonic());
     await composable.reveal('correct-pass');
 
     expect(composable.mnemonic.value).toBe('decrypted mnemonic');
-    expect(mockWallet.getMnemonic).toHaveBeenCalled();
+    expect(mockWallet.withMnemonic).toHaveBeenCalled();
   });
 
   it('should set error and return false when password is incorrect', async () => {

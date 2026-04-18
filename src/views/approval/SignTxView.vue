@@ -114,13 +114,13 @@ async function handleApprove() {
     }
 
     isProcessing.value = true;
-    const mnemonic = await walletStore.getMnemonic();
-
-    if (method.value === 'sendTransfer') {
-      await handleSendTransfer(mnemonic);
-    } else if (method.value === 'signPsbt') {
-      await handleSignPsbt(mnemonic);
-    }
+    await walletStore.withMnemonic(async (mnemonic) => {
+      if (method.value === 'sendTransfer') {
+        await handleSendTransfer(mnemonic);
+      } else if (method.value === 'signPsbt') {
+        await handleSignPsbt(mnemonic);
+      }
+    });
   } catch (err: any) {
     console.error('Transaction failed', err);
     error.value = err.message || 'Transaction failed';

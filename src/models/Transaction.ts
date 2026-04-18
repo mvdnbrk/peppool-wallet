@@ -89,11 +89,11 @@ export class Transaction {
       return this.raw.vout
         .filter((vout) => vout.scriptpubkey_address !== this.userAddress)
         .reduce((sum, vout) => sum + vout.value, 0);
-    } else {
-      return this.raw.vout
-        .filter((vout) => vout.scriptpubkey_address === this.userAddress)
-        .reduce((sum, vout) => sum + vout.value, 0);
     }
+
+    return this.raw.vout
+      .filter((vout) => vout.scriptpubkey_address === this.userAddress)
+      .reduce((sum, vout) => sum + vout.value, 0);
   }
 
   get valuePep() {

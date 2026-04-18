@@ -7,14 +7,7 @@ import {
   getDerivationPath,
   parseDerivationPath
 } from '@/utils/crypto';
-import {
-  encrypt,
-  decrypt,
-  isLegacyVault,
-  deriveKeyBytes,
-  decryptWithKey,
-  importKey
-} from '@/utils/encryption';
+import { encrypt, decrypt, deriveKeyBytes, decryptWithKey, importKey } from '@/utils/encryption';
 import {
   fetchAddressInfo,
   hasAddressActivity,
@@ -376,11 +369,6 @@ export const useWalletStore = defineStore('wallet', () => {
     try {
       const mnemonic = await decrypt(encryptedMnemonic.value, password);
       verifyVaultIntegrity(mnemonic);
-
-      if (isLegacyVault(encryptedMnemonic.value)) {
-        const upgraded = await encrypt(mnemonic, password);
-        updateVault(upgraded);
-      }
 
       await cacheKeyBytes(await deriveKeyBytes(password, encryptedMnemonic.value));
       isUnlocked.value = true;

@@ -16,7 +16,6 @@ vi.mock('../utils/crypto', async (importOriginal) => {
 vi.mock('../utils/encryption', () => ({
   encrypt: vi.fn(() => Promise.resolve('pbkdf2:vault')),
   decrypt: vi.fn(() => Promise.resolve('mnemonic')),
-  isLegacyVault: vi.fn(() => false),
   deriveKeyBytes: vi.fn(() => Promise.resolve(new Uint8Array(32))),
   extractSalt: vi.fn(() => new Uint8Array(16)),
   importKey: vi.fn(() => Promise.resolve({ type: 'secret' } as CryptoKey)),

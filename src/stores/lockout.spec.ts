@@ -20,7 +20,6 @@ vi.mock('../utils/encryption', () => ({
   decrypt: vi.fn((v, p) =>
     p === 'correct' ? Promise.resolve('mnemonic') : Promise.reject(new Error('fail'))
   ),
-  isLegacyVault: vi.fn(() => false),
   deriveKeyBytes: vi.fn(() => Promise.resolve(new Uint8Array(32))),
   extractSalt: vi.fn(() => new Uint8Array(16)),
   importKey: vi.fn(() => Promise.resolve({ type: 'secret' } as CryptoKey)),

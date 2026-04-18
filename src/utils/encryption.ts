@@ -1,8 +1,7 @@
 /**
  * AES-GCM encryption with PBKDF2 key derivation for secure local storage.
  *
- * Format (v2 — current):  "pbkdf2:" + base64(salt[16] + iv[12] + ciphertext)
- * Format (v1 — legacy):   base64(iv[12] + ciphertext)  — SHA-256 only, auto-upgraded on unlock
+ * Format: "pbkdf2:" + base64(salt[16] + iv[12] + ciphertext)
  */
 
 const PBKDF2_ITERATIONS = 600_000;
@@ -43,11 +42,11 @@ export function importKey(rawBytes: ArrayBuffer, usage: KeyUsage[]): Promise<Cry
 }
 
 /**
- * Extracts the PBKDF2 salt from a v2 vault string.
+ * Extracts the PBKDF2 salt from a vault string.
  */
 export function extractSalt(vault: string): Uint8Array {
   if (!vault.startsWith(FORMAT_PREFIX)) {
-    throw new Error('Cannot extract salt from legacy vault');
+    throw new Error('Invalid vault format');
   }
   const base64 = vault.slice(FORMAT_PREFIX.length);
   const raw = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
@@ -66,19 +65,11 @@ export async function deriveKeyBytes(password: string, vault: string): Promise<U
 }
 
 /**
- * Decrypts a v2 vault string using pre-derived raw key bytes.
- */
-export async function decryptWithKeyBytes(vault: string, keyBytes: Uint8Array): Promise<string> {
-  const key = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
-  return decryptWithKey(vault, key);
-}
-
-/**
- * Decrypts a v2 vault string using a non-extractable CryptoKey.
+ * Decrypts a vault string using a non-extractable CryptoKey.
  */
 export async function decryptWithKey(vault: string, key: CryptoKey): Promise<string> {
   if (!vault.startsWith(FORMAT_PREFIX)) {
-    throw new Error('Key-based decryption requires a v2 vault');
+    throw new Error('Invalid vault format');
   }
 
   const base64 = vault.slice(FORMAT_PREFIX.length);
@@ -111,9 +102,8 @@ export async function encrypt(text: string, password: string): Promise<string> {
 }
 
 export async function decrypt(encryptedString: string, password: string): Promise<string> {
-  // v1 (legacy) format: raw base64 without prefix
   if (!encryptedString.startsWith(FORMAT_PREFIX)) {
-    return decryptLegacy(encryptedString, password);
+    throw new Error('Invalid vault format');
   }
 
   const base64 = encryptedString.slice(FORMAT_PREFIX.length);
@@ -124,32 +114,6 @@ export async function decrypt(encryptedString: string, password: string): Promis
   const data = raw.slice(SALT_LENGTH + IV_LENGTH);
 
   const key = await deriveKey(password, salt.buffer, ['decrypt']);
-
-  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
-
-  return new TextDecoder().decode(decrypted);
-}
-
-/**
- * Returns true if the vault string uses the legacy (SHA-256 only) format.
- * Used by the wallet store to auto-upgrade on successful unlock.
- */
-export function isLegacyVault(vault: string): boolean {
-  return !vault.startsWith(FORMAT_PREFIX);
-}
-
-// ---------------------------------------------------------------------------
-// Legacy decryption — kept for backward compatibility with pre-PBKDF2 vaults.
-// These vaults are auto-upgraded to PBKDF2 on the next successful unlock.
-// ---------------------------------------------------------------------------
-async function decryptLegacy(encryptedBase64: string, password: string): Promise<string> {
-  const encryptedData = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
-  const iv = encryptedData.slice(0, 12);
-  const data = encryptedData.slice(12);
-
-  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
-
-  const key = await crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, ['decrypt']);
 
   const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
 

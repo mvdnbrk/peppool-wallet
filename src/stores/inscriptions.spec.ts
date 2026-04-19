@@ -17,9 +17,10 @@ const mockInscription = (id: string): Inscription => ({
   contentLength: 100,
   height: 500000,
   value: 100000,
+  parents: [],
+  properties: null,
   satpoint: `${id.replace('i0', '')}:0:0`,
-  timestamp: 1700000000,
-  properties: null
+  timestamp: 1700000000
 });
 
 describe('Inscription Store', () => {

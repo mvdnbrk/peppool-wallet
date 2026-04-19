@@ -8,9 +8,10 @@ const mockRawResponse: RawInscriptionResponse = {
   content_length: 793,
   height: 500000,
   value: 100000,
+  parents: ['a1b2c3d4e5f6i0'],
+  properties: { title: 'peppool', traits: { eyes: 'laser' } },
   satpoint: '5f48e29eabc123def456e2f3:0:0',
-  timestamp: 1773570237,
-  properties: { title: 'peppool', traits: { eyes: 'laser' } }
+  timestamp: 1773570237
 };
 
 describe('Inscription Model', () => {
@@ -23,9 +24,10 @@ describe('Inscription Model', () => {
       contentLength: 793,
       height: 500000,
       value: 100000,
+      parents: ['a1b2c3d4e5f6i0'],
+      properties: { title: 'peppool', traits: { eyes: 'laser' } },
       satpoint: '5f48e29eabc123def456e2f3:0:0',
-      timestamp: 1773570237,
-      properties: { title: 'peppool', traits: { eyes: 'laser' } }
+      timestamp: 1773570237
     });
   });
 

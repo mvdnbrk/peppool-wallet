@@ -5,11 +5,12 @@ export const InscriptionSchema = v.object({
   number: v.number(),
   contentType: v.string(),
   contentLength: v.number(),
-  value: v.number(),
-  satpoint: v.string(),
   height: v.number(),
-  timestamp: v.number(),
-  properties: v.nullable(v.record(v.string(), v.unknown()))
+  value: v.number(),
+  parents: v.array(v.string()),
+  properties: v.nullable(v.record(v.string(), v.unknown())),
+  satpoint: v.string(),
+  timestamp: v.number()
 });
 
 export type Inscription = v.InferOutput<typeof InscriptionSchema>;
@@ -24,9 +25,10 @@ export const RawInscriptionResponseSchema = v.object({
   content_length: v.nullable(v.number()),
   height: v.number(),
   value: v.number(),
+  parents: v.array(v.string()),
+  properties: v.nullable(v.record(v.string(), v.unknown())),
   satpoint: v.string(),
-  timestamp: v.number(),
-  properties: v.nullable(v.record(v.string(), v.unknown()))
+  timestamp: v.number()
 });
 
 export type RawInscriptionResponse = v.InferOutput<typeof RawInscriptionResponseSchema>;
@@ -39,8 +41,9 @@ export function toInscription(raw: RawInscriptionResponse): Inscription {
     contentLength: raw.content_length ?? 0,
     height: raw.height,
     value: raw.value,
+    parents: raw.parents,
+    properties: raw.properties,
     satpoint: raw.satpoint,
-    timestamp: raw.timestamp,
-    properties: raw.properties
+    timestamp: raw.timestamp
   };
 }

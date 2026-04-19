@@ -38,12 +38,13 @@ const mockTx = {
 const mockSendTransaction = {
   tx: ref(mockTx),
   txid: ref(''),
-  isLoadingRequirements: ref(false),
+  isLoadingFees: ref(false),
   currentPrice: ref(10),
   isInsufficientFunds: ref(false),
   displayBalance: vi.fn().mockReturnValue('0 PEP'),
   displayFee: ref('0.001 PEP'),
-  loadRequirements: vi.fn(),
+  maxRibbits: ref(0),
+  loadFees: vi.fn(),
   validateStep1: vi.fn(),
   send: vi.fn().mockImplementation(async () => {
     mockSendTransaction.txid.value = 'txid';
@@ -85,7 +86,7 @@ describe('SendView', () => {
     // Reset mock implementation state
     mockSendTransaction.tx.value = { ...mockTx };
     mockSendTransaction.txid.value = '';
-    mockSendTransaction.isLoadingRequirements.value = false;
+    mockSendTransaction.isLoadingFees.value = false;
     mockSendTransaction.isInsufficientFunds.value = false;
     mockSendTransaction.displayBalance.mockReturnValue('0 PEP');
 
@@ -316,8 +317,8 @@ describe('SendView', () => {
   });
 
   it('setMax should set isMax and update amount', () => {
+    mockSendTransaction.maxRibbits.value = 5000;
     const wrapper = mount(SendView, { global });
-    mockSendTransaction.tx.value.maxRibbits = 5000;
 
     // @ts-ignore
     wrapper.vm.setMax();

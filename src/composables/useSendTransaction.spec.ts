@@ -39,6 +39,7 @@ describe('useSendTransaction Composable', () => {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       selectedCurrency: 'USD',
       currencySymbol: '$',
+      balance: 5,
       prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn(),
       isMnemonicLoaded: true,
@@ -49,71 +50,86 @@ describe('useSendTransaction Composable', () => {
     } as any);
   });
 
-  it('should load requirements and filter confirmed UTXOs', async () => {
-    const mixedUtxos = [
-      { txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } },
-      { txid: 'u1', vout: 0, value: 200_000_000, status: { confirmed: false } }
-    ];
+  it('should load fees without fetching UTXOs', async () => {
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
-    vi.mocked(api.fetchUtxos).mockResolvedValue(mixedUtxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
 
-    const { tx, loadRequirements, isLoadingRequirements } = useSendTransaction();
+    const { tx, loadFees, isLoadingFees } = useSendTransaction();
 
-    expect(isLoadingRequirements.value).toBe(true);
-    await loadRequirements();
-    expect(isLoadingRequirements.value).toBe(false);
+    expect(isLoadingFees.value).toBe(true);
+    await loadFees();
+    expect(isLoadingFees.value).toBe(false);
 
-    expect(tx.value.utxos).toHaveLength(1);
-    expect(tx.value.utxos[0].txid).toBe('c1');
     expect(tx.value.fees?.fastestFee).toBe(1000);
+    expect(api.fetchUtxos).not.toHaveBeenCalled();
   });
 
-  it('should exclude inscription-bearing UTXOs from spendable balance', async () => {
-    const utxos = [
-      { txid: 'safe1', vout: 0, value: 300_000_000, status: { confirmed: true } },
-      { txid: 'inscribed1', vout: 1, value: 100_000, status: { confirmed: true } },
-      { txid: 'safe2', vout: 0, value: 200_000_000, status: { confirmed: true } }
-    ];
-    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
-    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
-
-    const { tx, loadRequirements } = useSendTransaction();
-    await loadRequirements();
-
-    expect(tx.value.utxos).toHaveLength(2);
-    expect(tx.value.utxos.map((u: any) => u.txid)).toEqual(['safe1', 'safe2']);
-  });
-
-  it('should still load UTXOs when inscription API fails', async () => {
-    const utxos = [{ txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }];
-    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
-    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockRejectedValue(new Error('Ord indexer down'));
-
-    const { tx, loadRequirements } = useSendTransaction();
-    await loadRequirements();
-
-    expect(tx.value.utxos).toHaveLength(1);
-    expect(tx.value.utxos[0].txid).toBe('c1');
-  });
-
-  it('should calculate display balance correctly', async () => {
-    const { tx, displayBalance } = useSendTransaction();
-    tx.value.utxos = [
-      { txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }
-    ] as any;
+  it('should display balance from wallet store', () => {
+    mockWallet.balance = 5;
+    const { displayBalance } = useSendTransaction();
 
     expect(displayBalance(false)).toBe('5 PEP');
     expect(displayBalance(true)).toBe('$50.00 USD');
   });
 
+  it('should check insufficient funds against wallet store balance', async () => {
+    mockWallet.balance = 0.001; // 100,000 ribbits
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+
+    const { isInsufficientFunds, tx, isLoadingFees, loadFees } = useSendTransaction();
+    await loadFees();
+
+    tx.value.amountRibbits = 200_000; // More than balance
+    expect(isInsufficientFunds.value).toBe(true);
+  });
+
+  it('should fetch UTXOs and filter inscriptions at send time', async () => {
+    const utxos = [
+      { txid: 'safe1', vout: 0, value: 300_000_000, status: { confirmed: true } },
+      { txid: 'inscribed1', vout: 1, value: 100_000, status: { confirmed: true } },
+      { txid: 'safe2', vout: 0, value: 200_000_000, status: { confirmed: true } }
+    ];
+    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
+    vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
+    vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
+    vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
+    vi.mocked(api.broadcastTx).mockResolvedValue('new-txid');
+
+    const { tx, send } = useSendTransaction();
+    tx.value.fees = { fastestFee: 1000 } as any;
+    tx.value.recipient = 'recipient';
+    tx.value.amountRibbits = 100_000_000;
+
+    await send('password', false);
+
+    // UTXOs should have been fetched and filtered
+    expect(api.fetchUtxos).toHaveBeenCalledWith('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+    expect(tx.value.utxos).toHaveLength(2);
+    expect(tx.value.utxos.map((u: any) => u.txid)).toEqual(['safe1', 'safe2']);
+  });
+
+  it('should still send when inscription API fails', async () => {
+    const utxos = [{ txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }];
+    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockRejectedValue(new Error('Ord indexer down'));
+    vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
+    vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
+    vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
+    vi.mocked(api.broadcastTx).mockResolvedValue('new-txid');
+
+    const { tx, send } = useSendTransaction();
+    tx.value.fees = { fastestFee: 1000 } as any;
+    tx.value.recipient = 'recipient';
+    tx.value.amountRibbits = 100_000_000;
+
+    const result = await send('password', false);
+    expect(result).toBe('new-txid');
+    expect(tx.value.utxos).toHaveLength(1);
+  });
+
   it('should validate step 1 inputs', async () => {
+    mockWallet.balance = 100;
     const { validateStep1, tx } = useSendTransaction();
-    tx.value.utxos = [
-      { txid: 'c1', vout: 0, value: 10_000_000_000, status: { confirmed: true } }
-    ] as any;
     tx.value.fees = { fastestFee: 1000 } as any;
 
     vi.mocked(crypto.isValidAddress).mockReturnValue(true);
@@ -137,17 +153,18 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should send transaction and return txid', async () => {
-    const { tx, send } = useSendTransaction();
-    tx.value.utxos = [
-      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
-    ] as any;
-    tx.value.recipient = 'recipient';
-    tx.value.amountRibbits = 500_000_000;
-
+    const utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }];
+    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
     vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
     vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
     vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
     vi.mocked(api.broadcastTx).mockResolvedValue('new-txid');
+
+    const { tx, send } = useSendTransaction();
+    tx.value.fees = { fastestFee: 1000 } as any;
+    tx.value.recipient = 'recipient';
+    tx.value.amountRibbits = 500_000_000;
 
     const result = await send('password', false);
 
@@ -157,25 +174,27 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should handle insufficient funds correctly', async () => {
-    const { isInsufficientFunds, tx, isLoadingRequirements } = useSendTransaction();
-    isLoadingRequirements.value = false;
-    tx.value.utxos = [{ txid: 'c1', vout: 0, value: 100, status: { confirmed: true } }] as any;
-    tx.value.amountRibbits = 1000; // More than balance
+    mockWallet.balance = 0.000001; // 100 ribbits
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
+    const { isInsufficientFunds, tx, loadFees } = useSendTransaction();
+    await loadFees();
+
+    tx.value.amountRibbits = 1000; // More than balance
     expect(isInsufficientFunds.value).toBe(true);
   });
 
   it('should handle send failure with error message', async () => {
-    vi.mocked(api.fetchTxHex).mockReset();
-    vi.mocked(api.broadcastTx).mockReset();
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
+    ] as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
+    vi.mocked(api.fetchTxHex).mockRejectedValue(new Error('Network error'));
 
     const { send, tx } = useSendTransaction();
-    tx.value.utxos = [
-      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
-    ] as any;
-    mockWallet.isMnemonicLoaded = true;
-    mockWallet.withMnemonic = vi.fn((fn: any) => Promise.resolve(fn('mnemonic')));
-    vi.mocked(api.fetchTxHex).mockRejectedValue(new Error('Network error'));
+    tx.value.fees = { fastestFee: 1000 } as any;
+    tx.value.recipient = 'recipient';
+    tx.value.amountRibbits = 500_000_000;
 
     await expect(send('password', false)).rejects.toThrow('Network error');
   });
@@ -186,35 +205,35 @@ describe('useSendTransaction Composable', () => {
     await expect(send('', false)).rejects.toThrow('Password required');
   });
 
-  it('should calculate max amount correctly', async () => {
-    const { tx, loadRequirements } = useSendTransaction();
-    const mockUtxos = [{ txid: 'c1', vout: 0, value: 1000000, status: { confirmed: true } }];
-    vi.mocked(api.fetchUtxos).mockResolvedValue(mockUtxos as any);
+  it('should estimate max amount from wallet balance', async () => {
+    mockWallet.balance = 10; // 1,000,000,000 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
-    await loadRequirements(true); // isMax = true
+    const { maxRibbits, loadFees } = useSendTransaction();
+    await loadFees();
 
-    expect(tx.value.amountRibbits).toBeGreaterThan(0);
-    expect(tx.value.amountRibbits).toBeLessThan(1000000);
+    expect(maxRibbits.value).toBeGreaterThan(0);
+    expect(maxRibbits.value).toBeLessThan(10 * RIBBITS_PER_PEP);
   });
 
   it('should use active account indices when deriving signer', async () => {
+    const utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }];
+    vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
+    vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
+    vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
+    vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
+    vi.mocked(api.broadcastTx).mockResolvedValue('new-txid');
+
     const { tx, send } = useSendTransaction();
     mockWallet.activeAccount = {
       address: 'addr2',
       path: "m/44'/3434'/5'/0/3",
       label: 'Account 6'
     };
-    tx.value.utxos = [
-      { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
-    ] as any;
+    tx.value.fees = { fastestFee: 1000 } as any;
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 500_000_000;
-
-    vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
-    vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
-    vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
-    vi.mocked(api.broadcastTx).mockResolvedValue('new-txid');
 
     await send('password', false);
 

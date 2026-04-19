@@ -14,12 +14,13 @@ const { router, wallet: walletStore } = useApp();
 const {
   tx,
   txid,
-  isLoadingRequirements,
+  isLoadingFees,
   currentPrice,
   isInsufficientFunds,
   displayBalance,
   displayFee,
-  loadRequirements,
+  maxRibbits,
+  loadFees,
   validateStep1,
   send
 } = useSendTransaction();
@@ -47,7 +48,7 @@ if (form.step === 2) form.step = 1;
 
 const canReview = computed(() => {
   return (
-    !isLoadingRequirements.value &&
+    !isLoadingFees.value &&
     form.recipient &&
     tx.value.amountRibbits > 0 &&
     !form.hasError() &&
@@ -56,7 +57,7 @@ const canReview = computed(() => {
 });
 
 const nextButtonLabel = computed(() => {
-  if (isLoadingRequirements.value) return 'Loading...';
+  if (isLoadingFees.value) return 'Loading...';
   if (isInsufficientFunds.value) return 'Insufficient funds';
   return 'Next';
 });
@@ -82,7 +83,7 @@ watch(
 
 function setMax() {
   form.isMax = true;
-  form.amountRibbits = tx.value.maxRibbits;
+  form.amountRibbits = maxRibbits.value;
 }
 
 async function handleAddressBlur() {
@@ -162,7 +163,7 @@ onMounted(async () => {
   }
 
   try {
-    await loadRequirements(form.isMax);
+    await loadFees();
   } catch (e) {
     // Error handled in composable
   }
@@ -193,7 +194,7 @@ onMounted(async () => {
     <SendStepForm
       v-if="form.step === 1"
       :form="form"
-      :isLoadingRequirements="isLoadingRequirements"
+      :isLoadingFees="isLoadingFees"
       :isInsufficientFunds="isInsufficientFunds"
       :currentPrice="currentPrice"
       :displayBalance="displayBalance(form.isFiatMode)"

@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 
 const props = defineProps<{
   form: any;
-  isLoadingRequirements: boolean;
+  isLoadingFees: boolean;
   isInsufficientFunds: boolean;
   currentPrice: number;
   displayBalance: string;
@@ -31,7 +31,7 @@ onMounted(() => {
         label="Recipient Address"
         placeholder="Enter address"
         :error="form.errors.recipient"
-        :disabled="form.isProcessing || isLoadingRequirements"
+        :disabled="form.isProcessing || isLoadingFees"
         clearable
         autofocus
         @blur="$emit('address-blur')"
@@ -53,7 +53,7 @@ onMounted(() => {
           v-model:ribbits="form.amountRibbits"
           v-model:isFiatMode="form.isFiatMode"
           :price="currentPrice"
-          :disabled="form.isProcessing || isLoadingRequirements"
+          :disabled="form.isProcessing || isLoadingFees"
           @change-max="form.isMax = $event"
         >
           <template #extra>
@@ -61,7 +61,7 @@ onMounted(() => {
               id="send-max-button"
               type="button"
               @click="$emit('set-max')"
-              :disabled="form.isProcessing || isLoadingRequirements"
+              :disabled="form.isProcessing || isLoadingFees"
               class="text-pep-green-light hover:text-pep-green cursor-pointer text-xs font-bold tracking-wider uppercase disabled:cursor-not-allowed disabled:opacity-50"
               tabindex="-1"
             >

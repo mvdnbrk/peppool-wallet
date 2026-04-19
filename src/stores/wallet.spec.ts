@@ -136,13 +136,9 @@ describe('Wallet Store', () => {
     );
     localStorage.setItem('peppool_active_account', '0');
 
-    // Mock chrome.storage.local.get for session expiry
-    (global.chrome.storage.local.get as any).mockResolvedValue({
-      unlocked_until: Date.now() + 10000
-    });
-
-    // Mock chrome.storage.session.get — store returns dataKey as hex string
+    // Mock chrome.storage.session.get — store returns sessionStartTime and dataKey
     (global.chrome.storage.session.get as any).mockResolvedValue({
+      sessionStartTime: Date.now(),
       dataKey: '0102030405060708091011121314151617181920212223242526272829303132' // 32-byte AES key as hex
     });
 
@@ -179,10 +175,8 @@ describe('Wallet Store', () => {
     expect(store.prices.USD).toBe(0);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
     expect(localStorage.getItem('other_app_key')).toBe('keep-me');
-    expect(chrome.storage.local.remove).toHaveBeenCalledWith([
-      'unlocked_until',
-      'peppool_permissions'
-    ]);
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith('peppool_permissions');
+    expect(chrome.storage.session.remove).toHaveBeenCalledWith(['sessionStartTime', 'dataKey']);
   });
 
   it('encryptedMnemonic should be exposed as readonly', async () => {

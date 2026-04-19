@@ -24,7 +24,6 @@ describe('SendStepForm Component', () => {
       clearError: vi.fn(),
       setError: vi.fn()
     },
-    isLoadingFees: false,
     isInsufficientFunds: false,
     currentPrice: 10,
     displayBalance: '10 PEP',

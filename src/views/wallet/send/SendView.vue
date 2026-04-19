@@ -194,7 +194,6 @@ onMounted(async () => {
     <SendStepForm
       v-if="form.step === 1"
       :form="form"
-      :isLoadingFees="isLoadingFees"
       :isInsufficientFunds="isInsufficientFunds"
       :currentPrice="currentPrice"
       :displayBalance="displayBalance(form.isFiatMode)"

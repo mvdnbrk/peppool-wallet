@@ -164,15 +164,8 @@ export const useWalletStore = defineStore('wallet', () => {
     return true;
   }
 
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
   async function resetLockTimer() {
     if (!isUnlocked.value) return;
-
-    if (debounceTimer) return;
-    debounceTimer = setTimeout(() => {
-      debounceTimer = null;
-    }, 1000);
 
     const durationMs = lockDuration.value * 60 * 1000;
 
@@ -183,6 +176,16 @@ export const useWalletStore = defineStore('wallet', () => {
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = setTimeout(() => lock(), durationMs);
     await setAutoLockAlarm(lockDuration.value);
+  }
+
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function debouncedResetLockTimer() {
+    if (!isUnlocked.value || debounceTimer) return;
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+    }, 1000);
+    resetLockTimer();
   }
 
   async function withMnemonic<T>(fn: (mnemonic: string) => T | Promise<T>): Promise<T> {
@@ -312,6 +315,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     await syncToChromeStorage();
 
+    await resetLockTimer();
     await lockout.reset();
     await refreshBalance(true);
     await discoverAccounts(mnemonic);
@@ -371,6 +375,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
       await cacheKeyBytes(await deriveKeyBytes(password, encryptedMnemonic.value));
       isUnlocked.value = true;
+      await resetLockTimer();
       await lockout.reset();
       await refreshBalance(true);
       return true;
@@ -513,7 +518,7 @@ export const useWalletStore = defineStore('wallet', () => {
     refreshTransactions,
     fetchTransaction,
     fetchMoreTransactions,
-    resetLockTimer,
+    resetLockTimer: debouncedResetLockTimer,
     startPolling,
     stopPolling,
     unlock,

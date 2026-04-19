@@ -78,11 +78,15 @@ describe('Wallet Store', () => {
 
     store.lock();
     expect(store.isUnlocked).toBe(false);
+    vi.mocked(chrome.storage.session.set).mockClear();
 
     const success = await store.unlock('password123');
     expect(success).toBe(true);
     expect(store.isUnlocked).toBe(true);
     expect(store.address).toBe(originalAddress);
+    expect(chrome.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionStartTime: expect.any(Number) })
+    );
   });
 
   it('should fail unlock if mnemonic derives different primary address', async () => {
@@ -158,6 +162,9 @@ describe('Wallet Store', () => {
     expect(store.isUnlocked).toBe(true);
     expect(store.address).toBe('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     expect(store.accounts).toHaveLength(1);
+    expect(chrome.storage.session.set).toHaveBeenCalledWith(
+      expect.objectContaining({ sessionStartTime: expect.any(Number) })
+    );
   });
 
   it('should perform a full wallet reset', async () => {

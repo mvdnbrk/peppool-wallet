@@ -19,7 +19,7 @@ import {
 } from '@/utils/crypto';
 import { decrypt as decryptMnemonic } from '@/utils/encryption';
 import { SendTransaction } from '@/models/SendTransaction';
-import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE, formatFiat } from '@/utils/constants';
+import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
 
 export function useSendTransaction() {
   const { wallet: walletStore } = useApp();
@@ -28,23 +28,17 @@ export function useSendTransaction() {
   const txid = ref('');
   const isLoadingFees = ref(true);
 
-  const walletBalanceRibbits = computed(() => Math.round(walletStore.balance * RIBBITS_PER_PEP));
+  const spendableBalanceRibbits = computed(() =>
+    Math.round(walletStore.spendableBalance * RIBBITS_PER_PEP)
+  );
 
   const currentPrice = computed(() => walletStore.prices[walletStore.selectedCurrency]);
 
   const isInsufficientFunds = computed(() => {
     if (isLoadingFees.value || tx.value.amountRibbits <= 0) return false;
     const needed = tx.value.amountRibbits + tx.value.estimatedFeeRibbits;
-    return walletBalanceRibbits.value < needed;
+    return spendableBalanceRibbits.value < needed;
   });
-
-  const displayBalance = (isFiatMode: boolean) => {
-    if (isFiatMode) {
-      const fiatValue = walletStore.balance * currentPrice.value;
-      return `${walletStore.currencySymbol}${formatFiat(fiatValue)} ${walletStore.selectedCurrency}`;
-    }
-    return `${parseFloat(walletStore.balance.toFixed(8))} PEP`;
-  };
 
   const displayFee = computed(() => {
     const feePep = tx.value.estimatedFeeRibbits / RIBBITS_PER_PEP;
@@ -57,7 +51,7 @@ export function useSendTransaction() {
       ? Math.max(RECOMMENDED_FEE_RATE, tx.value.fees.fastestFee)
       : RECOMMENDED_FEE_RATE;
     const feeRibbits = Math.ceil(txSize * feeRate);
-    return Math.max(0, walletBalanceRibbits.value - feeRibbits);
+    return Math.max(0, spendableBalanceRibbits.value - feeRibbits);
   });
 
   async function loadFees() {
@@ -95,7 +89,7 @@ export function useSendTransaction() {
     }
 
     const needed = amountRibbits + tx.value.estimatedFeeRibbits;
-    if (walletBalanceRibbits.value < needed) {
+    if (spendableBalanceRibbits.value < needed) {
       throw new Error('Insufficient balance');
     }
 
@@ -168,7 +162,6 @@ export function useSendTransaction() {
     isLoadingFees,
     currentPrice,
     isInsufficientFunds,
-    displayBalance,
     displayFee,
     maxRibbits,
     loadFees,

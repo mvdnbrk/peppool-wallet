@@ -14,7 +14,10 @@ import {
   fetchTransactions,
   fetchTransaction as apiFetchTransaction,
   fetchPepPrice,
-  fetchTipHeight
+  fetchTipHeight,
+  fetchUtxos,
+  fetchInscriptionOutputs,
+  isInscriptionUtxo
 } from '@/utils/api';
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
@@ -63,6 +66,7 @@ export const useWalletStore = defineStore('wallet', () => {
   const isUnlocked = ref(false);
   const lockDuration = ref<number>(parseInt(localStorage.getItem('peppool_lock_duration') || '15'));
   const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
+  const spendableBalance = ref<number>(0);
   const prices = ref({
     USD: Number(localStorage.getItem('peppool_price_usd')) || 0,
     EUR: Number(localStorage.getItem('peppool_price_eur')) || 0
@@ -257,6 +261,21 @@ export const useWalletStore = defineStore('wallet', () => {
       balance.value = totalRibbits / RIBBITS_PER_PEP;
       localStorage.setItem('peppool_balance', balance.value.toString());
 
+      // Compute spendable balance (total minus inscription UTXOs)
+      try {
+        const [utxos, inscriptionOutputs] = await Promise.all([
+          fetchUtxos(address.value),
+          fetchInscriptionOutputs(address.value).catch(() => [] as string[])
+        ]);
+        const inscriptionSet = new Set(inscriptionOutputs);
+        const spendableRibbits = utxos
+          .filter((u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet))
+          .reduce((sum, u) => sum + u.value, 0);
+        spendableBalance.value = spendableRibbits / RIBBITS_PER_PEP;
+      } catch {
+        spendableBalance.value = balance.value;
+      }
+
       await refreshTransactions();
       await resetLockTimer();
     } catch (e) {
@@ -408,6 +427,7 @@ export const useWalletStore = defineStore('wallet', () => {
     hasSessionKey.value = false;
     isUnlocked.value = false;
     balance.value = 0;
+    spendableBalance.value = 0;
     prices.value = { USD: 0, EUR: 0 };
     transactions.value = [];
     clearAuth();
@@ -438,6 +458,7 @@ export const useWalletStore = defineStore('wallet', () => {
     localStorage.setItem('peppool_active_account', index.toString());
     await syncToChromeStorage();
     balance.value = 0;
+    spendableBalance.value = 0;
     transactions.value = [];
     await refreshBalance(true);
   }
@@ -494,6 +515,7 @@ export const useWalletStore = defineStore('wallet', () => {
     isMnemonicLoaded,
     lockout,
     balance,
+    spendableBalance,
     balanceFiat,
     selectedCurrency,
     selectedExplorer,

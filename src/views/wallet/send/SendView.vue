@@ -4,7 +4,7 @@ import { useApp } from '@/composables/useApp';
 import { useSendTransaction } from '@/composables/useSendTransaction';
 import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
-import { UX_DELAY_FAST, UX_DELAY_SLOW } from '@/utils/constants';
+import { UX_DELAY_FAST, UX_DELAY_SLOW, formatFiat } from '@/utils/constants';
 
 import SendStepForm from './SendStepForm.vue';
 import SendStepReview from './SendStepReview.vue';
@@ -17,7 +17,6 @@ const {
   isLoadingFees,
   currentPrice,
   isInsufficientFunds,
-  displayBalance,
   displayFee,
   maxRibbits,
   loadFees,
@@ -45,6 +44,15 @@ watch(txid, (newTxid) => {
 
 // Step 2 can't survive remount — password isn't persisted
 if (form.step === 2) form.step = 1;
+
+const displayBalance = computed(() => {
+  const bal = walletStore.spendableBalance;
+  if (form.isFiatMode) {
+    const price = walletStore.prices[walletStore.selectedCurrency];
+    return `${walletStore.currencySymbol}${formatFiat(bal * price)} ${walletStore.selectedCurrency}`;
+  }
+  return `${parseFloat(bal.toFixed(8))} PEP`;
+});
 
 const canReview = computed(() => {
   return (
@@ -196,7 +204,7 @@ onMounted(async () => {
       :form="form"
       :isInsufficientFunds="isInsufficientFunds"
       :currentPrice="currentPrice"
-      :displayBalance="displayBalance(form.isFiatMode)"
+      :displayBalance="displayBalance"
       :displayFee="displayFee"
       @address-blur="handleAddressBlur"
       @set-max="setMax"

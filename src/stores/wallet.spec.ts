@@ -4,18 +4,27 @@ import { useWalletStore } from './wallet';
 import { useLockoutStore } from './lockout';
 
 import { Transaction } from '@/models/Transaction';
+import * as api from '@/utils/api';
 
 // Mock the API and Crypto utils
-vi.mock('@/utils/api', () => ({
-  fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
-  fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
-  fetchTransactions: vi.fn(() => Promise.resolve([])),
-  hasAddressActivity: vi.fn(() => Promise.resolve(false)),
-  fetchRecommendedFees: vi.fn(() =>
-    Promise.resolve({ fastestFee: 1, halfHourFee: 1, hourFee: 1, economyFee: 1, minimumFee: 1 })
-  ),
-  fetchTipHeight: vi.fn(() => Promise.resolve(100))
-}));
+vi.mock('@/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/api')>();
+  return {
+    ...actual,
+    fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
+    fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
+    fetchTransactions: vi.fn(() => Promise.resolve([])),
+    hasAddressActivity: vi.fn(() => Promise.resolve(false)),
+    fetchRecommendedFees: vi.fn(() =>
+      Promise.resolve({ fastestFee: 1, halfHourFee: 1, hourFee: 1, economyFee: 1, minimumFee: 1 })
+    ),
+    fetchTipHeight: vi.fn(() => Promise.resolve(100)),
+    fetchUtxos: vi.fn(() =>
+      Promise.resolve([{ txid: 'a', vout: 0, value: 100000000, status: { confirmed: true } }])
+    ),
+    fetchInscriptionOutputs: vi.fn(() => Promise.resolve([]))
+  };
+});
 
 describe('Wallet Store', () => {
   beforeEach(() => {
@@ -281,6 +290,51 @@ describe('Wallet Store', () => {
 
     store.setCurrency('EUR');
     expect(store.balanceFiat).toBe(0.4); // 1 PEP * 0.4 EUR
+  });
+
+  it('should compute spendable balance excluding inscription UTXOs', async () => {
+    const store = useWalletStore();
+    store.accounts = [
+      {
+        address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
+        path: "m/44'/3434'/0'/0/0",
+        label: 'Account 1'
+      }
+    ];
+    store.activeAccountIndex = 0;
+
+    vi.mocked(api.fetchAddressInfo).mockResolvedValue(300000000); // 3 PEP total
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'spendable1', vout: 0, value: 200000000, status: { confirmed: true } },
+      { txid: 'inscribed1', vout: 1, value: 10000, status: { confirmed: true } },
+      { txid: 'spendable2', vout: 0, value: 99990000, status: { confirmed: true } }
+    ]);
+    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
+
+    await store.refreshBalance(true);
+
+    expect(store.balance).toBe(3); // Total balance
+    expect(store.spendableBalance).toBe(2.9999); // Excludes inscription UTXO (10000 ribbits)
+  });
+
+  it('should fall back to total balance when inscription fetch fails', async () => {
+    const store = useWalletStore();
+    store.accounts = [
+      {
+        address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
+        path: "m/44'/3434'/0'/0/0",
+        label: 'Account 1'
+      }
+    ];
+    store.activeAccountIndex = 0;
+
+    vi.mocked(api.fetchAddressInfo).mockResolvedValue(100000000);
+    vi.mocked(api.fetchUtxos).mockRejectedValue(new Error('Network error'));
+
+    await store.refreshBalance(true);
+
+    expect(store.balance).toBe(1);
+    expect(store.spendableBalance).toBe(1); // Falls back to total
   });
 
   it('should handle currency changes correctly', () => {

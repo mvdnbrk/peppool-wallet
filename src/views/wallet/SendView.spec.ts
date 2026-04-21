@@ -41,7 +41,6 @@ const mockSendTransaction = {
   isLoadingFees: ref(false),
   currentPrice: ref(10),
   isInsufficientFunds: ref(false),
-  displayBalance: vi.fn().mockReturnValue('0 PEP'),
   displayFee: ref('0.001 PEP'),
   maxRibbits: ref(0),
   loadFees: vi.fn(),
@@ -88,7 +87,6 @@ describe('SendView', () => {
     mockSendTransaction.txid.value = '';
     mockSendTransaction.isLoadingFees.value = false;
     mockSendTransaction.isInsufficientFunds.value = false;
-    mockSendTransaction.displayBalance.mockReturnValue('0 PEP');
 
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
@@ -96,6 +94,7 @@ describe('SendView', () => {
       selectedCurrency: 'USD',
       currencySymbol: '$',
       balance: 7,
+      spendableBalance: 7,
       prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn(),
       openExplorerTx: vi.fn(),
@@ -173,11 +172,10 @@ describe('SendView', () => {
     );
   });
 
-  it('should display available balance from the composable', async () => {
-    mockSendTransaction.displayBalance.mockReturnValue('5 PEP');
+  it('should display spendable balance on the send form', async () => {
+    mockWallet.spendableBalance = 5;
 
     const wrapper = mount(SendView, { global });
-    // Ensure we are at step 1
     // @ts-ignore
     wrapper.vm.form.step = 1;
 

@@ -40,6 +40,7 @@ describe('useSendTransaction Composable', () => {
       selectedCurrency: 'USD',
       currencySymbol: '$',
       balance: 5,
+      spendableBalance: 5,
       prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn(),
       isMnemonicLoaded: true,
@@ -63,16 +64,8 @@ describe('useSendTransaction Composable', () => {
     expect(api.fetchUtxos).not.toHaveBeenCalled();
   });
 
-  it('should display balance from wallet store', () => {
-    mockWallet.balance = 5;
-    const { displayBalance } = useSendTransaction();
-
-    expect(displayBalance(false)).toBe('5 PEP');
-    expect(displayBalance(true)).toBe('$50.00 USD');
-  });
-
-  it('should check insufficient funds against wallet store balance', async () => {
-    mockWallet.balance = 0.001; // 100,000 ribbits
+  it('should check insufficient funds against spendable balance', async () => {
+    mockWallet.spendableBalance = 0.001; // 100,000 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { isInsufficientFunds, tx, isLoadingFees, loadFees } = useSendTransaction();
@@ -128,7 +121,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should validate step 1 inputs', async () => {
-    mockWallet.balance = 100;
+    mockWallet.spendableBalance = 100;
     const { validateStep1, tx } = useSendTransaction();
     tx.value.fees = { fastestFee: 1000 } as any;
 
@@ -174,7 +167,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should handle insufficient funds correctly', async () => {
-    mockWallet.balance = 0.000001; // 100 ribbits
+    mockWallet.spendableBalance = 0.000001; // 100 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { isInsufficientFunds, tx, loadFees } = useSendTransaction();
@@ -206,7 +199,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should estimate max amount from wallet balance', async () => {
-    mockWallet.balance = 10; // 1,000,000,000 ribbits
+    mockWallet.spendableBalance = 10; // 1,000,000,000 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { maxRibbits, loadFees } = useSendTransaction();

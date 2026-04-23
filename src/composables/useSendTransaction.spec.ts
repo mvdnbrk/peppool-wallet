@@ -6,8 +6,18 @@ import * as api from '@/utils/api';
 import * as crypto from '@/utils/crypto';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
 
+const { mockGetOutputsSet } = vi.hoisted(() => {
+  const mockGetOutputsSet = vi.fn(() => Promise.resolve(new Set<string>()));
+  return { mockGetOutputsSet };
+});
+
 // Mock dependencies
 vi.mock('@/composables/useApp');
+vi.mock('@/stores/inscriptions', () => ({
+  useInscriptionStore: vi.fn(() => ({
+    getOutputsSet: mockGetOutputsSet
+  }))
+}));
 vi.mock('@/utils/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/api')>();
   return {
@@ -16,8 +26,7 @@ vi.mock('@/utils/api', async (importOriginal) => {
     fetchUtxos: vi.fn(),
     fetchTxHex: vi.fn(),
     validateAddress: vi.fn(),
-    broadcastTx: vi.fn(),
-    fetchInscriptionOutputs: vi.fn()
+    broadcastTx: vi.fn()
   };
 });
 vi.mock('@/utils/crypto', async (importOriginal) => {
@@ -82,7 +91,7 @@ describe('useSendTransaction Composable', () => {
       { txid: 'safe2', vout: 0, value: 200_000_000, status: { confirmed: true } }
     ];
     vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
+    mockGetOutputsSet.mockResolvedValue(new Set(['inscribed1:1']));
     vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
     vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
     vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
@@ -101,10 +110,10 @@ describe('useSendTransaction Composable', () => {
     expect(tx.value.utxos.map((u: any) => u.txid)).toEqual(['safe1', 'safe2']);
   });
 
-  it('should still send when inscription API fails', async () => {
+  it('should send when no inscriptions exist', async () => {
     const utxos = [{ txid: 'c1', vout: 0, value: 500_000_000, status: { confirmed: true } }];
     vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockRejectedValue(new Error('Ord indexer down'));
+    mockGetOutputsSet.mockResolvedValue(new Set());
     vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
     vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
     vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
@@ -148,7 +157,7 @@ describe('useSendTransaction Composable', () => {
   it('should send transaction and return txid', async () => {
     const utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }];
     vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
+    mockGetOutputsSet.mockResolvedValue(new Set());
     vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
     vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
     vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');
@@ -181,7 +190,7 @@ describe('useSendTransaction Composable', () => {
     vi.mocked(api.fetchUtxos).mockResolvedValue([
       { txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }
     ] as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
+    mockGetOutputsSet.mockResolvedValue(new Set());
     vi.mocked(api.fetchTxHex).mockRejectedValue(new Error('Network error'));
 
     const { send, tx } = useSendTransaction();
@@ -212,7 +221,7 @@ describe('useSendTransaction Composable', () => {
   it('should use active account indices when deriving signer', async () => {
     const utxos = [{ txid: 'c1', vout: 0, value: 1000_000_000, status: { confirmed: true } }];
     vi.mocked(api.fetchUtxos).mockResolvedValue(utxos as any);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue([]);
+    mockGetOutputsSet.mockResolvedValue(new Set());
     vi.mocked(api.fetchTxHex).mockResolvedValue('raw-hex');
     vi.mocked(crypto.deriveSigner).mockReturnValue({} as any);
     vi.mocked(crypto.createSignedTx).mockResolvedValue('signed-hex');

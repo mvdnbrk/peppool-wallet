@@ -216,6 +216,13 @@ export function isInscriptionUtxo(utxo: ApiUtxo, inscriptionOutputs: Set<string>
   return inscriptionOutputs.has(`${utxo.txid}:${utxo.vout}`);
 }
 
+/**
+ * Filters UTXOs to only confirmed, non-inscription outputs safe for spending.
+ */
+export function filterSpendableUtxos(utxos: ApiUtxo[], inscriptionOutputs: Set<string>): ApiUtxo[] {
+  return utxos.filter((u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionOutputs));
+}
+
 export async function fetchTransaction(txid: string): Promise<RawTransaction> {
   const data = await request<unknown>(`/tx/${encodeURIComponent(txid)}`);
   return v.parse(RawTransactionSchema, data);

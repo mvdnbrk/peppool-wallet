@@ -22,7 +22,11 @@ vi.mock('@/utils/api', async (importOriginal) => {
     fetchUtxos: vi.fn(() =>
       Promise.resolve([{ txid: 'a', vout: 0, value: 100000000, status: { confirmed: true } }])
     ),
-    fetchInscriptionOutputs: vi.fn(() => Promise.resolve([]))
+    fetchInscriptionOutputs: vi.fn(() => Promise.resolve([])),
+    fetchAddressInscriptions: vi.fn(() =>
+      Promise.resolve({ inscriptions: [], outputs: [], total: 0 })
+    ),
+    fetchInscription: vi.fn()
   };
 });
 
@@ -310,7 +314,11 @@ describe('Wallet Store', () => {
       { txid: 'inscribed1', vout: 1, value: 10000, status: { confirmed: true } },
       { txid: 'spendable2', vout: 0, value: 99990000, status: { confirmed: true } }
     ]);
-    vi.mocked(api.fetchInscriptionOutputs).mockResolvedValue(['inscribed1:1']);
+    vi.mocked(api.fetchAddressInscriptions).mockResolvedValue({
+      inscriptions: [],
+      outputs: ['inscribed1:1'],
+      total: 0
+    });
 
     await store.refreshBalance(true);
 

@@ -6,9 +6,9 @@ import {
   fetchTxHex,
   validateAddress,
   fetchRecommendedFees,
-  fetchInscriptionOutputs,
-  isInscriptionUtxo
+  filterSpendableUtxos
 } from '@/utils/api';
+import { useInscriptionStore } from '@/stores/inscriptions';
 import {
   createSignedTx,
   isValidAddress,
@@ -23,6 +23,7 @@ import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE } from '@/utils/con
 
 export function useSendTransaction() {
   const { wallet: walletStore } = useApp();
+  const inscriptionStore = useInscriptionStore();
   const tx = ref(new SendTransaction(walletStore.address!));
   const txid = ref('');
   const isLoadingFees = ref(true);
@@ -45,7 +46,7 @@ export function useSendTransaction() {
   });
 
   const maxRibbits = computed(() => {
-    const txSize = estimateTxSize(1, 1);
+    const txSize = estimateTxSize(1, 2);
     const feeRate = tx.value.fees
       ? Math.max(RECOMMENDED_FEE_RATE, tx.value.fees.fastestFee)
       : RECOMMENDED_FEE_RATE;
@@ -110,15 +111,12 @@ export function useSendTransaction() {
         mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);
       }
 
-      // Fetch UTXOs and inscription outputs at send time
-      const [utxos, inscriptionOutputs] = await Promise.all([
+      // Fetch fresh UTXOs at send time to ensure accurate coin selection
+      const [utxos, inscriptionSet] = await Promise.all([
         fetchUtxos(walletStore.address!),
-        fetchInscriptionOutputs(walletStore.address!).catch(() => [] as string[])
+        inscriptionStore.getOutputsSet(walletStore.address!)
       ]);
-      const inscriptionSet = new Set(inscriptionOutputs);
-      tx.value.utxos = utxos.filter(
-        (u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet)
-      );
+      tx.value.utxos = filterSpendableUtxos(utxos, inscriptionSet);
 
       if (isMax) {
         tx.value.amountRibbits = tx.value.maxRibbits;

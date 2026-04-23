@@ -16,8 +16,7 @@ import {
   fetchPepPrice,
   fetchTipHeight,
   fetchUtxos,
-  fetchInscriptionOutputs,
-  isInscriptionUtxo
+  filterSpendableUtxos
 } from '@/utils/api';
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
@@ -186,12 +185,12 @@ export const useWalletStore = defineStore('wallet', () => {
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function debouncedResetLockTimer() {
+  async function debouncedResetLockTimer() {
     if (!isUnlocked.value || debounceTimer) return;
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
     }, 1000);
-    resetLockTimer();
+    await resetLockTimer();
   }
 
   async function withMnemonic<T>(fn: (mnemonic: string) => T | Promise<T>): Promise<T> {
@@ -266,23 +265,22 @@ export const useWalletStore = defineStore('wallet', () => {
       balance.value = totalRibbits / RIBBITS_PER_PEP;
       localStorage.setItem('peppool_balance', balance.value.toString());
 
-      // Compute spendable balance (total minus inscription UTXOs)
+      await refreshTransactions();
+      await inscriptionStore.sync(address.value, tipHeight);
+
       try {
-        const [utxos, inscriptionOutputs] = await Promise.all([
+        const [utxos, inscriptionSet] = await Promise.all([
           fetchUtxos(address.value),
-          fetchInscriptionOutputs(address.value).catch(() => [] as string[])
+          inscriptionStore.getOutputsSet(address.value)
         ]);
-        const inscriptionSet = new Set(inscriptionOutputs);
-        const spendableRibbits = utxos
-          .filter((u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet))
-          .reduce((sum, u) => sum + u.value, 0);
+        const spendableRibbits = filterSpendableUtxos(utxos, inscriptionSet).reduce(
+          (sum, u) => sum + u.value,
+          0
+        );
         spendableBalance.value = spendableRibbits / RIBBITS_PER_PEP;
       } catch {
         spendableBalance.value = balance.value;
       }
-
-      await refreshTransactions();
-      inscriptionStore.sync(address.value, tipHeight).catch(() => {});
       await resetLockTimer();
     } catch (e) {
       console.error('Failed to refresh balance', e);
@@ -467,6 +465,7 @@ export const useWalletStore = defineStore('wallet', () => {
     balance.value = 0;
     spendableBalance.value = 0;
     transactions.value = [];
+    inscriptionStore.load(accounts.value[index].address);
     await refreshBalance(true);
   }
 

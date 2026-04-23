@@ -6,9 +6,9 @@ import {
   fetchTxHex,
   validateAddress,
   fetchRecommendedFees,
-  fetchInscriptionOutputs,
   isInscriptionUtxo
 } from '@/utils/api';
+import { useInscriptionStore } from '@/stores/inscriptions';
 import {
   createSignedTx,
   isValidAddress,
@@ -22,6 +22,7 @@ import { RIBBITS_PER_PEP, MIN_SEND_PEP, formatFiat } from '@/utils/constants';
 
 export function useSendTransaction() {
   const { wallet: walletStore } = useApp();
+  const inscriptionStore = useInscriptionStore();
 
   const tx = ref(new SendTransaction(walletStore.address!));
   const txid = ref('');
@@ -52,13 +53,12 @@ export function useSendTransaction() {
   async function loadRequirements(isMax: boolean = false) {
     isLoadingRequirements.value = true;
     try {
-      const [fees, utxos, inscriptionOutputs] = await Promise.all([
+      const [fees, utxos] = await Promise.all([
         fetchRecommendedFees(),
-        fetchUtxos(walletStore.address!),
-        fetchInscriptionOutputs(walletStore.address!).catch(() => [] as string[])
+        fetchUtxos(walletStore.address!)
       ]);
 
-      const inscriptionSet = new Set(inscriptionOutputs);
+      const inscriptionSet = await inscriptionStore.getOutputsSet(walletStore.address!);
 
       tx.value.fees = fees;
       tx.value.utxos = utxos.filter(

@@ -4,7 +4,7 @@ import { useApp } from '@/composables/useApp';
 import { useSendTransaction } from '@/composables/useSendTransaction';
 import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
-import { UX_DELAY_FAST, UX_DELAY_SLOW } from '@/utils/constants';
+import { UX_DELAY_FAST, UX_DELAY_SLOW, formatFiat } from '@/utils/constants';
 
 import SendStepForm from './SendStepForm.vue';
 import SendStepReview from './SendStepReview.vue';
@@ -14,12 +14,12 @@ const { router, wallet: walletStore } = useApp();
 const {
   tx,
   txid,
-  isLoadingRequirements,
+  isLoadingFees,
   currentPrice,
   isInsufficientFunds,
-  displayBalance,
   displayFee,
-  loadRequirements,
+  maxRibbits,
+  loadFees,
   validateStep1,
   send
 } = useSendTransaction();
@@ -45,9 +45,18 @@ watch(txid, (newTxid) => {
 // Step 2 can't survive remount — password isn't persisted
 if (form.step === 2) form.step = 1;
 
+const displayBalance = computed(() => {
+  const bal = walletStore.spendableBalance;
+  if (form.isFiatMode) {
+    const price = walletStore.prices[walletStore.selectedCurrency];
+    return `${walletStore.currencySymbol}${formatFiat(bal * price)} ${walletStore.selectedCurrency}`;
+  }
+  return `${parseFloat(bal.toFixed(8))} PEP`;
+});
+
 const canReview = computed(() => {
   return (
-    !isLoadingRequirements.value &&
+    !isLoadingFees.value &&
     form.recipient &&
     tx.value.amountRibbits > 0 &&
     !form.hasError() &&
@@ -56,7 +65,7 @@ const canReview = computed(() => {
 });
 
 const nextButtonLabel = computed(() => {
-  if (isLoadingRequirements.value) return 'Loading...';
+  if (isLoadingFees.value) return 'Loading...';
   if (isInsufficientFunds.value) return 'Insufficient funds';
   return 'Next';
 });
@@ -82,7 +91,7 @@ watch(
 
 function setMax() {
   form.isMax = true;
-  form.amountRibbits = tx.value.maxRibbits;
+  form.amountRibbits = maxRibbits.value;
 }
 
 async function handleAddressBlur() {
@@ -162,7 +171,7 @@ onMounted(async () => {
   }
 
   try {
-    await loadRequirements(form.isMax);
+    await loadFees();
   } catch (e) {
     // Error handled in composable
   }
@@ -193,10 +202,9 @@ onMounted(async () => {
     <SendStepForm
       v-if="form.step === 1"
       :form="form"
-      :isLoadingRequirements="isLoadingRequirements"
       :isInsufficientFunds="isInsufficientFunds"
       :currentPrice="currentPrice"
-      :displayBalance="displayBalance(form.isFiatMode)"
+      :displayBalance="displayBalance"
       :displayFee="displayFee"
       @address-blur="handleAddressBlur"
       @set-max="setMax"

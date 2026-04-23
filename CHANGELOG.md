@@ -4,6 +4,13 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
+
+### Changed
+- Move lock timer to session storage with inactivity-based locking ([#18](https://github.com/mvdnbrk/peppool-wallet/pull/18))
+- Defer UTXO fetch to send step and show spendable balance on send view ([#19](https://github.com/mvdnbrk/peppool-wallet/pull/19))
+
 ## [0.2.1](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.1) - 2026-04-18
 
 ### Changed

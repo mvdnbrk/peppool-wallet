@@ -2,7 +2,7 @@
 
 All notable changes to `peppool-wallet` are documented in this file.
 
-## [Unreleased]
+## [Unreleased](https://github.com/mvdnbrk/peppool-wallet/compare/v0.2.1...main)
 
 ### Added
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))

@@ -11,17 +11,14 @@
 
 import { loadPermissions, savePermissions, hasPermission, revokeOrigin } from '@/utils/permissions';
 
-const ALARM_NAME = 'peppool-auto-lock';
+const ALARM_NAME_AUTOLOCK = 'peppool-inactivity-lock';
 
 // ── Alarm handler ──────────────────────────────────────────────────────────
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name !== ALARM_NAME) return;
-
-  // Actively purge sensitive data from storage
-  await chrome.storage.local.remove('unlocked_until');
+  if (alarm.name !== ALARM_NAME_AUTOLOCK) return;
 
   try {
-    await chrome.storage.session.remove('mnemonic');
+    await chrome.storage.session.remove(['sessionStartTime', 'dataKey']);
   } catch {
     // session storage may not be available in all contexts
   }
@@ -47,7 +44,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // 1. Internal Extension Messages
   if (sender.id === chrome.runtime.id) {
     if (message.type === 'set-auto-lock') {
-      chrome.alarms.create(ALARM_NAME, {
+      chrome.alarms.create(ALARM_NAME_AUTOLOCK, {
         delayInMinutes: message.delayMinutes
       });
       sendResponse({ ok: true });
@@ -55,7 +52,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === 'clear-auto-lock') {
-      chrome.alarms.clear(ALARM_NAME);
+      chrome.alarms.clear(ALARM_NAME_AUTOLOCK);
       sendResponse({ ok: true });
       return true;
     }

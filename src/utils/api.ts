@@ -1,5 +1,10 @@
 import { API_TIMEOUT_MS, APP_NAME, APP_VERSION } from './constants';
 import { RawTransactionSchema, type RawTransaction } from '@/models/Transaction';
+import {
+  RawInscriptionResponseSchema,
+  toInscription,
+  type Inscription
+} from '@/models/Inscription';
 import { getStoredToken, clearAuth } from './auth';
 import * as v from 'valibot';
 
@@ -175,6 +180,32 @@ export async function fetchInscriptionOutputs(address: string): Promise<string[]
     `/address/${encodeURIComponent(address)}/inscriptions`
   );
   return data.outputs;
+}
+
+export interface AddressInscriptionsResponse {
+  inscriptions: string[];
+  outputs: string[];
+  total: number;
+}
+
+/**
+ * Fetches both inscription IDs and output identifiers for an address.
+ */
+export async function fetchAddressInscriptions(
+  address: string
+): Promise<AddressInscriptionsResponse> {
+  return await request<AddressInscriptionsResponse>(
+    `/address/${encodeURIComponent(address)}/inscriptions`
+  );
+}
+
+/**
+ * Fetches a single inscription's metadata and returns a slim Inscription object.
+ */
+export async function fetchInscription(id: string): Promise<Inscription> {
+  const data = await request<unknown>(`/inscription/${encodeURIComponent(id)}`);
+  const raw = v.parse(RawInscriptionResponseSchema, data);
+  return toInscription(raw);
 }
 
 /**

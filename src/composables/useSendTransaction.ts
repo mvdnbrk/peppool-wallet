@@ -23,7 +23,6 @@ import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE } from '@/utils/con
 
 export function useSendTransaction() {
   const { wallet: walletStore } = useApp();
-
   const tx = ref(new SendTransaction(walletStore.address!));
   const txid = ref('');
   const isLoadingFees = ref(true);

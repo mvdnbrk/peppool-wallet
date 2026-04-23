@@ -13,9 +13,9 @@ import {
   broadcastTx,
   fetchTxHex,
   fetchRecommendedFees,
-  fetchInscriptionOutputs,
   isInscriptionUtxo
 } from '@/utils/api';
+import { useInscriptionStore } from '@/stores/inscriptions';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
 import { SendTransaction } from '@/models/SendTransaction';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
@@ -25,6 +25,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
 
 const walletStore = useWalletStore();
+const inscriptionStore = useInscriptionStore();
 
 const requestId = ref('');
 const origin = ref('');
@@ -137,14 +138,10 @@ async function handleSendTransfer(mnemonic: string) {
   const recipient = recipients[0];
   const address = walletStore.address!;
 
-  // 1. Fetch requirements (inscription outputs fail gracefully — never block sends)
-  const [fees, rawUtxos, inscriptionOutputs] = await Promise.all([
-    fetchRecommendedFees(),
-    fetchUtxos(address),
-    fetchInscriptionOutputs(address).catch(() => [] as string[])
-  ]);
+  // 1. Fetch requirements (inscription outputs from cache, API fallback)
+  const [fees, rawUtxos] = await Promise.all([fetchRecommendedFees(), fetchUtxos(address)]);
 
-  const inscriptionSet = new Set(inscriptionOutputs);
+  const inscriptionSet = await inscriptionStore.getOutputsSet(address);
 
   // 2. Coin selection via SendTransaction model (shared with main send flow)
   const sendTx = new SendTransaction(address);

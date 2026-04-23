@@ -12,6 +12,8 @@ import {
   fetchTipHeight,
   broadcastTx,
   fetchInscriptionOutputs,
+  fetchAddressInscriptions,
+  fetchInscription,
   isInscriptionUtxo,
   type ApiUtxo
 } from './api';
@@ -321,6 +323,54 @@ describe('API Utils', () => {
 
     expect(isInscriptionUtxo(inscriptionUtxo, inscriptionSet)).toBe(true);
     expect(isInscriptionUtxo(safeUtxo, inscriptionSet)).toBe(false);
+  });
+
+  it('fetchAddressInscriptions returns IDs, outputs, and total', async () => {
+    const mockData = {
+      inscriptions: ['abc123i0', 'def456i0'],
+      outputs: ['abc123:0', 'def456:0'],
+      total: 2
+    };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(mockData));
+
+    const result = await fetchAddressInscriptions('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+    expect(result.inscriptions).toEqual(['abc123i0', 'def456i0']);
+    expect(result.outputs).toEqual(['abc123:0', 'def456:0']);
+    expect(result.total).toBe(2);
+  });
+
+  it('fetchInscription returns slim inscription from raw API response', async () => {
+    const rawApiResponse = {
+      id: '5f48e29ei0',
+      number: 100,
+      address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
+      child_count: 0,
+      children: [],
+      content_type: 'image/png',
+      effective_content_type: 'image/png',
+      content_length: 793,
+      delegate: null,
+      fee: 10210000,
+      height: 956437,
+      value: 100000,
+      parent_count: 0,
+      parents: [],
+      properties: { title: 'test' },
+      satpoint: '5f48e29e:0:0',
+      timestamp: 1773570237,
+      next: null,
+      previous: null
+    };
+    (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(rawApiResponse));
+
+    const result = await fetchInscription('5f48e29ei0');
+    expect(result.id).toBe('5f48e29ei0');
+    expect(result.number).toBe(100);
+    expect(result.contentType).toBe('image/png');
+    expect(result.contentLength).toBe(793);
+    expect(result.value).toBe(100000);
+    expect(result.satpoint).toBe('5f48e29e:0:0');
+    expect(result.properties).toEqual({ title: 'test' });
   });
 
   it('should throw an error when API call fails', async () => {

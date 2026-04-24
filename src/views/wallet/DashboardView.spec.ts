@@ -43,7 +43,7 @@ describe('Wallet Views Navigation', () => {
     mockAccount = {
       balance: 0,
       transactions: [],
-      canLoadMore: true,
+      canLoadMoreTransactions: false,
       fetchMoreTransactions: vi.fn()
     };
     mockWallet = {
@@ -122,6 +122,7 @@ describe('Wallet Views Navigation', () => {
   it('Dashboard: should show load more button when transactions exist', async () => {
     const tx = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
     mockAccount.transactions = [tx];
+    mockAccount.canLoadMoreTransactions = true;
     mockAccount.fetchMoreTransactions = vi.fn().mockResolvedValue(true);
 
     const wrapper = mount(DashboardView, { global });

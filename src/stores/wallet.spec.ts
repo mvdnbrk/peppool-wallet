@@ -43,7 +43,7 @@ describe('Wallet Store', () => {
     const account = useAccountStore();
     expect(store.isCreated).toBe(false);
     expect(store.isUnlocked).toBe(false);
-    expect(account.canLoadMore).toBe(true);
+    expect(account.canLoadMoreTransactions).toBe(false);
   });
 
   it('should create a wallet and persist it', async () => {
@@ -517,13 +517,13 @@ describe('Wallet Store', () => {
       const hasMore = await account.fetchMoreTransactions(addr);
 
       expect(hasMore).toBe(true);
-      expect(account.canLoadMore).toBe(true);
+      expect(account.canLoadMoreTransactions).toBe(true);
 
       // Mock API to return nothing (end of list)
       vi.mocked(api.fetchTransactions).mockResolvedValue([]);
       const hasNoMore = await account.fetchMoreTransactions(addr);
       expect(hasNoMore).toBe(false);
-      expect(account.canLoadMore).toBe(false);
+      expect(account.canLoadMoreTransactions).toBe(false);
     });
   });
 

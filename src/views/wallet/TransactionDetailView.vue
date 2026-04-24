@@ -6,7 +6,7 @@ import { Transaction } from '@/models/Transaction';
 const { router, route, wallet: walletStore, account } = useApp();
 
 const txid = route.params.txid as string;
-const txFromList = computed(() => account.transactions.find((t) => t.txid === txid));
+const txFromList = computed(() => account.transactions.find((t: Transaction) => t.txid === txid));
 const txFetched = ref<Transaction | null>(null);
 
 const txModel = computed(() => txFromList.value || txFetched.value);

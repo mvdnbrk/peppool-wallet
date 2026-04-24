@@ -37,7 +37,7 @@ describe('Account Store', () => {
     expect(account.balance).toBe(0);
     expect(account.spendableBalance).toBe(0);
     expect(account.transactions).toHaveLength(0);
-    expect(account.canLoadMore).toBe(true);
+    expect(account.canLoadMoreTransactions).toBe(false);
   });
 
   it('should restore cached balance from localStorage', () => {
@@ -180,12 +180,12 @@ describe('Account Store', () => {
 
     const hasMore = await account.fetchMoreTransactions(addr);
     expect(hasMore).toBe(true);
-    expect(account.canLoadMore).toBe(true);
+    expect(account.canLoadMoreTransactions).toBe(true);
 
     vi.mocked(api.fetchTransactions).mockResolvedValue([]);
     const hasNoMore = await account.fetchMoreTransactions(addr);
     expect(hasNoMore).toBe(false);
-    expect(account.canLoadMore).toBe(false);
+    expect(account.canLoadMoreTransactions).toBe(false);
   });
 
   it('should fetch a single transaction', async () => {
@@ -214,13 +214,13 @@ describe('Account Store', () => {
     account.balance = 5;
     account.spendableBalance = 4;
     account.transactions = [{ txid: 'x' } as any];
-    account.canLoadMore = false;
+    account.canLoadMoreTransactions = true;
 
     account.reset();
 
     expect(account.balance).toBe(0);
     expect(account.spendableBalance).toBe(0);
     expect(account.transactions).toHaveLength(0);
-    expect(account.canLoadMore).toBe(true);
+    expect(account.canLoadMoreTransactions).toBe(false);
   });
 });

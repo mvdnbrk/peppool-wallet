@@ -19,7 +19,7 @@ export const useAccountStore = defineStore('account', () => {
   const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
   const spendableBalance = ref<number>(0);
   const transactions = ref<Transaction[]>([]);
-  const canLoadMore = ref(true);
+  const canLoadMoreTransactions = ref(false);
   let lastTipHeight = 0;
 
   // ── Init: restore cached transactions ──
@@ -39,7 +39,7 @@ export const useAccountStore = defineStore('account', () => {
     try {
       const rawTxs = await fetchTransactions(address);
       transactions.value = rawTxs.map((raw) => new Transaction(raw, address));
-      canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
+      canLoadMoreTransactions.value = rawTxs.length >= TXS_PER_PAGE;
       localStorage.setItem('peppool_transactions', JSON.stringify(rawTxs.slice(0, 20)));
     } catch (e) {
       console.error('Failed to fetch transactions', e);
@@ -55,7 +55,7 @@ export const useAccountStore = defineStore('account', () => {
       const newTxs = rawTxs.map((raw) => new Transaction(raw, address));
       const existingIds = new Set(transactions.value.map((t) => t.txid));
       const uniqueNewTxs = newTxs.filter((t) => !existingIds.has(t.txid));
-      canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
+      canLoadMoreTransactions.value = rawTxs.length >= TXS_PER_PAGE;
       transactions.value = [...transactions.value, ...uniqueNewTxs];
       return uniqueNewTxs.length > 0;
     } catch (e) {
@@ -104,7 +104,7 @@ export const useAccountStore = defineStore('account', () => {
     balance.value = 0;
     spendableBalance.value = 0;
     transactions.value = [];
-    canLoadMore.value = true;
+    canLoadMoreTransactions.value = false;
     lastTipHeight = 0;
   }
 
@@ -112,7 +112,7 @@ export const useAccountStore = defineStore('account', () => {
     balance,
     spendableBalance,
     transactions,
-    canLoadMore,
+    canLoadMoreTransactions,
     loadCachedTransactions,
     refreshTransactions,
     fetchMoreTransactions,

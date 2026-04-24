@@ -100,7 +100,7 @@ async function handleLoadMore() {
           />
         </div>
 
-        <div v-if="account.canLoadMore" class="mt-4 flex justify-center">
+        <div v-if="account.canLoadMoreTransactions" class="mt-4 flex justify-center">
           <button
             type="button"
             @click="handleLoadMore"

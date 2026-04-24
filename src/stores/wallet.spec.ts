@@ -457,14 +457,14 @@ describe('Wallet Store', () => {
 
       await account.refreshTransactions(addr);
 
-      const cached = localStorage.getItem('peppool_transactions');
-      expect(cached).not.toBeNull();
-      expect(JSON.parse(cached!)).toHaveLength(1);
-      expect(JSON.parse(cached!)[0].txid).toBe(mockTx.txid);
+      const cached = JSON.parse(localStorage.getItem('peppool_transactions')!);
+      expect(cached[addr]).toHaveLength(1);
+      expect(cached[addr][0].txid).toBe(mockTx.txid);
     });
 
     it('should restore transactions from cache on initialization', () => {
-      localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+      const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
+      localStorage.setItem('peppool_transactions', JSON.stringify({ [addr]: [mockTx] }));
       localStorage.setItem('peppool_active_account', '0');
       localStorage.setItem(
         'peppool_accounts',
@@ -484,7 +484,7 @@ describe('Wallet Store', () => {
     });
 
     it('should clear cached transactions on lock', async () => {
-      localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+      localStorage.setItem('peppool_transactions', JSON.stringify({ addr1: [mockTx] }));
       const store = useWalletStore();
 
       await store.lock();
@@ -492,7 +492,7 @@ describe('Wallet Store', () => {
     });
 
     it('should clear cached transactions on resetWallet', async () => {
-      localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+      localStorage.setItem('peppool_transactions', JSON.stringify({ addr1: [mockTx] }));
       const store = useWalletStore();
 
       await store.resetWallet();

@@ -132,9 +132,9 @@ describe('Account Store', () => {
     expect(account.transactions).toHaveLength(1);
     expect(account.transactions[0]!.txid).toBe('tx1');
 
-    const cached = localStorage.getItem('peppool_transactions');
-    expect(cached).not.toBeNull();
-    expect(JSON.parse(cached!)[0].txid).toBe('tx1');
+    const cached = JSON.parse(localStorage.getItem('peppool_transactions')!);
+    expect(cached[addr]).toHaveLength(1);
+    expect(cached[addr][0].txid).toBe('tx1');
   });
 
   it('should restore transactions from cache', () => {
@@ -149,7 +149,7 @@ describe('Account Store', () => {
       fee: 1000,
       status: { confirmed: true, block_height: 100, block_time: Date.now() / 1000 }
     };
-    localStorage.setItem('peppool_transactions', JSON.stringify([mockTx]));
+    localStorage.setItem('peppool_transactions', JSON.stringify({ [addr]: [mockTx] }));
 
     const account = useAccountStore();
     account.loadCachedTransactions(addr);

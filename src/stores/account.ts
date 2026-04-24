@@ -22,12 +22,21 @@ export const useAccountStore = defineStore('account', () => {
   const canLoadMoreTransactions = ref(false);
   let lastTipHeight = 0;
 
-  // ── Init: restore cached transactions ──
+  // ── Transaction cache (keyed by address) ──
+  function getTransactionCache(): Record<string, unknown[]> {
+    try {
+      return JSON.parse(localStorage.getItem('peppool_transactions') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
   function loadCachedTransactions(address: string) {
     try {
-      const cachedTxs = localStorage.getItem('peppool_transactions');
-      if (cachedTxs) {
-        transactions.value = JSON.parse(cachedTxs).map((raw: any) => new Transaction(raw, address));
+      const cache = getTransactionCache();
+      const cached = cache[address];
+      if (cached) {
+        transactions.value = cached.map((raw: any) => new Transaction(raw, address));
       }
     } catch {
       /* ignore corrupt cache */
@@ -40,7 +49,9 @@ export const useAccountStore = defineStore('account', () => {
       const rawTxs = await fetchTransactions(address);
       transactions.value = rawTxs.map((raw) => new Transaction(raw, address));
       canLoadMoreTransactions.value = rawTxs.length >= TXS_PER_PAGE;
-      localStorage.setItem('peppool_transactions', JSON.stringify(rawTxs.slice(0, 20)));
+      const cache = getTransactionCache();
+      cache[address] = rawTxs.slice(0, 20);
+      localStorage.setItem('peppool_transactions', JSON.stringify(cache));
     } catch (e) {
       console.error('Failed to fetch transactions', e);
     }

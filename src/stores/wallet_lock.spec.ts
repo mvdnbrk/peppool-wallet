@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
+import { resetSettingsState } from '@/utils/settings';
 
 // Mock crypto
 vi.mock('../utils/crypto', async (importOriginal) => {
@@ -35,6 +36,7 @@ describe('Wallet Lock vs Reset Behavior', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     localStorage.clear();
+    resetSettingsState();
     vi.clearAllMocks();
   });
 
@@ -73,7 +75,6 @@ describe('Wallet Lock vs Reset Behavior', () => {
     // 1. Setup a wallet and some mock session data
     await store.importWallet('mnemonic', 'password');
     localStorage.setItem('peppool_transactions', '[{"txid":"1"}]');
-    localStorage.setItem('peppool_currency', 'EUR');
 
     expect(store.isCreated).toBe(true);
 
@@ -86,8 +87,14 @@ describe('Wallet Lock vs Reset Behavior', () => {
     expect(store.address).toBeNull();
     expect(store.accounts).toHaveLength(0);
 
-    // CHECK: Even general settings are wiped
-    expect(localStorage.getItem('peppool_currency')).toBeNull();
+    // CHECK: Cache is wiped
     expect(localStorage.getItem('peppool_transactions')).toBeNull();
+
+    // CHECK: Settings wiped from chrome.storage.local
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith([
+      'peppool_settings',
+      'peppool_accounts',
+      'peppool_active_account'
+    ]);
   });
 });

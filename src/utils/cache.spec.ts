@@ -40,27 +40,13 @@ describe('wipeCacheOnVersionChange', () => {
     expect(localStorage.getItem('peppool_form_send')).toBeNull();
   });
 
-  it('should preserve user data and settings', () => {
+  it('should preserve vault (only persistent localStorage key)', () => {
     localStorage.setItem('peppool_app_version', '1.0.0');
     localStorage.setItem('peppool_vault', 'encrypted-mnemonic');
-    localStorage.setItem('peppool_accounts', '[{"address":"P1"}]');
-    localStorage.setItem('peppool_active_account', '0');
-    localStorage.setItem('peppool_currency', 'EUR');
-    localStorage.setItem('peppool_explorer', 'pepeblocks');
-    localStorage.setItem('peppool_lock_duration', '30');
-    localStorage.setItem('peppool_failed_attempts', '2');
-    localStorage.setItem('peppool_lockout_until', '1700000000');
 
     wipeCacheOnVersionChange();
 
     expect(localStorage.getItem('peppool_vault')).toBe('encrypted-mnemonic');
-    expect(localStorage.getItem('peppool_accounts')).toBe('[{"address":"P1"}]');
-    expect(localStorage.getItem('peppool_active_account')).toBe('0');
-    expect(localStorage.getItem('peppool_currency')).toBe('EUR');
-    expect(localStorage.getItem('peppool_explorer')).toBe('pepeblocks');
-    expect(localStorage.getItem('peppool_lock_duration')).toBe('30');
-    expect(localStorage.getItem('peppool_failed_attempts')).toBe('2');
-    expect(localStorage.getItem('peppool_lockout_until')).toBe('1700000000');
   });
 
   it('should update stored version after wipe', () => {

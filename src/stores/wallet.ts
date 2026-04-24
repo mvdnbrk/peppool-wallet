@@ -22,6 +22,13 @@ import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
 import { EXPLORERS, type ExplorerId, pepeExplorer } from '@/utils/explorer';
+import {
+  getSettings,
+  getWalletState,
+  saveSettings,
+  saveWalletState,
+  clearAllSettings
+} from '@/utils/settings';
 import { useLockoutStore } from './lockout';
 import { useInscriptionStore } from './inscriptions';
 
@@ -57,27 +64,24 @@ export const useWalletStore = defineStore('wallet', () => {
   const inscriptionStore = useInscriptionStore();
 
   // ── State ──
-  const accounts = ref<Account[]>(JSON.parse(localStorage.getItem('peppool_accounts') || '[]'));
-  const activeAccountIndex = ref<number>(
-    parseInt(localStorage.getItem('peppool_active_account') || '0')
-  );
+  const settingsData = getSettings();
+  const walletStateData = getWalletState();
+
+  const accounts = ref<Account[]>(walletStateData.accounts);
+  const activeAccountIndex = ref<number>(walletStateData.activeAccountIndex);
   const encryptedMnemonic = ref<string | null>(localStorage.getItem('peppool_vault'));
   let sessionKey: CryptoKey | null = null;
   const hasSessionKey = ref(false);
   const isUnlocked = ref(false);
-  const lockDuration = ref<number>(parseInt(localStorage.getItem('peppool_lock_duration') || '15'));
+  const lockDuration = ref<number>(settingsData.lockDuration);
   const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
   const spendableBalance = ref<number>(0);
   const prices = ref({
     USD: Number(localStorage.getItem('peppool_price_usd')) || 0,
     EUR: Number(localStorage.getItem('peppool_price_eur')) || 0
   });
-  const selectedCurrency = ref<'USD' | 'EUR'>(
-    (localStorage.getItem('peppool_currency') as 'USD' | 'EUR') || 'USD'
-  );
-  const selectedExplorer = ref<ExplorerId>(
-    (localStorage.getItem('peppool_explorer') as ExplorerId) || 'peppool'
-  );
+  const selectedCurrency = ref<'USD' | 'EUR'>(settingsData.currency);
+  const selectedExplorer = ref<ExplorerId>(settingsData.explorer);
 
   const transactions = ref<Transaction[]>([]);
   const canLoadMore = ref(true);
@@ -105,23 +109,14 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   // ── Actions ──
-  async function syncToChromeStorage() {
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      await chrome.storage.local.set({
-        peppool_accounts: JSON.stringify(accounts.value),
-        peppool_active_account: activeAccountIndex.value.toString()
-      });
-    }
-  }
-
-  function setCurrency(currency: 'USD' | 'EUR') {
+  async function setCurrency(currency: 'USD' | 'EUR') {
     selectedCurrency.value = currency;
-    localStorage.setItem('peppool_currency', currency);
+    await saveSettings({ currency });
   }
 
-  function setExplorer(explorer: ExplorerId) {
+  async function setExplorer(explorer: ExplorerId) {
     selectedExplorer.value = explorer;
-    localStorage.setItem('peppool_explorer', explorer);
+    await saveSettings({ explorer });
   }
 
   function openExplorerTx(txid: string) {
@@ -132,9 +127,9 @@ export const useWalletStore = defineStore('wallet', () => {
     pepeExplorer.openAddress(selectedExplorer.value, address);
   }
 
-  function setLockDuration(minutes: number) {
+  async function setLockDuration(minutes: number) {
     lockDuration.value = minutes;
-    localStorage.setItem('peppool_lock_duration', minutes.toString());
+    await saveSettings({ lockDuration: minutes });
     resetLockTimer();
   }
 
@@ -331,10 +326,7 @@ export const useWalletStore = defineStore('wallet', () => {
     isUnlocked.value = true;
 
     localStorage.setItem('peppool_vault', encrypted);
-    localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-    localStorage.setItem('peppool_active_account', '0');
-
-    await syncToChromeStorage();
+    await saveWalletState({ accounts: accounts.value, activeAccountIndex: 0 });
 
     await resetLockTimer();
     await lockout.reset();
@@ -362,8 +354,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     if (foundAccounts.length > 0) {
       accounts.value = [...accounts.value, ...foundAccounts];
-      localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-      await syncToChromeStorage();
+      await saveWalletState({ accounts: accounts.value });
     }
   }
 
@@ -437,7 +428,7 @@ export const useWalletStore = defineStore('wallet', () => {
     transactions.value = [];
     clearAuth();
 
-    // Selective wipe of peppool-prefixed keys
+    // Wipe all peppool localStorage keys (cache + vault)
     const keys = Object.keys(localStorage);
     for (const key of keys) {
       if (key.startsWith('peppool_')) {
@@ -445,8 +436,10 @@ export const useWalletStore = defineStore('wallet', () => {
       }
     }
 
+    // Wipe chrome.storage (settings, accounts, permissions, session)
+    await clearAllSettings();
     if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove('peppool_permissions');
+      await chrome.storage.local.remove(['peppool_permissions', 'peppool_lockout']);
       await chrome.storage.session?.remove(['sessionStartTime', 'dataKey']);
     }
 
@@ -460,8 +453,7 @@ export const useWalletStore = defineStore('wallet', () => {
   async function switchAccount(index: number) {
     if (!accounts.value[index]) return;
     activeAccountIndex.value = index;
-    localStorage.setItem('peppool_active_account', index.toString());
-    await syncToChromeStorage();
+    await saveWalletState({ activeAccountIndex: index });
     balance.value = 0;
     spendableBalance.value = 0;
     transactions.value = [];
@@ -482,8 +474,7 @@ export const useWalletStore = defineStore('wallet', () => {
         label: label || `Account ${nextIndex + 1}`
       };
       accounts.value.push(newAccount);
-      localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-      await syncToChromeStorage();
+      await saveWalletState({ accounts: accounts.value });
       await switchAccount(nextIndex);
     });
   }
@@ -491,8 +482,7 @@ export const useWalletStore = defineStore('wallet', () => {
   async function renameAccount(index: number, label: string) {
     if (!accounts.value[index]) return;
     accounts.value[index].label = label;
-    localStorage.setItem('peppool_accounts', JSON.stringify(accounts.value));
-    await syncToChromeStorage();
+    await saveWalletState({ accounts: accounts.value });
   }
 
   function updateVault(encrypted: string) {

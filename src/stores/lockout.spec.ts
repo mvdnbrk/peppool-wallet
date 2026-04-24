@@ -118,7 +118,7 @@ describe('Lockout Store', () => {
 
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
-        peppool_failed_attempts: 1
+        peppool_lockout: { attempts: 1, until: 0 }
       })
     );
   });

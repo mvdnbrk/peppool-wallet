@@ -41,8 +41,9 @@ describe('Account Store', () => {
   });
 
   it('should restore cached balance from localStorage', () => {
-    localStorage.setItem('peppool_balance', '42');
+    localStorage.setItem('peppool_balance', JSON.stringify({ [addr]: 42 }));
     const account = useAccountStore();
+    account.loadCachedData(addr);
     expect(account.balance).toBe(42);
   });
 
@@ -53,7 +54,8 @@ describe('Account Store', () => {
     await account.sync(addr, true);
 
     expect(account.balance).toBe(5);
-    expect(localStorage.getItem('peppool_balance')).toBe('5');
+    const balanceCache = JSON.parse(localStorage.getItem('peppool_balance')!);
+    expect(balanceCache[addr]).toBe(5);
   });
 
   it('should skip sync when tip height unchanged', async () => {
@@ -152,7 +154,7 @@ describe('Account Store', () => {
     localStorage.setItem('peppool_transactions', JSON.stringify({ [addr]: [mockTx] }));
 
     const account = useAccountStore();
-    account.loadCachedTransactions(addr);
+    account.loadCachedData(addr);
 
     expect(account.transactions).toHaveLength(1);
     expect(account.transactions[0]!.txid).toBe('cached-tx');

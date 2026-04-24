@@ -16,27 +16,31 @@ export const useAccountStore = defineStore('account', () => {
   const inscriptionStore = useInscriptionStore();
 
   // ── State ──
-  const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
+  const balance = ref<number>(0);
   const spendableBalance = ref<number>(0);
   const transactions = ref<Transaction[]>([]);
   const canLoadMoreTransactions = ref(false);
   let lastTipHeight = 0;
 
-  // ── Transaction cache (keyed by address) ──
-  function getTransactionCache(): Record<string, unknown[]> {
+  // ── Cache (keyed by address) ──
+  function getCache<T>(key: string): Record<string, T> {
     try {
-      return JSON.parse(localStorage.getItem('peppool_transactions') || '{}');
+      return JSON.parse(localStorage.getItem(key) || '{}');
     } catch {
       return {};
     }
   }
 
-  function loadCachedTransactions(address: string) {
+  function loadCachedData(address: string) {
     try {
-      const cache = getTransactionCache();
-      const cached = cache[address];
-      if (cached) {
-        transactions.value = cached.map((raw: any) => new Transaction(raw, address));
+      const balanceCache = getCache<number>('peppool_balance');
+      if (balanceCache[address] != null) {
+        balance.value = balanceCache[address];
+      }
+
+      const txCache = getCache<unknown[]>('peppool_transactions');
+      if (txCache[address]) {
+        transactions.value = txCache[address].map((raw: any) => new Transaction(raw, address));
       }
     } catch {
       /* ignore corrupt cache */
@@ -49,9 +53,9 @@ export const useAccountStore = defineStore('account', () => {
       const rawTxs = await fetchTransactions(address);
       transactions.value = rawTxs.map((raw) => new Transaction(raw, address));
       canLoadMoreTransactions.value = rawTxs.length >= TXS_PER_PAGE;
-      const cache = getTransactionCache();
-      cache[address] = rawTxs.slice(0, 20);
-      localStorage.setItem('peppool_transactions', JSON.stringify(cache));
+      const txCache = getCache<unknown[]>('peppool_transactions');
+      txCache[address] = rawTxs.slice(0, 20);
+      localStorage.setItem('peppool_transactions', JSON.stringify(txCache));
     } catch (e) {
       console.error('Failed to fetch transactions', e);
     }
@@ -88,7 +92,9 @@ export const useAccountStore = defineStore('account', () => {
 
       const totalRibbits = await fetchAddressInfo(address);
       balance.value = totalRibbits / RIBBITS_PER_PEP;
-      localStorage.setItem('peppool_balance', balance.value.toString());
+      const balanceCache = getCache<number>('peppool_balance');
+      balanceCache[address] = balance.value;
+      localStorage.setItem('peppool_balance', JSON.stringify(balanceCache));
 
       await refreshTransactions(address);
       await inscriptionStore.sync(address, tipHeight);
@@ -124,7 +130,7 @@ export const useAccountStore = defineStore('account', () => {
     spendableBalance,
     transactions,
     canLoadMoreTransactions,
-    loadCachedTransactions,
+    loadCachedData,
     refreshTransactions,
     fetchMoreTransactions,
     fetchTransaction,

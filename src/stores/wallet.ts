@@ -82,7 +82,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   // Initialize cached transactions
   if (address.value) {
-    accountStore.loadCachedTransactions(address.value);
+    accountStore.loadCachedData(address.value);
   }
 
   // ── Actions ──

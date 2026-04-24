@@ -36,18 +36,23 @@ const mockRawTx = {
 
 describe('Wallet Views Navigation', () => {
   let mockWallet: any;
+  let mockAccount: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccount = {
+      balance: 0,
+      transactions: [],
+      canLoadMore: true,
+      fetchMoreTransactions: vi.fn()
+    };
     mockWallet = {
       isUnlocked: true,
-      balance: 0,
+      address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       balanceFiat: 0,
       currencySymbol: '$',
       selectedCurrency: 'USD',
       prices: { USD: 0, EUR: 0 },
-      transactions: [],
-      canLoadMore: true,
       refreshBalance: vi.fn(),
       startPolling: vi.fn(),
       stopPolling: vi.fn(),
@@ -56,6 +61,7 @@ describe('Wallet Views Navigation', () => {
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
+      account: mockAccount,
       route: { path: '/dashboard', params: { txid: 'test-tx' } } as any
     });
   });
@@ -95,7 +101,7 @@ describe('Wallet Views Navigation', () => {
 
   it('Dashboard: should render transaction items and show header', async () => {
     const tx = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
-    mockWallet.transactions = [tx];
+    mockAccount.transactions = [tx];
 
     const wrapper = mount(DashboardView, { global });
 
@@ -105,7 +111,7 @@ describe('Wallet Views Navigation', () => {
   });
 
   it('Dashboard: should hide Recent Activity header when no transactions', async () => {
-    mockWallet.transactions = [];
+    mockAccount.transactions = [];
 
     const wrapper = mount(DashboardView, { global });
 
@@ -115,8 +121,8 @@ describe('Wallet Views Navigation', () => {
 
   it('Dashboard: should show load more button when transactions exist', async () => {
     const tx = new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
-    mockWallet.transactions = [tx];
-    mockWallet.fetchMoreTransactions = vi.fn().mockResolvedValue(true);
+    mockAccount.transactions = [tx];
+    mockAccount.fetchMoreTransactions = vi.fn().mockResolvedValue(true);
 
     const wrapper = mount(DashboardView, { global });
 
@@ -126,11 +132,11 @@ describe('Wallet Views Navigation', () => {
     expect(loadMore?.exists()).toBe(true);
 
     await loadMore?.trigger('click');
-    expect(mockWallet.fetchMoreTransactions).toHaveBeenCalled();
+    expect(mockAccount.fetchMoreTransactions).toHaveBeenCalled();
   });
 
   it('Dashboard: should adjust font size for large balances', async () => {
-    mockWallet.balance = 1000000000000000; // Force very long string
+    mockAccount.balance = 1000000000000000; // Force very long string
     const wrapper = mount(DashboardView, { global });
 
     const balanceSpan = wrapper.find('span.text-offwhite');

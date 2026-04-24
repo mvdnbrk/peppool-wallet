@@ -8,22 +8,12 @@ import {
   parseDerivationPath
 } from '@/utils/crypto';
 import { encrypt, decrypt, deriveKeyBytes, decryptWithKey, importKey } from '@/utils/encryption';
-import {
-  fetchAddressInfo,
-  hasAddressActivity,
-  fetchTransactions,
-  fetchTransaction as apiFetchTransaction,
-  fetchPepPrice,
-  fetchTipHeight,
-  fetchUtxos,
-  filterSpendableUtxos
-} from '@/utils/api';
+import { hasAddressActivity, fetchPepPrice } from '@/utils/api';
 import { ensureAuth, clearAuth } from '@/utils/auth';
-import { Transaction } from '@/models/Transaction';
-import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
 import { EXPLORERS, type ExplorerId, pepeExplorer } from '@/utils/explorer';
 import { useLockoutStore } from './lockout';
 import { useInscriptionStore } from './inscriptions';
+import { useAccountStore } from './account';
 
 export interface Account {
   address: string;
@@ -55,6 +45,7 @@ async function clearAutoLockAlarm() {
 export const useWalletStore = defineStore('wallet', () => {
   const lockout = useLockoutStore();
   const inscriptionStore = useInscriptionStore();
+  const accountStore = useAccountStore();
 
   // ── State ──
   const accounts = ref<Account[]>(JSON.parse(localStorage.getItem('peppool_accounts') || '[]'));
@@ -66,8 +57,6 @@ export const useWalletStore = defineStore('wallet', () => {
   const hasSessionKey = ref(false);
   const isUnlocked = ref(false);
   const lockDuration = ref<number>(parseInt(localStorage.getItem('peppool_lock_duration') || '15'));
-  const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
-  const spendableBalance = ref<number>(0);
   const prices = ref({
     USD: Number(localStorage.getItem('peppool_price_usd')) || 0,
     EUR: Number(localStorage.getItem('peppool_price_eur')) || 0
@@ -79,29 +68,21 @@ export const useWalletStore = defineStore('wallet', () => {
     (localStorage.getItem('peppool_explorer') as ExplorerId) || 'peppool'
   );
 
-  const transactions = ref<Transaction[]>([]);
-  const canLoadMore = ref(true);
   let lockTimer: ReturnType<typeof setTimeout> | null = null;
-  let lastTipHeight = 0;
 
   // ── Computed ──
   const isCreated = computed(() => !!encryptedMnemonic.value);
   const isMnemonicLoaded = computed(() => hasSessionKey.value);
   const activeAccount = computed(() => accounts.value[activeAccountIndex.value] || null);
   const address = computed(() => activeAccount.value?.address || null);
-  const balanceFiat = computed(() => balance.value * (prices.value[selectedCurrency.value] || 0));
+  const balanceFiat = computed(
+    () => accountStore.balance * (prices.value[selectedCurrency.value] || 0)
+  );
   const currencySymbol = computed(() => (selectedCurrency.value === 'USD' ? '$' : '€'));
 
-  // Initialize transactions from cache
-  try {
-    const cachedTxs = localStorage.getItem('peppool_transactions');
-    if (cachedTxs) {
-      transactions.value = JSON.parse(cachedTxs).map(
-        (raw: any) => new Transaction(raw, address.value || '')
-      );
-    }
-  } catch {
-    /* ignore */
+  // Initialize cached transactions
+  if (address.value) {
+    accountStore.loadCachedTransactions(address.value);
   }
 
   // ── Actions ──
@@ -213,41 +194,6 @@ export const useWalletStore = defineStore('wallet', () => {
     }
   }
 
-  async function refreshTransactions() {
-    if (!address.value) return;
-    try {
-      const rawTxs = await fetchTransactions(address.value);
-      transactions.value = rawTxs.map((raw) => new Transaction(raw, address.value!));
-      canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
-      localStorage.setItem('peppool_transactions', JSON.stringify(rawTxs.slice(0, 20)));
-    } catch (e) {
-      console.error('Failed to fetch transactions', e);
-    }
-  }
-
-  async function fetchMoreTransactions() {
-    if (!address.value || transactions.value.length === 0) return false;
-    const lastTx = transactions.value[transactions.value.length - 1];
-    if (!lastTx) return false;
-    try {
-      const rawTxs = await fetchTransactions(address.value, lastTx.txid);
-      const newTxs = rawTxs.map((raw) => new Transaction(raw, address.value!));
-      const existingIds = new Set(transactions.value.map((t) => t.txid));
-      const uniqueNewTxs = newTxs.filter((t) => !existingIds.has(t.txid));
-      canLoadMore.value = rawTxs.length >= TXS_PER_PAGE;
-      transactions.value = [...transactions.value, ...uniqueNewTxs];
-      return uniqueNewTxs.length > 0;
-    } catch (e) {
-      console.error('Failed to fetch more transactions', e);
-      return false;
-    }
-  }
-
-  async function fetchTransaction(txid: string): Promise<Transaction> {
-    const rawTx = await apiFetchTransaction(txid);
-    return new Transaction(rawTx, address.value || '');
-  }
-
   async function refreshBalance(force = false) {
     if (!address.value) return;
     try {
@@ -257,30 +203,7 @@ export const useWalletStore = defineStore('wallet', () => {
       localStorage.setItem('peppool_price_usd', currentPrices.USD.toString());
       localStorage.setItem('peppool_price_eur', currentPrices.EUR.toString());
 
-      const tipHeight = await fetchTipHeight();
-      if (!force && tipHeight === lastTipHeight && lastTipHeight > 0) return;
-      lastTipHeight = tipHeight;
-
-      const totalRibbits = await fetchAddressInfo(address.value);
-      balance.value = totalRibbits / RIBBITS_PER_PEP;
-      localStorage.setItem('peppool_balance', balance.value.toString());
-
-      await refreshTransactions();
-      await inscriptionStore.sync(address.value, tipHeight);
-
-      try {
-        const [utxos, inscriptionSet] = await Promise.all([
-          fetchUtxos(address.value),
-          inscriptionStore.getOutputsSet(address.value)
-        ]);
-        const spendableRibbits = filterSpendableUtxos(utxos, inscriptionSet).reduce(
-          (sum, u) => sum + u.value,
-          0
-        );
-        spendableBalance.value = spendableRibbits / RIBBITS_PER_PEP;
-      } catch {
-        spendableBalance.value = balance.value;
-      }
+      await accountStore.sync(address.value, force);
       await resetLockTimer();
     } catch (e) {
       console.error('Failed to refresh balance', e);
@@ -431,10 +354,8 @@ export const useWalletStore = defineStore('wallet', () => {
     sessionKey = null;
     hasSessionKey.value = false;
     isUnlocked.value = false;
-    balance.value = 0;
-    spendableBalance.value = 0;
     prices.value = { USD: 0, EUR: 0 };
-    transactions.value = [];
+    accountStore.reset();
     clearAuth();
 
     // Selective wipe of peppool-prefixed keys
@@ -462,9 +383,7 @@ export const useWalletStore = defineStore('wallet', () => {
     activeAccountIndex.value = index;
     localStorage.setItem('peppool_active_account', index.toString());
     await syncToChromeStorage();
-    balance.value = 0;
-    spendableBalance.value = 0;
-    transactions.value = [];
+    accountStore.reset();
     inscriptionStore.load(accounts.value[index].address);
     await refreshBalance(true);
   }
@@ -520,8 +439,6 @@ export const useWalletStore = defineStore('wallet', () => {
     isCreated,
     isMnemonicLoaded,
     lockout,
-    balance,
-    spendableBalance,
     balanceFiat,
     selectedCurrency,
     selectedExplorer,
@@ -529,8 +446,6 @@ export const useWalletStore = defineStore('wallet', () => {
     currencySymbol,
     lockDuration,
     prices,
-    transactions,
-    canLoadMore,
     setCurrency,
     setExplorer,
     openExplorerTx,
@@ -540,9 +455,6 @@ export const useWalletStore = defineStore('wallet', () => {
     createWallet,
     importWallet,
     refreshBalance,
-    refreshTransactions,
-    fetchTransaction,
-    fetchMoreTransactions,
     resetLockTimer: debouncedResetLockTimer,
     startPolling,
     stopPolling,

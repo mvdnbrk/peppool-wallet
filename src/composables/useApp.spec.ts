@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useApp } from './useApp';
 import { useWalletStore } from '@/stores/wallet';
+import { useAccountStore } from '@/stores/account';
 import { mount } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 
@@ -23,23 +24,34 @@ vi.mock('@/stores/wallet', () => ({
   useWalletStore: vi.fn()
 }));
 
+// Mock Account Store
+vi.mock('@/stores/account', () => ({
+  useAccountStore: vi.fn()
+}));
+
 describe('useApp Composable', () => {
   let mockStore: any;
+  let mockAccountStore: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = {
       isUnlocked: false
     };
+    mockAccountStore = {
+      balance: 0
+    };
     vi.mocked(useWalletStore).mockReturnValue(mockStore);
+    vi.mocked(useAccountStore).mockReturnValue(mockAccountStore);
   });
 
-  it('should return router, route, and wallet', () => {
+  it('should return router, route, wallet, and account', () => {
     const TestComponent = defineComponent({
       setup() {
         const app = useApp();
         expect(app.router).toBe(mockRouter);
         expect(app.wallet).toBe(mockStore);
+        expect(app.account).toBe(mockAccountStore);
         expect(app.route).toBeDefined();
         return () => null;
       }

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
+import { useAccountStore } from './account';
 import { useLockoutStore } from './lockout';
 
 import { Transaction } from '@/models/Transaction';
@@ -39,9 +40,10 @@ describe('Wallet Store', () => {
 
   it('should initialize as not created', () => {
     const store = useWalletStore();
+    const account = useAccountStore();
     expect(store.isCreated).toBe(false);
     expect(store.isUnlocked).toBe(false);
-    expect(store.canLoadMore).toBe(true);
+    expect(account.canLoadMore).toBe(true);
   });
 
   it('should create a wallet and persist it', async () => {
@@ -229,8 +231,9 @@ describe('Wallet Store', () => {
     await store.switchAccount(1);
     expect(store.address).toBe('addr2');
     expect(localStorage.getItem('peppool_active_account')).toBe('1');
-    expect(store.balance).toBe(1); // Should be refreshed on switch
-    expect(store.transactions).toHaveLength(0); // Should be cleared on switch
+    const account = useAccountStore();
+    expect(account.balance).toBe(1); // Should be refreshed on switch
+    expect(account.transactions).toHaveLength(0); // Should be cleared on switch
   });
 
   it('should add a new account correctly', async () => {
@@ -322,8 +325,9 @@ describe('Wallet Store', () => {
 
     await store.refreshBalance(true);
 
-    expect(store.balance).toBe(3); // Total balance
-    expect(store.spendableBalance).toBe(2.9999); // Excludes inscription UTXO (10000 ribbits)
+    const account = useAccountStore();
+    expect(account.balance).toBe(3); // Total balance
+    expect(account.spendableBalance).toBe(2.9999); // Excludes inscription UTXO (10000 ribbits)
   });
 
   it('should fall back to total balance when inscription fetch fails', async () => {
@@ -342,8 +346,9 @@ describe('Wallet Store', () => {
 
     await store.refreshBalance(true);
 
-    expect(store.balance).toBe(1);
-    expect(store.spendableBalance).toBe(1); // Falls back to total
+    const account = useAccountStore();
+    expect(account.balance).toBe(1);
+    expect(account.spendableBalance).toBe(1); // Falls back to total
   });
 
   it('should handle currency changes correctly', () => {
@@ -447,17 +452,10 @@ describe('Wallet Store', () => {
       const api = await import('@/utils/api');
       vi.mocked(api.fetchTransactions).mockResolvedValue([mockTx] as any);
 
-      const store = useWalletStore();
-      store.accounts = [
-        {
-          address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-          path: "m/44'/3434'/0'/0/0",
-          label: 'Account 1'
-        }
-      ];
-      store.activeAccountIndex = 0;
+      const account = useAccountStore();
+      const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
 
-      await store.refreshTransactions();
+      await account.refreshTransactions(addr);
 
       const cached = localStorage.getItem('peppool_transactions');
       expect(cached).not.toBeNull();
@@ -480,8 +478,9 @@ describe('Wallet Store', () => {
       );
 
       const store = useWalletStore();
-      expect(store.transactions).toHaveLength(1);
-      expect(store.transactions[0]!.txid).toBe(mockTx.txid);
+      const account = useAccountStore();
+      expect(account.transactions).toHaveLength(1);
+      expect(account.transactions[0]!.txid).toBe(mockTx.txid);
     });
 
     it('should clear cached transactions on lock', async () => {
@@ -502,14 +501,12 @@ describe('Wallet Store', () => {
 
     it('should fetch more transactions and append them uniquely', async () => {
       const api = await import('@/utils/api');
-      const store = useWalletStore();
+      const account = useAccountStore();
       const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
-      store.accounts = [{ address: addr, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
-      store.activeAccountIndex = 0;
 
       // Setup initial transactions
       const tx1 = { ...mockTx, txid: 'tx1' };
-      store.transactions = [new Transaction(tx1, addr)];
+      account.transactions = [new Transaction(tx1, addr)];
 
       // Mock API to return a full page of transactions
       const fullPage = Array(25)
@@ -517,16 +514,16 @@ describe('Wallet Store', () => {
         .map((_, i) => ({ ...mockTx, txid: `page-${i}` }));
       vi.mocked(api.fetchTransactions).mockResolvedValue(fullPage as any);
 
-      const hasMore = await store.fetchMoreTransactions();
+      const hasMore = await account.fetchMoreTransactions(addr);
 
       expect(hasMore).toBe(true);
-      expect(store.canLoadMore).toBe(true);
+      expect(account.canLoadMore).toBe(true);
 
       // Mock API to return nothing (end of list)
       vi.mocked(api.fetchTransactions).mockResolvedValue([]);
-      const hasNoMore = await store.fetchMoreTransactions();
+      const hasNoMore = await account.fetchMoreTransactions(addr);
       expect(hasNoMore).toBe(false);
-      expect(store.canLoadMore).toBe(false);
+      expect(account.canLoadMore).toBe(false);
     });
   });
 

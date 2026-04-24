@@ -3,10 +3,10 @@ import { ref, onMounted, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { Transaction } from '@/models/Transaction';
 
-const { router, route, wallet: walletStore } = useApp();
+const { router, route, wallet: walletStore, account } = useApp();
 
 const txid = route.params.txid as string;
-const txFromList = computed(() => walletStore.transactions.find((t) => t.txid === txid));
+const txFromList = computed(() => account.transactions.find((t) => t.txid === txid));
 const txFetched = ref<Transaction | null>(null);
 
 const txModel = computed(() => txFromList.value || txFetched.value);
@@ -17,7 +17,7 @@ const error = ref('');
 async function loadDetails() {
   isLoading.value = true;
   try {
-    const transaction = await walletStore.fetchTransaction(txid);
+    const transaction = await account.fetchTransaction(txid, walletStore.address || '');
     txFetched.value = transaction;
   } catch (e: any) {
     error.value = e.message || 'Failed to load transaction';

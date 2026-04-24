@@ -54,28 +54,32 @@ const mockRawTx = {
 
 describe('TransactionDetailView', () => {
   let mockWallet: any;
+  let mockAccount: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.fetchTransaction).mockResolvedValue(mockRawTx as any);
+    mockAccount = reactive({
+      transactions: [],
+      fetchTransaction: vi.fn()
+    });
     mockWallet = reactive({
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       openExplorerTx: vi.fn(),
       refreshBalance: vi.fn(),
-      transactions: [],
       startPolling: vi.fn(),
-      stopPolling: vi.fn(),
-      fetchTransaction: vi.fn()
+      stopPolling: vi.fn()
     });
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
+      account: mockAccount,
       route: { params: { txid: mockRawTx.txid } } as any
     });
   });
 
   it('should show Network Fee only for outgoing transactions', async () => {
-    mockWallet.fetchTransaction.mockResolvedValue(
+    mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
 
@@ -90,7 +94,7 @@ describe('TransactionDetailView', () => {
 
     // 2. Incoming
     const incomingRaw = { ...mockRawTx, vin: [] };
-    mockWallet.fetchTransaction.mockResolvedValue(
+    mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
     // @ts-ignore
@@ -106,7 +110,7 @@ describe('TransactionDetailView', () => {
       vin: [],
       vout: [{ value: 100000000, scriptpubkey_address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU' }]
     };
-    mockWallet.fetchTransaction.mockResolvedValue(
+    mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
 
@@ -123,7 +127,7 @@ describe('TransactionDetailView', () => {
 
   it('should show unconfirmed status correctly', async () => {
     const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
-    mockWallet.fetchTransaction.mockResolvedValue(
+    mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
 
@@ -137,7 +141,7 @@ describe('TransactionDetailView', () => {
   });
 
   it('should call openExplorer with correct txid', async () => {
-    mockWallet.fetchTransaction.mockResolvedValue(
+    mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
 
@@ -154,7 +158,7 @@ describe('TransactionDetailView', () => {
 
   it('should update details when store transaction list changes', async () => {
     const unconfirmedRaw = { ...mockRawTx, status: { confirmed: false } };
-    mockWallet.fetchTransaction.mockResolvedValue(
+    mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(unconfirmedRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
 
@@ -165,7 +169,7 @@ describe('TransactionDetailView', () => {
     expect(wrapper.text()).toContain('In mempool');
 
     // Simulate store updating the transaction list (e.g. after a poll found a new block)
-    mockWallet.transactions = [new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')];
+    mockAccount.transactions = [new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')];
     await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain('Confirmed');

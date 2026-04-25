@@ -8,6 +8,8 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
 
 ### Changed
+- Move settings and wallet state to chrome.storage.local with dedicated settings store ([#23](https://github.com/mvdnbrk/peppool-wallet/pull/23))
+- Wipe derived cache on app version change ([#22](https://github.com/mvdnbrk/peppool-wallet/pull/22))
 - Move lock timer to session storage with inactivity-based locking ([#18](https://github.com/mvdnbrk/peppool-wallet/pull/18))
 - Defer UTXO fetch to send step and show spendable balance on send view ([#19](https://github.com/mvdnbrk/peppool-wallet/pull/19))
 

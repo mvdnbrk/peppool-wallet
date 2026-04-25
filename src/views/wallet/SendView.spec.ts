@@ -93,15 +93,13 @@ describe('SendView', () => {
       isMnemonicLoaded: true,
       balance: 7,
       spendableBalance: 7,
-      prices: { USD: 10, EUR: 8 },
       refreshBalance: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
       settings: {
-        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
-        currencySymbol: '$'
+        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 }
       },
       route: { path: '/send' } as any
     } as any);

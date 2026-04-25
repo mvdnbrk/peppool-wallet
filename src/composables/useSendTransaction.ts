@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
+import * as price from '@/utils/price';
 import {
   fetchUtxos,
   broadcastTx,
@@ -22,7 +23,7 @@ import { SendTransaction } from '@/models/SendTransaction';
 import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
 
 export function useSendTransaction() {
-  const { wallet: walletStore, settings: settingsStore } = useApp();
+  const { wallet: walletStore } = useApp();
   const inscriptionStore = useInscriptionStore();
   const tx = ref(new SendTransaction(walletStore.address!));
   const txid = ref('');
@@ -32,7 +33,7 @@ export function useSendTransaction() {
     Math.round(walletStore.spendableBalance * RIBBITS_PER_PEP)
   );
 
-  const currentPrice = computed(() => walletStore.prices[settingsStore.settings.currency]);
+  const currentPrice = computed(() => price.convert(1));
 
   const isInsufficientFunds = computed(() => {
     if (isLoadingFees.value || tx.value.amountRibbits <= 0) return false;

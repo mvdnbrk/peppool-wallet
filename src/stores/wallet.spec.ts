@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
-import { useSettingsStore } from './settings';
 import { useLockoutStore } from './lockout';
 
 import { Transaction } from '@/models/Transaction';
@@ -183,15 +182,12 @@ describe('Wallet Store', () => {
     const store = useWalletStore();
     localStorage.setItem('other_app_key', 'keep-me');
     await store.createWallet('password123');
-    store.prices.USD = 10;
-
     expect(store.isCreated).toBe(true);
     await store.resetWallet();
 
     expect(store.address).toBeNull();
     expect(store.accounts).toHaveLength(0);
     expect(store.isCreated).toBe(false);
-    expect(store.prices.USD).toBe(0);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
     expect(localStorage.getItem('other_app_key')).toBe('keep-me');
     expect(chrome.storage.local.remove).toHaveBeenCalledWith([
@@ -286,29 +282,6 @@ describe('Wallet Store', () => {
         peppool_active_account: '0'
       })
     );
-  });
-
-  it('should calculate fiat balance correctly', async () => {
-    const store = useWalletStore();
-    // Mock an account
-    store.accounts = [
-      {
-        address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-        path: "m/44'/3434'/0'/0/0",
-        label: 'Account 1'
-      }
-    ];
-    store.activeAccountIndex = 0;
-
-    await store.refreshBalance();
-
-    const settingsStore = useSettingsStore();
-
-    await settingsStore.setCurrency('USD');
-    expect(store.balanceFiat).toBe(0.5); // 1 PEP * 0.5 USD
-
-    await settingsStore.setCurrency('EUR');
-    expect(store.balanceFiat).toBe(0.4); // 1 PEP * 0.4 EUR
   });
 
   it('should compute spendable balance excluding inscription UTXOs', async () => {

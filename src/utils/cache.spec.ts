@@ -16,8 +16,7 @@ describe('wipeCacheOnVersionChange', () => {
     localStorage.setItem('peppool_app_version', '1.0.0');
     localStorage.setItem('peppool_balance', '42');
     localStorage.setItem('peppool_transactions', '[{"txid":"1"}]');
-    localStorage.setItem('peppool_price_usd', '0.001');
-    localStorage.setItem('peppool_price_eur', '0.0009');
+    localStorage.setItem('peppool_prices', '{"USD":0.001,"EUR":0.0009}');
     localStorage.setItem('peppool_inscriptions_Paddr1', '{}');
     localStorage.setItem('peppool_auth_token', 'tok');
     localStorage.setItem('peppool_auth_expires', '999');
@@ -30,8 +29,7 @@ describe('wipeCacheOnVersionChange', () => {
     expect(wiped).toBe(true);
     expect(localStorage.getItem('peppool_balance')).toBeNull();
     expect(localStorage.getItem('peppool_transactions')).toBeNull();
-    expect(localStorage.getItem('peppool_price_usd')).toBeNull();
-    expect(localStorage.getItem('peppool_price_eur')).toBeNull();
+    expect(localStorage.getItem('peppool_prices')).toBeNull();
     expect(localStorage.getItem('peppool_inscriptions_Paddr1')).toBeNull();
     expect(localStorage.getItem('peppool_auth_token')).toBeNull();
     expect(localStorage.getItem('peppool_auth_expires')).toBeNull();

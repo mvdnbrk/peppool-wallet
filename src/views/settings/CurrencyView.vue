@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
 
-const { router, wallet: walletStore } = useApp();
+const { router, settings: settingsStore } = useApp();
 
 const options = [
   { label: 'US DOLLAR', value: 'USD' },
@@ -9,7 +9,7 @@ const options = [
 ] as const;
 
 function selectCurrency(code: 'USD' | 'EUR') {
-  walletStore.setCurrency(code);
+  settingsStore.setCurrency(code);
   setTimeout(() => router.back(), 200);
 }
 </script>
@@ -25,7 +25,7 @@ function selectCurrency(code: 'USD' | 'EUR') {
       </p>
 
       <PepRadioList
-        v-model="walletStore.selectedCurrency"
+        :modelValue="settingsStore.settings.currency"
         :options="options"
         name="currency"
         @update:modelValue="selectCurrency"

@@ -3,23 +3,13 @@ import { APP_VERSION } from './constants';
 const VERSION_KEY = 'peppool_app_version';
 
 /**
- * Keys that hold user data or settings — never wiped on version change.
- * Everything else with a `peppool_` prefix is treated as derived/cached data.
+ * Keys to preserve on version change. Settings and wallet state live in
+ * chrome.storage.local — only the vault and version marker remain in localStorage.
  */
-const KEEP_PREFIXES = [
-  'peppool_vault',
-  'peppool_accounts',
-  'peppool_active_account',
-  'peppool_currency',
-  'peppool_explorer',
-  'peppool_lock_duration',
-  'peppool_failed_attempts',
-  'peppool_lockout_until',
-  'peppool_app_version'
-];
+const KEEP_KEYS = ['peppool_vault', 'peppool_app_version'];
 
 function shouldKeep(key: string): boolean {
-  return KEEP_PREFIXES.some((prefix) => key === prefix);
+  return KEEP_KEYS.includes(key);
 }
 
 /**

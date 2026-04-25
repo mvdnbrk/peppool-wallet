@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
 
-const { router, wallet: walletStore } = useApp();
+const { router, wallet: walletStore, settings: settingsStore } = useApp();
 
 const options = [
   { label: '15 Minutes', value: 15 },
@@ -10,8 +10,9 @@ const options = [
   { label: '3 Hours', value: 180 }
 ];
 
-function selectDuration(val: number) {
-  walletStore.setLockDuration(val);
+async function selectDuration(val: number) {
+  await settingsStore.setLockDuration(val);
+  walletStore.resetLockTimer();
   setTimeout(() => router.back(), 200);
 }
 </script>
@@ -27,7 +28,7 @@ function selectDuration(val: number) {
       </p>
 
       <PepRadioList
-        v-model="walletStore.lockDuration"
+        :modelValue="settingsStore.settings.lockDuration"
         :options="options"
         name="auto-lock"
         @update:modelValue="selectDuration"

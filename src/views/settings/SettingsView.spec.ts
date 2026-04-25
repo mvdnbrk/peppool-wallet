@@ -29,19 +29,20 @@ describe('Settings Views Navigation', () => {
     vi.clearAllMocks();
     mockWallet = {
       isUnlocked: true,
-      selectedCurrency: 'USD',
-      selectedExplorer: 'peppool',
-      lockDuration: 15,
       lock: vi.fn(),
-      resetWallet: vi.fn(),
-      openExplorerTx: vi.fn(),
-      openExplorerAddress: vi.fn()
+      resetWallet: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
       wallet: mockWallet,
+      settings: {
+        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
+        currencySymbol: '$',
+        setCurrency: vi.fn(),
+        setExplorer: vi.fn()
+      },
       route: { path: '/settings' } as any
-    });
+    } as any);
   });
 
   const global = {

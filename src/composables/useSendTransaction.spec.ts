@@ -46,8 +46,6 @@ describe('useSendTransaction Composable', () => {
     vi.clearAllMocks();
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-      selectedCurrency: 'USD',
-      currencySymbol: '$',
       balance: 5,
       spendableBalance: 5,
       prices: { USD: 10, EUR: 8 },
@@ -56,7 +54,11 @@ describe('useSendTransaction Composable', () => {
       withMnemonic: vi.fn((fn: any) => Promise.resolve(fn('test mnemonic')))
     };
     vi.mocked(useApp).mockReturnValue({
-      wallet: mockWallet
+      wallet: mockWallet,
+      settings: {
+        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
+        currencySymbol: '$'
+      }
     } as any);
   });
 

@@ -29,9 +29,7 @@ describe('Settings Views Navigation', () => {
     vi.clearAllMocks();
     mockWallet = {
       isUnlocked: true,
-      selectedCurrency: 'USD',
-      selectedExplorer: 'peppool',
-      lockDuration: 15,
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       lock: vi.fn(),
       resetWallet: vi.fn(),
       openExplorerTx: vi.fn(),

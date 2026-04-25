@@ -91,7 +91,7 @@ describe('SendView', () => {
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       isMnemonicLoaded: true,
-      selectedCurrency: 'USD',
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       currencySymbol: '$',
       balance: 7,
       spendableBalance: 7,

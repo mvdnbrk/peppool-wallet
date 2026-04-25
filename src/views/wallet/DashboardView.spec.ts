@@ -44,7 +44,7 @@ describe('Wallet Views Navigation', () => {
       balance: 0,
       balanceFiat: 0,
       currencySymbol: '$',
-      selectedCurrency: 'USD',
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       prices: { USD: 0, EUR: 0 },
       transactions: [],
       canLoadMore: true,

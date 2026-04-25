@@ -64,7 +64,7 @@ export const useWalletStore = defineStore('wallet', () => {
   const inscriptionStore = useInscriptionStore();
 
   // ── State ──
-  const settingsData = getSettings();
+  const settings = getSettings();
   const walletStateData = getWalletState();
 
   const accounts = ref<Account[]>(walletStateData.accounts);
@@ -73,15 +73,12 @@ export const useWalletStore = defineStore('wallet', () => {
   let sessionKey: CryptoKey | null = null;
   const hasSessionKey = ref(false);
   const isUnlocked = ref(false);
-  const lockDuration = ref<number>(settingsData.lockDuration);
   const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
   const spendableBalance = ref<number>(0);
   const prices = ref({
     USD: Number(localStorage.getItem('peppool_price_usd')) || 0,
     EUR: Number(localStorage.getItem('peppool_price_eur')) || 0
   });
-  const selectedCurrency = ref<'USD' | 'EUR'>(settingsData.currency);
-  const selectedExplorer = ref<ExplorerId>(settingsData.explorer);
 
   const transactions = ref<Transaction[]>([]);
   const canLoadMore = ref(true);
@@ -93,8 +90,8 @@ export const useWalletStore = defineStore('wallet', () => {
   const isMnemonicLoaded = computed(() => hasSessionKey.value);
   const activeAccount = computed(() => accounts.value[activeAccountIndex.value] || null);
   const address = computed(() => activeAccount.value?.address || null);
-  const balanceFiat = computed(() => balance.value * (prices.value[selectedCurrency.value] || 0));
-  const currencySymbol = computed(() => (selectedCurrency.value === 'USD' ? '$' : '€'));
+  const balanceFiat = computed(() => balance.value * (prices.value[settings.currency] || 0));
+  const currencySymbol = computed(() => (settings.currency === 'USD' ? '$' : '€'));
 
   // Initialize transactions from cache
   try {
@@ -110,25 +107,22 @@ export const useWalletStore = defineStore('wallet', () => {
 
   // ── Actions ──
   async function setCurrency(currency: 'USD' | 'EUR') {
-    selectedCurrency.value = currency;
     await saveSettings({ currency });
   }
 
   async function setExplorer(explorer: ExplorerId) {
-    selectedExplorer.value = explorer;
     await saveSettings({ explorer });
   }
 
   function openExplorerTx(txid: string) {
-    pepeExplorer.openTx(selectedExplorer.value, txid);
+    pepeExplorer.openTx(settings.explorer, txid);
   }
 
   function openExplorerAddress(address: string) {
-    pepeExplorer.openAddress(selectedExplorer.value, address);
+    pepeExplorer.openAddress(settings.explorer, address);
   }
 
   async function setLockDuration(minutes: number) {
-    lockDuration.value = minutes;
     await saveSettings({ lockDuration: minutes });
     resetLockTimer();
   }
@@ -144,7 +138,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (!sessionStart || !hex) return false;
 
     const elapsed = Date.now() - sessionStart;
-    if (elapsed >= lockDuration.value * 60 * 1000) {
+    if (elapsed >= settings.lockDuration * 60 * 1000) {
       await chrome.storage.session.remove(['sessionStartTime', 'dataKey']);
       return false;
     }
@@ -167,7 +161,7 @@ export const useWalletStore = defineStore('wallet', () => {
   async function resetLockTimer() {
     if (!isUnlocked.value) return;
 
-    const durationMs = lockDuration.value * 60 * 1000;
+    const durationMs = settings.lockDuration * 60 * 1000;
 
     if (typeof chrome !== 'undefined' && chrome.storage?.session) {
       await chrome.storage.session.set({ sessionStartTime: Date.now() });
@@ -175,7 +169,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = setTimeout(() => lock(), durationMs);
-    await setAutoLockAlarm(lockDuration.value);
+    await setAutoLockAlarm(settings.lockDuration);
   }
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -513,11 +507,9 @@ export const useWalletStore = defineStore('wallet', () => {
     balance,
     spendableBalance,
     balanceFiat,
-    selectedCurrency,
-    selectedExplorer,
+    settings,
     EXPLORERS,
     currencySymbol,
-    lockDuration,
     prices,
     transactions,
     canLoadMore,

@@ -1,3 +1,4 @@
+import { reactive } from 'vue';
 import type { ExplorerId } from './explorer';
 import type { Account } from '@/stores/wallet';
 
@@ -15,8 +16,8 @@ export interface WalletState {
 const SETTINGS_DEFAULTS: Settings = { currency: 'USD', explorer: 'peppool', lockDuration: 15 };
 const WALLET_STATE_DEFAULTS: WalletState = { accounts: [], activeAccountIndex: 0 };
 
-let settings: Settings = { ...SETTINGS_DEFAULTS };
-let walletState: WalletState = { ...WALLET_STATE_DEFAULTS };
+const settings: Settings = reactive({ ...SETTINGS_DEFAULTS });
+const walletState: WalletState = reactive({ ...WALLET_STATE_DEFAULTS });
 
 function hasChromeStorage(): boolean {
   return typeof chrome !== 'undefined' && !!chrome.storage?.local;
@@ -36,7 +37,7 @@ export async function loadSettings(): Promise<void> {
   ]);
 
   if (data.peppool_settings) {
-    settings = { ...SETTINGS_DEFAULTS, ...data.peppool_settings };
+    Object.assign(settings, SETTINGS_DEFAULTS, data.peppool_settings);
   }
 
   if (data.peppool_accounts) {
@@ -94,6 +95,7 @@ export async function clearAllSettings(): Promise<void> {
  * and in test teardown to prevent state leaking between tests.
  */
 export function resetSettingsState(): void {
-  settings = { ...SETTINGS_DEFAULTS };
-  walletState = { ...WALLET_STATE_DEFAULTS };
+  Object.assign(settings, SETTINGS_DEFAULTS);
+  walletState.accounts = [];
+  walletState.activeAccountIndex = 0;
 }

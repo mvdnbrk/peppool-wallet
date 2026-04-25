@@ -27,7 +27,7 @@ function selectExplorer(id: ExplorerId) {
       </p>
 
       <PepRadioList
-        v-model="walletStore.selectedExplorer"
+        :modelValue="walletStore.settings.explorer"
         :options="options"
         name="explorer"
         @update:modelValue="selectExplorer"

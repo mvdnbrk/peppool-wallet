@@ -16,7 +16,7 @@ describe('PreferredExplorerView', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockWallet = {
-      selectedExplorer: 'peppool',
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       setExplorer: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({

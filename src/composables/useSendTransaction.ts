@@ -32,7 +32,7 @@ export function useSendTransaction() {
     Math.round(walletStore.spendableBalance * RIBBITS_PER_PEP)
   );
 
-  const currentPrice = computed(() => walletStore.prices[walletStore.selectedCurrency]);
+  const currentPrice = computed(() => walletStore.prices[walletStore.settings.currency]);
 
   const isInsufficientFunds = computed(() => {
     if (isLoadingFees.value || tx.value.amountRibbits <= 0) return false;

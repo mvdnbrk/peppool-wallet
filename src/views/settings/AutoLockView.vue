@@ -27,7 +27,7 @@ function selectDuration(val: number) {
       </p>
 
       <PepRadioList
-        v-model="walletStore.lockDuration"
+        :modelValue="walletStore.settings.lockDuration"
         :options="options"
         name="auto-lock"
         @update:modelValue="selectDuration"

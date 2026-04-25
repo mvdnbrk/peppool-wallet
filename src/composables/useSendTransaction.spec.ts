@@ -46,7 +46,7 @@ describe('useSendTransaction Composable', () => {
     vi.clearAllMocks();
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-      selectedCurrency: 'USD',
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       currencySymbol: '$',
       balance: 5,
       spendableBalance: 5,

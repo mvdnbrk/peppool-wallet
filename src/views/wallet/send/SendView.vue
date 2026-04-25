@@ -48,8 +48,8 @@ if (form.step === 2) form.step = 1;
 const displayBalance = computed(() => {
   const bal = walletStore.spendableBalance;
   if (form.isFiatMode) {
-    const price = walletStore.prices[walletStore.selectedCurrency];
-    return `${walletStore.currencySymbol}${formatFiat(bal * price)} ${walletStore.selectedCurrency}`;
+    const price = walletStore.prices[walletStore.settings.currency];
+    return `${walletStore.currencySymbol}${formatFiat(bal * price)} ${walletStore.settings.currency}`;
   }
   return `${parseFloat(bal.toFixed(8))} PEP`;
 });

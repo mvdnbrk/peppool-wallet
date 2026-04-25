@@ -359,10 +359,10 @@ describe('Wallet Store', () => {
 
   it('should handle currency changes correctly', async () => {
     const store = useWalletStore();
-    expect(store.selectedCurrency).toBe('USD');
+    expect(store.settings.currency).toBe('USD');
 
     await store.setCurrency('EUR');
-    expect(store.selectedCurrency).toBe('EUR');
+    expect(store.settings.currency).toBe('EUR');
     expect(store.currencySymbol).toBe('€');
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ peppool_settings: expect.objectContaining({ currency: 'EUR' }) })
@@ -371,10 +371,10 @@ describe('Wallet Store', () => {
 
   it('should handle explorer changes correctly', async () => {
     const store = useWalletStore();
-    expect(store.selectedExplorer).toBe('peppool');
+    expect(store.settings.explorer).toBe('peppool');
 
     await store.setExplorer('pepeblocks');
-    expect(store.selectedExplorer).toBe('pepeblocks');
+    expect(store.settings.explorer).toBe('pepeblocks');
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
         peppool_settings: expect.objectContaining({ explorer: 'pepeblocks' })
@@ -398,10 +398,10 @@ describe('Wallet Store', () => {
 
   it('should update and persist lock duration', async () => {
     const store = useWalletStore();
-    expect(store.lockDuration).toBe(15);
+    expect(store.settings.lockDuration).toBe(15);
 
     await store.setLockDuration(180);
-    expect(store.lockDuration).toBe(180);
+    expect(store.settings.lockDuration).toBe(180);
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
         peppool_settings: expect.objectContaining({ lockDuration: 180 })

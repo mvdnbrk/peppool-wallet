@@ -26,7 +26,7 @@ function getDurationLabel(val: number) {
         >
           <template #right>
             <span class="text-offwhite text-sm font-medium uppercase">{{
-              walletStore.selectedCurrency
+              walletStore.settings.currency
             }}</span>
           </template>
         </PepListItem>
@@ -39,7 +39,7 @@ function getDurationLabel(val: number) {
         >
           <template #right>
             <span class="text-offwhite text-sm font-medium">{{
-              EXPLORERS[walletStore.selectedExplorer].name
+              EXPLORERS[walletStore.settings.explorer].name
             }}</span>
           </template>
         </PepListItem>
@@ -52,7 +52,7 @@ function getDurationLabel(val: number) {
         >
           <template #right>
             <span class="text-offwhite text-sm font-medium">{{
-              getDurationLabel(walletStore.lockDuration)
+              getDurationLabel(walletStore.settings.lockDuration)
             }}</span>
           </template>
         </PepListItem>

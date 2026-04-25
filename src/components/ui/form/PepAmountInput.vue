@@ -115,7 +115,7 @@ function toggleMode() {
     >
       <template #prefix>
         <span class="font-bold text-slate-500">
-          {{ isFiatMode ? walletStore.selectedCurrency : 'PEP' }}
+          {{ isFiatMode ? walletStore.settings.currency : 'PEP' }}
         </span>
       </template>
 

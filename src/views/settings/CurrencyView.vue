@@ -25,7 +25,7 @@ function selectCurrency(code: 'USD' | 'EUR') {
       </p>
 
       <PepRadioList
-        v-model="walletStore.selectedCurrency"
+        :modelValue="walletStore.settings.currency"
         :options="options"
         name="currency"
         @update:modelValue="selectCurrency"

@@ -71,7 +71,7 @@ async function handleLoadMore() {
       </div>
       <p class="text-sm font-bold text-slate-500">
         {{ walletStore.currencySymbol }}{{ formatFiat(walletStore.balanceFiat) }}
-        {{ walletStore.selectedCurrency }}
+        {{ walletStore.settings.currency }}
       </p>
     </div>
 

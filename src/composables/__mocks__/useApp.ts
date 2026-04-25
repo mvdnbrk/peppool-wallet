@@ -24,7 +24,7 @@ export const useApp = vi.fn(() => ({
     balance: 0,
     balanceFiat: 0,
     prices: { USD: 0, EUR: 0 },
-    selectedCurrency: 'USD',
+    settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
     currencySymbol: '$',
     transactions: [],
     unlock: vi.fn(),

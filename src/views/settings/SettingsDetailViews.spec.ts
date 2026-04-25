@@ -32,9 +32,7 @@ describe('Settings Detail Views', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockWallet = {
-      selectedCurrency: 'USD',
-      selectedExplorer: 'peppool',
-      lockDuration: 15,
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       setCurrency: vi.fn(),
       setLockDuration: vi.fn()
     };
@@ -53,11 +51,11 @@ describe('Settings Detail Views', () => {
     });
 
     it('should handle labels for hours correctly', async () => {
-      mockWallet.lockDuration = 60;
+      mockWallet.settings.lockDuration = 60;
       const wrapper = mount(PreferencesView, { global });
       expect(wrapper.text()).toContain('1 Hour');
 
-      mockWallet.lockDuration = 180;
+      mockWallet.settings.lockDuration = 180;
       const wrapper2 = mount(PreferencesView, { global });
       expect(wrapper2.text()).toContain('3 Hours');
     });

@@ -6,7 +6,7 @@ import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
 import { UX_DELAY_FAST, UX_DELAY_SLOW } from '@/utils/constants';
 import { pepeExplorer } from '@/utils/explorer';
-import * as fiat from '@/utils/fiat';
+import * as price from '@/utils/price';
 
 import SendStepForm from './SendStepForm.vue';
 import SendStepReview from './SendStepReview.vue';
@@ -50,7 +50,7 @@ if (form.step === 2) form.step = 1;
 const displayBalance = computed(() => {
   const bal = walletStore.spendableBalance;
   if (form.isFiatMode) {
-    return fiat.format(bal);
+    return price.format(bal);
   }
   return `${parseFloat(bal.toFixed(8))} PEP`;
 });

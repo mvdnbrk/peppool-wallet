@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { formatAmount } from '@/utils/constants';
-import * as fiat from '@/utils/fiat';
+import * as price from '@/utils/price';
 
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
@@ -10,7 +9,7 @@ const { router, wallet: walletStore } = useApp();
 const isLoadingMore = ref(false);
 
 const balanceFontSize = computed(() => {
-  const len = formatAmount(walletStore.balance).length;
+  const len = price.formatAmount(walletStore.balance).length;
 
   switch (true) {
     case len > 16:
@@ -66,12 +65,12 @@ async function handleLoadMore() {
       <p class="text-sm font-bold tracking-wider text-slate-400 uppercase">Total Balance</p>
       <div class="flex items-baseline justify-center space-x-2">
         <span class="text-offwhite font-bold transition-all duration-300" :class="balanceFontSize">
-          {{ formatAmount(walletStore.balance) }}
+          {{ price.formatAmount(walletStore.balance) }}
         </span>
         <span class="text-pep-green-light font-bold">PEP</span>
       </div>
       <p class="text-sm font-bold text-slate-500">
-        {{ fiat.format(walletStore.balance) }}
+        {{ price.format(walletStore.balance) }}
       </p>
     </div>
 

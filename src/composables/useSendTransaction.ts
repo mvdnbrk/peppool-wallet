@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
-import * as fiat from '@/utils/fiat';
+import * as price from '@/utils/price';
 import {
   fetchUtxos,
   broadcastTx,
@@ -33,7 +33,7 @@ export function useSendTransaction() {
     Math.round(walletStore.spendableBalance * RIBBITS_PER_PEP)
   );
 
-  const currentPrice = computed(() => fiat.convert(1));
+  const currentPrice = computed(() => price.convert(1));
 
   const isInsufficientFunds = computed(() => {
     if (isLoadingFees.value || tx.value.amountRibbits <= 0) return false;

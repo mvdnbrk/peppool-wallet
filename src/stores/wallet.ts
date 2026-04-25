@@ -20,7 +20,7 @@ import {
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
-import { refreshPrices, clearPrices } from '@/utils/fiat';
+import { refreshPrices, clearPrices } from '@/utils/price';
 import { getWalletState, saveWalletState, clearAllSettings } from '@/utils/settings';
 import { useLockoutStore } from './lockout';
 import { useSettingsStore } from './settings';

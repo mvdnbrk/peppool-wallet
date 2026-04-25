@@ -7,9 +7,17 @@ vi.mock('./api', () => ({
 }));
 
 // Must import after mocks are set up
-import { getPrices, refreshPrices, clearPrices, convert, format, formatFiat } from './fiat';
+import {
+  getPrices,
+  refreshPrices,
+  clearPrices,
+  convert,
+  format,
+  formatFiat,
+  formatAmount
+} from './price';
 
-describe('Fiat Module', () => {
+describe('Price Module', () => {
   beforeEach(() => {
     localStorage.clear();
     clearPrices();
@@ -91,6 +99,24 @@ describe('Fiat Module', () => {
       expect(formatFiat(NaN)).toBe('0.00');
       expect(formatFiat(Infinity)).toBe('0.00');
       expect(formatFiat(-Infinity)).toBe('0.00');
+    });
+  });
+
+  describe('formatAmount', () => {
+    it('should format small numbers with full precision', () => {
+      expect(formatAmount(1234.56789)).toBe('1,234.56789');
+    });
+
+    it('should format millions with 2 decimals', () => {
+      expect(formatAmount(1234567.89123)).toBe('1,234,567.89');
+    });
+
+    it('should format billions with 0 decimals', () => {
+      expect(formatAmount(3643664907.738473)).toBe('3,643,664,908');
+    });
+
+    it('should handle zero correctly', () => {
+      expect(formatAmount(0)).toBe('0');
     });
   });
 });

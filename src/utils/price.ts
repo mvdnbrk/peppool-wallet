@@ -61,6 +61,27 @@ export function format(pep: number): string {
 }
 
 /**
+ * Format a PEP amount with commas and smart decimal reduction for large numbers.
+ * e.g. 1234.56789 -> "1,234.56789"
+ * e.g. 1234567.89 -> "1,234,567.89"
+ * e.g. 1234567890 -> "1,234,567,890" (0 decimals for billions)
+ */
+export function formatAmount(value: number): string {
+  if (value === 0) return '0';
+
+  let decimals = 8;
+  if (value >= 1_000_000_000) decimals = 0;
+  else if (value >= 1_000_000) decimals = 2;
+
+  const formatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals
+  });
+
+  return formatter.format(value);
+}
+
+/**
  * Format a raw fiat value with enough precision to be meaningful.
  * For values ≥ 0.01 → 2 decimals ($1.23)
  * For tiny values → extends until 2 significant digits ($0.0023)

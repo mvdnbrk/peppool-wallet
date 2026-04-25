@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
 
 import { RIBBITS_PER_PEP } from '@/utils/constants';
-import { formatFiat } from '@/utils/fiat';
+import { formatFiat } from '@/utils/price';
 import PepInput from './PepInput.vue';
 import PepIcon from '@/components/ui/PepIcon.vue';
 

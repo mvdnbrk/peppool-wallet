@@ -43,6 +43,19 @@ describe('Settings Store', () => {
     );
   });
 
+  it('should update and persist lock duration', async () => {
+    const store = useSettingsStore();
+    expect(store.settings.lockDuration).toBe(15);
+
+    await store.setLockDuration(180);
+    expect(store.settings.lockDuration).toBe(180);
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_settings: expect.objectContaining({ lockDuration: 180 })
+      })
+    );
+  });
+
   it('should open explorer links based on selected explorer', async () => {
     const store = useSettingsStore();
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);

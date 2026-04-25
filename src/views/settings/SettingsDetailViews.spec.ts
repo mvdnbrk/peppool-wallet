@@ -36,10 +36,11 @@ describe('Settings Detail Views', () => {
       settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       currencySymbol: '$',
       setCurrency: vi.fn(),
-      setExplorer: vi.fn()
+      setExplorer: vi.fn(),
+      setLockDuration: vi.fn()
     };
     mockWallet = {
-      setLockDuration: vi.fn()
+      resetLockTimer: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
@@ -87,7 +88,8 @@ describe('Settings Detail Views', () => {
 
       await radioList.vm.$emit('update:modelValue', 60);
 
-      expect(mockWallet.setLockDuration).toHaveBeenCalledWith(60);
+      expect(mockSettings.setLockDuration).toHaveBeenCalledWith(60);
+      expect(mockWallet.resetLockTimer).toHaveBeenCalled();
       vi.advanceTimersByTime(200);
       expect(backMock).toHaveBeenCalled();
     });

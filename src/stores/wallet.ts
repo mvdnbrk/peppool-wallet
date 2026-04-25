@@ -21,7 +21,7 @@ import {
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
-import { getWalletState, saveSettings, saveWalletState, clearAllSettings } from '@/utils/settings';
+import { getWalletState, saveWalletState, clearAllSettings } from '@/utils/settings';
 import { useLockoutStore } from './lockout';
 import { useSettingsStore } from './settings';
 import { useInscriptionStore } from './inscriptions';
@@ -100,11 +100,6 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   // ── Actions ──
-  async function setLockDuration(minutes: number) {
-    await saveSettings({ lockDuration: minutes });
-    resetLockTimer();
-  }
-
   async function checkSession() {
     await lockout.restore();
     if (typeof chrome === 'undefined' || !chrome.storage?.session) return false;
@@ -488,7 +483,6 @@ export const useWalletStore = defineStore('wallet', () => {
     prices,
     transactions,
     canLoadMore,
-    setLockDuration,
     checkSession,
     createWallet,
     importWallet,

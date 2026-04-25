@@ -360,25 +360,10 @@ describe('Wallet Store', () => {
     expect(store.spendableBalance).toBe(1); // Falls back to total
   });
 
-  it('should update and persist lock duration', async () => {
-    const store = useWalletStore();
-    const settingsStore = useSettingsStore();
-    expect(settingsStore.settings.lockDuration).toBe(15);
-
-    await store.setLockDuration(180);
-    expect(settingsStore.settings.lockDuration).toBe(180);
-    expect(chrome.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        peppool_settings: expect.objectContaining({ lockDuration: 180 })
-      })
-    );
-  });
-
   it('should trigger lock after timeout', async () => {
     vi.useFakeTimers();
     const store = useWalletStore();
     store.isUnlocked = true;
-    store.setLockDuration(15);
     await store.resetLockTimer();
 
     vi.advanceTimersByTime(14 * 60 * 1000);

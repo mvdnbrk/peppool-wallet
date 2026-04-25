@@ -10,8 +10,9 @@ const options = [
   { label: '3 Hours', value: 180 }
 ];
 
-function selectDuration(val: number) {
-  walletStore.setLockDuration(val);
+async function selectDuration(val: number) {
+  await settingsStore.setLockDuration(val);
+  walletStore.resetLockTimer();
   setTimeout(() => router.back(), 200);
 }
 </script>

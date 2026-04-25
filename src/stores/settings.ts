@@ -16,11 +16,16 @@ export const useSettingsStore = defineStore('settings', () => {
     await saveSettings({ explorer });
   }
 
+  async function setLockDuration(minutes: number) {
+    await saveSettings({ lockDuration: minutes });
+  }
+
   return {
     settings,
     EXPLORERS,
     currencySymbol,
     setCurrency,
-    setExplorer
+    setExplorer,
+    setLockDuration
   };
 });

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { getSettings, saveSettings } from '@/utils/settings';
-import { EXPLORERS, type ExplorerId } from '@/utils/explorer';
+import type { ExplorerId } from '@/utils/explorer';
 
 export const useSettingsStore = defineStore('settings', () => {
   const settings = getSettings();
@@ -19,7 +19,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return {
     settings,
-    EXPLORERS,
     setCurrency,
     setExplorer,
     setLockDuration

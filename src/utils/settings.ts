@@ -19,17 +19,11 @@ const WALLET_STATE_DEFAULTS: WalletState = { accounts: [], activeAccountIndex: 0
 const settings: Settings = reactive({ ...SETTINGS_DEFAULTS });
 const walletState: WalletState = reactive({ ...WALLET_STATE_DEFAULTS });
 
-function hasChromeStorage(): boolean {
-  return typeof chrome !== 'undefined' && !!chrome.storage?.local;
-}
-
 /**
  * Load settings and wallet state from chrome.storage.local into memory.
  * Must be called before Pinia stores initialize.
  */
 export async function loadSettings(): Promise<void> {
-  if (!hasChromeStorage()) return;
-
   const data = await chrome.storage.local.get([
     'peppool_settings',
     'peppool_accounts',
@@ -60,34 +54,28 @@ export function getWalletState(): WalletState {
 
 export async function saveSettings(partial: Partial<Settings>): Promise<void> {
   Object.assign(settings, partial);
-  if (hasChromeStorage()) {
-    await chrome.storage.local.set({ peppool_settings: { ...settings } });
-  }
+  await chrome.storage.local.set({ peppool_settings: { ...settings } });
 }
 
 export async function saveWalletState(state: Partial<WalletState>): Promise<void> {
   Object.assign(walletState, state);
-  if (hasChromeStorage()) {
-    const update: Record<string, any> = {};
-    if (state.accounts !== undefined) {
-      update.peppool_accounts = JSON.stringify(walletState.accounts);
-    }
-    if (state.activeAccountIndex !== undefined) {
-      update.peppool_active_account = walletState.activeAccountIndex.toString();
-    }
-    await chrome.storage.local.set(update);
+  const update: Record<string, any> = {};
+  if (state.accounts !== undefined) {
+    update.peppool_accounts = JSON.stringify(walletState.accounts);
   }
+  if (state.activeAccountIndex !== undefined) {
+    update.peppool_active_account = walletState.activeAccountIndex.toString();
+  }
+  await chrome.storage.local.set(update);
 }
 
 export async function clearAllSettings(): Promise<void> {
   resetSettingsState();
-  if (hasChromeStorage()) {
-    await chrome.storage.local.remove([
-      'peppool_settings',
-      'peppool_accounts',
-      'peppool_active_account'
-    ]);
-  }
+  await chrome.storage.local.remove([
+    'peppool_settings',
+    'peppool_accounts',
+    'peppool_active_account'
+  ]);
 }
 
 /**

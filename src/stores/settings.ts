@@ -1,15 +1,14 @@
 import { defineStore } from 'pinia';
-import { getSettings, saveSettings } from '@/utils/settings';
-import type { ExplorerId } from '@/utils/explorer';
+import { getSettings, saveSettings, type Settings } from '@/utils/settings';
 
 export const useSettingsStore = defineStore('settings', () => {
   const settings = getSettings();
 
-  async function setCurrency(currency: 'USD' | 'EUR') {
+  async function setCurrency(currency: Settings['currency']) {
     await saveSettings({ currency });
   }
 
-  async function setExplorer(explorer: ExplorerId) {
+  async function setExplorer(explorer: Settings['explorer']) {
     await saveSettings({ explorer });
   }
 

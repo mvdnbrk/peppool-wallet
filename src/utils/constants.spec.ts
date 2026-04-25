@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatAmount, formatFiat, truncateId } from './constants';
+import { formatAmount, truncateId } from './constants';
 
 describe('Constants Utilities', () => {
   describe('formatAmount', () => {
@@ -17,22 +17,6 @@ describe('Constants Utilities', () => {
 
     it('should handle zero correctly', () => {
       expect(formatAmount(0)).toBe('0');
-    });
-  });
-
-  describe('formatFiat', () => {
-    it('should format standard amounts with 2 decimals', () => {
-      expect(formatFiat(12.3456)).toBe('12.35');
-    });
-
-    it('should format tiny amounts with extra precision', () => {
-      expect(formatFiat(0.0001234)).toBe('0.00012');
-    });
-
-    it('should return 0.00 for NaN, Infinity, and -Infinity to avoid displaying garbage', () => {
-      expect(formatFiat(NaN)).toBe('0.00');
-      expect(formatFiat(Infinity)).toBe('0.00');
-      expect(formatFiat(-Infinity)).toBe('0.00');
     });
   });
 

@@ -15,7 +15,6 @@ describe('Settings Store', () => {
     const store = useSettingsStore();
     expect(store.settings.currency).toBe('USD');
     expect(store.settings.explorer).toBe('peppool');
-    expect(store.currencySymbol).toBe('$');
   });
 
   it('should handle currency changes correctly', async () => {
@@ -24,7 +23,6 @@ describe('Settings Store', () => {
 
     await store.setCurrency('EUR');
     expect(store.settings.currency).toBe('EUR');
-    expect(store.currencySymbol).toBe('€');
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ peppool_settings: expect.objectContaining({ currency: 'EUR' }) })
     );

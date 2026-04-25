@@ -22,10 +22,6 @@ export const useApp = vi.fn(() => ({
     isMnemonicLoaded: true,
     lockout: { lockoutUntil: 0, failedAttempts: 0, isLockedOut: false, attemptsRemaining: 3 },
     balance: 0,
-    balanceFiat: 0,
-    prices: { USD: 0, EUR: 0 },
-    settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
-    currencySymbol: '$',
     transactions: [],
     unlock: vi.fn(),
     updateVault: vi.fn(),
@@ -33,11 +29,16 @@ export const useApp = vi.fn(() => ({
     refreshBalance: vi.fn(),
     startPolling: vi.fn(),
     stopPolling: vi.fn(),
-    openExplorerTx: vi.fn(),
     lock: vi.fn(),
     resetWallet: vi.fn(),
     resetLockTimer: vi.fn(),
     accounts: [],
     activeAccountIndex: 0
+  },
+  settings: {
+    settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
+    setCurrency: vi.fn(),
+    setExplorer: vi.fn(),
+    setLockDuration: vi.fn()
   }
 }));

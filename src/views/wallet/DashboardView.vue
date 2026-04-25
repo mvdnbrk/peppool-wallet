@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { formatFiat, formatAmount } from '@/utils/constants';
+import { formatAmount } from '@/utils/constants';
+import * as fiat from '@/utils/fiat';
 
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
 
-const { router, wallet: walletStore, settings: settingsStore } = useApp();
+const { router, wallet: walletStore } = useApp();
 
 const isLoadingMore = ref(false);
 
@@ -70,8 +71,7 @@ async function handleLoadMore() {
         <span class="text-pep-green-light font-bold">PEP</span>
       </div>
       <p class="text-sm font-bold text-slate-500">
-        {{ settingsStore.currencySymbol }}{{ formatFiat(walletStore.balanceFiat) }}
-        {{ settingsStore.settings.currency }}
+        {{ fiat.format(walletStore.balance) }}
       </p>
     </div>
 

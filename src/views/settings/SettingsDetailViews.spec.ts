@@ -34,7 +34,7 @@ describe('Settings Detail Views', () => {
     vi.useFakeTimers();
     mockSettings = {
       settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
-      currencySymbol: '$',
+
       setCurrency: vi.fn(),
       setExplorer: vi.fn(),
       setLockDuration: vi.fn()

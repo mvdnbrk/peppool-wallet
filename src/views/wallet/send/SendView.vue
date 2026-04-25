@@ -4,8 +4,9 @@ import { useApp } from '@/composables/useApp';
 import { useSendTransaction } from '@/composables/useSendTransaction';
 import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
-import { UX_DELAY_FAST, UX_DELAY_SLOW, formatFiat } from '@/utils/constants';
+import { UX_DELAY_FAST, UX_DELAY_SLOW } from '@/utils/constants';
 import { pepeExplorer } from '@/utils/explorer';
+import * as fiat from '@/utils/fiat';
 
 import SendStepForm from './SendStepForm.vue';
 import SendStepReview from './SendStepReview.vue';
@@ -49,8 +50,7 @@ if (form.step === 2) form.step = 1;
 const displayBalance = computed(() => {
   const bal = walletStore.spendableBalance;
   if (form.isFiatMode) {
-    const price = walletStore.prices[settingsStore.settings.currency];
-    return `${settingsStore.currencySymbol}${formatFiat(bal * price)} ${settingsStore.settings.currency}`;
+    return fiat.format(bal);
   }
   return `${parseFloat(bal.toFixed(8))} PEP`;
 });

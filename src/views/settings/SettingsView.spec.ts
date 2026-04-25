@@ -37,7 +37,7 @@ describe('Settings Views Navigation', () => {
       wallet: mockWallet,
       settings: {
         settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
-        currencySymbol: '$',
+
         setCurrency: vi.fn(),
         setExplorer: vi.fn()
       },

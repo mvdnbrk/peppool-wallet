@@ -13,7 +13,6 @@ import {
   hasAddressActivity,
   fetchTransactions,
   fetchTransaction as apiFetchTransaction,
-  fetchPepPrice,
   fetchTipHeight,
   fetchUtxos,
   filterSpendableUtxos
@@ -21,6 +20,7 @@ import {
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
+import { refreshPrices, clearPrices } from '@/utils/fiat';
 import { getWalletState, saveWalletState, clearAllSettings } from '@/utils/settings';
 import { useLockoutStore } from './lockout';
 import { useSettingsStore } from './settings';
@@ -70,10 +70,6 @@ export const useWalletStore = defineStore('wallet', () => {
   const isUnlocked = ref(false);
   const balance = ref<number>(Number(localStorage.getItem('peppool_balance')) || 0);
   const spendableBalance = ref<number>(0);
-  const prices = ref({
-    USD: Number(localStorage.getItem('peppool_price_usd')) || 0,
-    EUR: Number(localStorage.getItem('peppool_price_eur')) || 0
-  });
 
   const transactions = ref<Transaction[]>([]);
   const canLoadMore = ref(true);
@@ -85,7 +81,6 @@ export const useWalletStore = defineStore('wallet', () => {
   const isMnemonicLoaded = computed(() => hasSessionKey.value);
   const activeAccount = computed(() => accounts.value[activeAccountIndex.value] || null);
   const address = computed(() => activeAccount.value?.address || null);
-  const balanceFiat = computed(() => balance.value * (prices.value[settings.currency] || 0));
 
   // Initialize transactions from cache
   try {
@@ -214,10 +209,7 @@ export const useWalletStore = defineStore('wallet', () => {
     if (!address.value) return;
     try {
       await refreshAuth();
-      const currentPrices = await fetchPepPrice();
-      prices.value = currentPrices;
-      localStorage.setItem('peppool_price_usd', currentPrices.USD.toString());
-      localStorage.setItem('peppool_price_eur', currentPrices.EUR.toString());
+      await refreshPrices();
 
       const tipHeight = await fetchTipHeight();
       if (!force && tipHeight === lastTipHeight && lastTipHeight > 0) return;
@@ -391,7 +383,7 @@ export const useWalletStore = defineStore('wallet', () => {
     isUnlocked.value = false;
     balance.value = 0;
     spendableBalance.value = 0;
-    prices.value = { USD: 0, EUR: 0 };
+    clearPrices();
     transactions.value = [];
     clearAuth();
 
@@ -479,8 +471,6 @@ export const useWalletStore = defineStore('wallet', () => {
     lockout,
     balance,
     spendableBalance,
-    balanceFiat,
-    prices,
     transactions,
     canLoadMore,
     checkSession,

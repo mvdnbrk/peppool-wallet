@@ -21,15 +21,9 @@ import {
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
-import { EXPLORERS, type ExplorerId, pepeExplorer } from '@/utils/explorer';
-import {
-  getSettings,
-  getWalletState,
-  saveSettings,
-  saveWalletState,
-  clearAllSettings
-} from '@/utils/settings';
+import { getWalletState, saveSettings, saveWalletState, clearAllSettings } from '@/utils/settings';
 import { useLockoutStore } from './lockout';
+import { useSettingsStore } from './settings';
 import { useInscriptionStore } from './inscriptions';
 
 export interface Account {
@@ -61,10 +55,11 @@ async function clearAutoLockAlarm() {
 
 export const useWalletStore = defineStore('wallet', () => {
   const lockout = useLockoutStore();
+  const settingsStore = useSettingsStore();
   const inscriptionStore = useInscriptionStore();
 
   // ── State ──
-  const settings = getSettings();
+  const { settings } = settingsStore;
   const walletStateData = getWalletState();
 
   const accounts = ref<Account[]>(walletStateData.accounts);
@@ -91,7 +86,6 @@ export const useWalletStore = defineStore('wallet', () => {
   const activeAccount = computed(() => accounts.value[activeAccountIndex.value] || null);
   const address = computed(() => activeAccount.value?.address || null);
   const balanceFiat = computed(() => balance.value * (prices.value[settings.currency] || 0));
-  const currencySymbol = computed(() => (settings.currency === 'USD' ? '$' : '€'));
 
   // Initialize transactions from cache
   try {
@@ -106,22 +100,6 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   // ── Actions ──
-  async function setCurrency(currency: 'USD' | 'EUR') {
-    await saveSettings({ currency });
-  }
-
-  async function setExplorer(explorer: ExplorerId) {
-    await saveSettings({ explorer });
-  }
-
-  function openExplorerTx(txid: string) {
-    pepeExplorer.openTx(settings.explorer, txid);
-  }
-
-  function openExplorerAddress(address: string) {
-    pepeExplorer.openAddress(settings.explorer, address);
-  }
-
   async function setLockDuration(minutes: number) {
     await saveSettings({ lockDuration: minutes });
     resetLockTimer();
@@ -507,16 +485,9 @@ export const useWalletStore = defineStore('wallet', () => {
     balance,
     spendableBalance,
     balanceFiat,
-    settings,
-    EXPLORERS,
-    currencySymbol,
     prices,
     transactions,
     canLoadMore,
-    setCurrency,
-    setExplorer,
-    openExplorerTx,
-    openExplorerAddress,
     setLockDuration,
     checkSession,
     createWallet,

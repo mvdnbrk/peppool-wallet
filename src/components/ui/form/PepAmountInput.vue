@@ -28,7 +28,7 @@ const emit = defineEmits<{
   'change-max': [isMax: boolean];
 }>();
 
-const { wallet: walletStore } = useApp();
+const { settings: settingsStore } = useApp();
 
 const inputAmount = ref('');
 let isInternalSync = false;
@@ -115,7 +115,7 @@ function toggleMode() {
     >
       <template #prefix>
         <span class="font-bold text-slate-500">
-          {{ isFiatMode ? walletStore.settings.currency : 'PEP' }}
+          {{ isFiatMode ? settingsStore.settings.currency : 'PEP' }}
         </span>
       </template>
 

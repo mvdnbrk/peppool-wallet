@@ -3,7 +3,7 @@ import { useApp } from '@/composables/useApp';
 
 import { EXPLORERS } from '@/utils/explorer';
 
-const { router, wallet: walletStore } = useApp();
+const { router, settings: settingsStore } = useApp();
 
 function getDurationLabel(val: number) {
   if (val < 60) return `${val} Minutes`;
@@ -26,7 +26,7 @@ function getDurationLabel(val: number) {
         >
           <template #right>
             <span class="text-offwhite text-sm font-medium uppercase">{{
-              walletStore.settings.currency
+              settingsStore.settings.currency
             }}</span>
           </template>
         </PepListItem>
@@ -39,7 +39,7 @@ function getDurationLabel(val: number) {
         >
           <template #right>
             <span class="text-offwhite text-sm font-medium">{{
-              EXPLORERS[walletStore.settings.explorer].name
+              EXPLORERS[settingsStore.settings.explorer].name
             }}</span>
           </template>
         </PepListItem>
@@ -52,7 +52,7 @@ function getDurationLabel(val: number) {
         >
           <template #right>
             <span class="text-offwhite text-sm font-medium">{{
-              getDurationLabel(walletStore.settings.lockDuration)
+              getDurationLabel(settingsStore.settings.lockDuration)
             }}</span>
           </template>
         </PepListItem>

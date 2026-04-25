@@ -43,21 +43,22 @@ describe('Wallet Views Navigation', () => {
       isUnlocked: true,
       balance: 0,
       balanceFiat: 0,
-      currencySymbol: '$',
-      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       prices: { USD: 0, EUR: 0 },
       transactions: [],
       canLoadMore: true,
       refreshBalance: vi.fn(),
       startPolling: vi.fn(),
-      stopPolling: vi.fn(),
-      openExplorerTx: vi.fn()
+      stopPolling: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
+      settings: {
+        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
+        currencySymbol: '$'
+      },
       route: { path: '/dashboard', params: { txid: 'test-tx' } } as any
-    });
+    } as any);
   });
 
   const global = {

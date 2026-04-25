@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWalletStore } from './wallet';
+import { useSettingsStore } from './settings';
 import { useLockoutStore } from './lockout';
 
 import { Transaction } from '@/models/Transaction';
@@ -301,10 +302,12 @@ describe('Wallet Store', () => {
 
     await store.refreshBalance();
 
-    await store.setCurrency('USD');
+    const settingsStore = useSettingsStore();
+
+    await settingsStore.setCurrency('USD');
     expect(store.balanceFiat).toBe(0.5); // 1 PEP * 0.5 USD
 
-    await store.setCurrency('EUR');
+    await settingsStore.setCurrency('EUR');
     expect(store.balanceFiat).toBe(0.4); // 1 PEP * 0.4 EUR
   });
 
@@ -357,51 +360,13 @@ describe('Wallet Store', () => {
     expect(store.spendableBalance).toBe(1); // Falls back to total
   });
 
-  it('should handle currency changes correctly', async () => {
-    const store = useWalletStore();
-    expect(store.settings.currency).toBe('USD');
-
-    await store.setCurrency('EUR');
-    expect(store.settings.currency).toBe('EUR');
-    expect(store.currencySymbol).toBe('€');
-    expect(chrome.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({ peppool_settings: expect.objectContaining({ currency: 'EUR' }) })
-    );
-  });
-
-  it('should handle explorer changes correctly', async () => {
-    const store = useWalletStore();
-    expect(store.settings.explorer).toBe('peppool');
-
-    await store.setExplorer('pepeblocks');
-    expect(store.settings.explorer).toBe('pepeblocks');
-    expect(chrome.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        peppool_settings: expect.objectContaining({ explorer: 'pepeblocks' })
-      })
-    );
-  });
-
-  it('should open explorer links through actions', async () => {
-    const store = useWalletStore();
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-
-    store.openExplorerTx('tx123');
-    expect(openSpy).toHaveBeenCalledWith('https://peppool.space/tx/tx123', '_blank');
-
-    await store.setExplorer('pepeblocks');
-    store.openExplorerAddress('addr123');
-    expect(openSpy).toHaveBeenCalledWith('https://pepeblocks.com/address/addr123', '_blank');
-
-    openSpy.mockRestore();
-  });
-
   it('should update and persist lock duration', async () => {
     const store = useWalletStore();
-    expect(store.settings.lockDuration).toBe(15);
+    const settingsStore = useSettingsStore();
+    expect(settingsStore.settings.lockDuration).toBe(15);
 
     await store.setLockDuration(180);
-    expect(store.settings.lockDuration).toBe(180);
+    expect(settingsStore.settings.lockDuration).toBe(180);
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
         peppool_settings: expect.objectContaining({ lockDuration: 180 })

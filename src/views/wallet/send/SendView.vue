@@ -5,12 +5,13 @@ import { useSendTransaction } from '@/composables/useSendTransaction';
 import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
 import { UX_DELAY_FAST, UX_DELAY_SLOW, formatFiat } from '@/utils/constants';
+import { pepeExplorer } from '@/utils/explorer';
 
 import SendStepForm from './SendStepForm.vue';
 import SendStepReview from './SendStepReview.vue';
 import SendStepSuccess from './SendStepSuccess.vue';
 
-const { router, wallet: walletStore } = useApp();
+const { router, wallet: walletStore, settings: settingsStore } = useApp();
 const {
   tx,
   txid,
@@ -48,8 +49,8 @@ if (form.step === 2) form.step = 1;
 const displayBalance = computed(() => {
   const bal = walletStore.spendableBalance;
   if (form.isFiatMode) {
-    const price = walletStore.prices[walletStore.settings.currency];
-    return `${walletStore.currencySymbol}${formatFiat(bal * price)} ${walletStore.settings.currency}`;
+    const price = walletStore.prices[settingsStore.settings.currency];
+    return `${settingsStore.currencySymbol}${formatFiat(bal * price)} ${settingsStore.settings.currency}`;
   }
   return `${parseFloat(bal.toFixed(8))} PEP`;
 });
@@ -160,7 +161,7 @@ function handleClose() {
 }
 
 function openExplorer() {
-  walletStore.openExplorerTx(form.txid);
+  pepeExplorer.openTx(settingsStore.settings.explorer, form.txid);
 }
 
 onMounted(async () => {

@@ -4,12 +4,12 @@ import * as price from '@/utils/price';
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
 
-const { router, wallet: walletStore } = useApp();
+const { router, wallet: walletStore, account } = useApp();
 
 const isLoadingMore = ref(false);
 
 const balanceFontSize = computed(() => {
-  const len = price.formatAmount(walletStore.balance).length;
+  const len = price.formatAmount(account.balance).length;
 
   switch (true) {
     case len > 16:
@@ -37,7 +37,7 @@ async function handleLoadMore() {
   if (isLoadingMore.value) return;
   isLoadingMore.value = true;
   try {
-    await walletStore.fetchMoreTransactions();
+    await account.fetchMoreTransactions(walletStore.address!);
   } catch (e) {
     // Error handled in store
   } finally {
@@ -65,12 +65,12 @@ async function handleLoadMore() {
       <p class="text-sm font-bold tracking-wider text-slate-400 uppercase">Total Balance</p>
       <div class="flex items-baseline justify-center space-x-2">
         <span class="text-offwhite font-bold transition-all duration-300" :class="balanceFontSize">
-          {{ price.formatAmount(walletStore.balance) }}
+          {{ price.formatAmount(account.balance) }}
         </span>
         <span class="text-pep-green-light font-bold">PEP</span>
       </div>
       <p class="text-sm font-bold text-slate-500">
-        {{ price.format(walletStore.balance) }}
+        {{ price.format(account.balance) }}
       </p>
     </div>
 
@@ -82,7 +82,7 @@ async function handleLoadMore() {
 
     <!-- Recent Activity -->
     <div
-      v-if="walletStore.transactions.length > 0"
+      v-if="account.transactions.length > 0"
       class="flex min-h-0 flex-1 flex-col space-y-3 overflow-hidden"
     >
       <h3 class="ml-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
@@ -92,14 +92,14 @@ async function handleLoadMore() {
       <div class="flex-1 overflow-y-auto pr-1 pb-4">
         <div class="space-y-2">
           <PepTransactionItem
-            v-for="tx in walletStore.transactions"
+            v-for="tx in account.transactions"
             :key="tx.txid"
             :tx="tx"
             @click="openDetail(tx.txid)"
           />
         </div>
 
-        <div v-if="walletStore.canLoadMore" class="mt-4 flex justify-center">
+        <div v-if="account.canLoadMoreTransactions" class="mt-4 flex justify-center">
           <button
             type="button"
             @click="handleLoadMore"

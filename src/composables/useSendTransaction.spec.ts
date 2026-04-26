@@ -41,19 +41,22 @@ vi.mock('@/utils/crypto', async (importOriginal) => {
 
 describe('useSendTransaction Composable', () => {
   let mockWallet: any;
+  let mockAccount: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAccount = {
+      spendableBalance: 5
+    };
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-      balance: 5,
-      spendableBalance: 5,
       refreshBalance: vi.fn(),
       isMnemonicLoaded: true,
       withMnemonic: vi.fn((fn: any) => Promise.resolve(fn('test mnemonic')))
     };
     vi.mocked(useApp).mockReturnValue({
       wallet: mockWallet,
+      account: mockAccount,
       settings: {
         settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 }
       }
@@ -74,7 +77,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should check insufficient funds against spendable balance', async () => {
-    mockWallet.spendableBalance = 0.001; // 100,000 ribbits
+    mockAccount.spendableBalance = 0.001; // 100,000 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { isInsufficientFunds, tx, isLoadingFees, loadFees } = useSendTransaction();
@@ -130,7 +133,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should validate step 1 inputs', async () => {
-    mockWallet.spendableBalance = 100;
+    mockAccount.spendableBalance = 100;
     const { validateStep1, tx } = useSendTransaction();
     tx.value.fees = { fastestFee: 1000 } as any;
 
@@ -176,7 +179,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should handle insufficient funds correctly', async () => {
-    mockWallet.spendableBalance = 0.000001; // 100 ribbits
+    mockAccount.spendableBalance = 0.000001; // 100 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { isInsufficientFunds, tx, loadFees } = useSendTransaction();
@@ -208,7 +211,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should estimate max amount from wallet balance', async () => {
-    mockWallet.spendableBalance = 10; // 1,000,000,000 ribbits
+    mockAccount.spendableBalance = 10; // 1,000,000,000 ribbits
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { maxRibbits, loadFees } = useSendTransaction();

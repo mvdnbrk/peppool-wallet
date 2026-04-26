@@ -12,7 +12,7 @@ import SendStepForm from './SendStepForm.vue';
 import SendStepReview from './SendStepReview.vue';
 import SendStepSuccess from './SendStepSuccess.vue';
 
-const { router, wallet: walletStore, settings: settingsStore } = useApp();
+const { router, account, settings: settingsStore } = useApp();
 const {
   tx,
   txid,
@@ -48,7 +48,7 @@ watch(txid, (newTxid) => {
 if (form.step === 2) form.step = 1;
 
 const displayBalance = computed(() => {
-  const bal = walletStore.spendableBalance;
+  const bal = account.spendableBalance;
   if (form.isFiatMode) {
     return price.format(bal);
   }

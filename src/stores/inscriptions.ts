@@ -11,22 +11,23 @@ interface PersistedData {
   lastSyncedHeight: number;
 }
 
-function storageKey(address: string): string {
-  return `peppool_inscriptions_${address}`;
+const STORAGE_KEY = 'peppool_inscriptions';
+function getCache(): Record<string, PersistedData> {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
 }
 
 function loadFromStorage(address: string): PersistedData {
-  try {
-    const raw = localStorage.getItem(storageKey(address));
-    if (raw) return JSON.parse(raw);
-  } catch {
-    /* ignore corrupt data */
-  }
-  return { inscriptions: {}, outputs: [], lastSyncedHeight: 0 };
+  return getCache()[address] || { inscriptions: {}, outputs: [], lastSyncedHeight: 0 };
 }
 
 function saveToStorage(address: string, data: PersistedData): void {
-  localStorage.setItem(storageKey(address), JSON.stringify(data));
+  const cache = getCache();
+  cache[address] = data;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
 }
 
 export const useInscriptionStore = defineStore('inscriptions', () => {

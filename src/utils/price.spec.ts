@@ -14,8 +14,10 @@ import {
   convert,
   format,
   formatFiat,
-  formatAmount
+  formatAmount,
+  formatPep
 } from './price';
+import { RIBBITS_PER_PEP } from './constants';
 
 describe('Price Module', () => {
   beforeEach(() => {
@@ -47,32 +49,32 @@ describe('Price Module', () => {
   });
 
   describe('convert', () => {
-    it('should convert PEP to fiat using current currency setting', async () => {
+    it('should convert ribbits to fiat using current currency setting', async () => {
       await refreshPrices();
-      expect(convert(10)).toBe(5); // 10 PEP * 0.5 USD
+      expect(convert(10 * RIBBITS_PER_PEP)).toBe(5); // 10 PEP * 0.5 USD
     });
 
     it('should respect currency setting', async () => {
       await refreshPrices();
       await saveSettings({ currency: 'EUR' });
-      expect(convert(10)).toBe(4); // 10 PEP * 0.4 EUR
+      expect(convert(10 * RIBBITS_PER_PEP)).toBe(4); // 10 PEP * 0.4 EUR
     });
 
     it('should return 0 when no prices loaded', () => {
-      expect(convert(10)).toBe(0);
+      expect(convert(10 * RIBBITS_PER_PEP)).toBe(0);
     });
   });
 
   describe('format', () => {
-    it('should format PEP amount as fiat string with symbol and code', async () => {
+    it('should format ribbits as fiat string with symbol and code', async () => {
       await refreshPrices();
-      expect(format(10)).toBe('$5.00 USD');
+      expect(format(10 * RIBBITS_PER_PEP)).toBe('$5.00 USD');
     });
 
     it('should format with EUR when currency is EUR', async () => {
       await refreshPrices();
       await saveSettings({ currency: 'EUR' });
-      expect(format(10)).toBe('€4.00 EUR');
+      expect(format(10 * RIBBITS_PER_PEP)).toBe('€4.00 EUR');
     });
 
     it('should handle zero balance', () => {
@@ -82,7 +84,15 @@ describe('Price Module', () => {
     it('should handle tiny values with extra precision', async () => {
       vi.mocked(api.fetchPepPrice).mockResolvedValue({ USD: 0.00001, EUR: 0.000009 });
       await refreshPrices();
-      expect(format(1)).toBe('$0.000010 USD');
+      expect(format(RIBBITS_PER_PEP)).toBe('$0.000010 USD');
+    });
+  });
+
+  describe('formatPep', () => {
+    it('should format ribbits as PEP string', () => {
+      expect(formatPep(RIBBITS_PER_PEP)).toBe('1 PEP');
+      expect(formatPep(123_456_789)).toBe('1.23456789 PEP');
+      expect(formatPep(0)).toBe('0 PEP');
     });
   });
 

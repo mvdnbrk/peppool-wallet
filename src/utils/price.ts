@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import { getSettings } from './settings';
 import { fetchPepPrice } from './api';
+import { RIBBITS_PER_PEP } from './constants';
 
 export interface Prices {
   USD: number;
@@ -43,21 +44,29 @@ export function clearPrices(): void {
 }
 
 /**
- * Convert a PEP amount to fiat using the current currency setting.
+ * Convert a ribbits amount to fiat using the current currency setting.
  */
-export function convert(pep: number): number {
+export function convert(ribbits: number): number {
   const { currency } = getSettings();
-  return pep * (prices[currency] || 0);
+  return (ribbits / RIBBITS_PER_PEP) * (prices[currency] || 0);
 }
 
 /**
- * Format a PEP amount as a fiat string using the current currency setting.
+ * Format a ribbits amount as a fiat string using the current currency setting.
  * e.g. "$1.23 USD"
  */
-export function format(pep: number): string {
+export function format(ribbits: number): string {
   const { currency } = getSettings();
   const symbol = CURRENCY_SYMBOLS[currency] || '';
-  return `${symbol}${formatFiat(convert(pep))} ${currency}`;
+  return `${symbol}${formatFiat(convert(ribbits))} ${currency}`;
+}
+
+/**
+ * Format a ribbits amount as a PEP string with comma grouping.
+ * e.g. 100_000_000 → "1 PEP", 123_456_789 → "1.23456789 PEP"
+ */
+export function formatPep(ribbits: number): string {
+  return `${formatAmount(ribbits / RIBBITS_PER_PEP)} PEP`;
 }
 
 /**

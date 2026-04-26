@@ -48,11 +48,11 @@ watch(txid, (newTxid) => {
 if (form.step === 2) form.step = 1;
 
 const displayBalance = computed(() => {
-  const bal = account.spendableBalance;
+  const ribbits = account.spendableBalanceRibbits;
   if (form.isFiatMode) {
-    return price.format(bal);
+    return price.format(ribbits);
   }
-  return `${parseFloat(bal.toFixed(8))} PEP`;
+  return price.formatPep(ribbits);
 });
 
 const canReview = computed(() => {

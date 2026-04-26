@@ -34,8 +34,8 @@ export const useApp = vi.fn(() => ({
     activeAccountIndex: 0
   },
   account: {
-    balance: 0,
-    spendableBalance: 0,
+    balanceRibbits: 0,
+    spendableBalanceRibbits: 0,
     transactions: [],
     canLoadMoreTransactions: false,
     loadCachedData: vi.fn(),

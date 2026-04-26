@@ -46,7 +46,7 @@ describe('useSendTransaction Composable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAccount = {
-      spendableBalance: 5
+      spendableBalanceRibbits: 500_000_000
     };
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
@@ -77,7 +77,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should check insufficient funds against spendable balance', async () => {
-    mockAccount.spendableBalance = 0.001; // 100,000 ribbits
+    mockAccount.spendableBalanceRibbits = 100_000;
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { isInsufficientFunds, tx, isLoadingFees, loadFees } = useSendTransaction();
@@ -133,7 +133,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should validate step 1 inputs', async () => {
-    mockAccount.spendableBalance = 100;
+    mockAccount.spendableBalanceRibbits = 10_000_000_000;
     const { validateStep1, tx } = useSendTransaction();
     tx.value.fees = { fastestFee: 1000 } as any;
 
@@ -179,7 +179,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should handle insufficient funds correctly', async () => {
-    mockAccount.spendableBalance = 0.000001; // 100 ribbits
+    mockAccount.spendableBalanceRibbits = 100;
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { isInsufficientFunds, tx, loadFees } = useSendTransaction();
@@ -211,7 +211,7 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('should estimate max amount from wallet balance', async () => {
-    mockAccount.spendableBalance = 10; // 1,000,000,000 ribbits
+    mockAccount.spendableBalanceRibbits = 1_000_000_000;
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
 
     const { maxRibbits, loadFees } = useSendTransaction();

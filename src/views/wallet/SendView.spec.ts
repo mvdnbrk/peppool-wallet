@@ -90,7 +90,7 @@ describe('SendView', () => {
     mockSendTransaction.isInsufficientFunds.value = false;
 
     mockAccount = {
-      spendableBalance: 7
+      spendableBalanceRibbits: 700_000_000
     };
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
@@ -174,7 +174,7 @@ describe('SendView', () => {
   });
 
   it('should display spendable balance on the send form', async () => {
-    mockAccount.spendableBalance = 5;
+    mockAccount.spendableBalanceRibbits = 500_000_000;
 
     const wrapper = mount(SendView, { global });
     // @ts-ignore

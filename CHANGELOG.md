@@ -8,6 +8,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
 
 ### Changed
+- Use ribbits as canonical unit in stores and composables; format at display time ([#25](https://github.com/mvdnbrk/peppool-wallet/issues/25))
 - Split wallet store into separate wallet and account stores ([#20](https://github.com/mvdnbrk/peppool-wallet/pull/20))
 - Consolidate price logic into single price module with unified cache key ([#24](https://github.com/mvdnbrk/peppool-wallet/pull/24))
 - Move settings and wallet state to chrome.storage.local with dedicated settings store ([#23](https://github.com/mvdnbrk/peppool-wallet/pull/23))

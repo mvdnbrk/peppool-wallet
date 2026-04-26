@@ -29,22 +29,15 @@ export function useSendTransaction() {
   const txid = ref('');
   const isLoadingFees = ref(true);
 
-  const spendableBalanceRibbits = computed(() =>
-    Math.round(account.spendableBalance * RIBBITS_PER_PEP)
-  );
-
-  const currentPrice = computed(() => price.convert(1));
+  const currentPrice = computed(() => price.convert(RIBBITS_PER_PEP));
 
   const isInsufficientFunds = computed(() => {
     if (isLoadingFees.value || tx.value.amountRibbits <= 0) return false;
     const needed = tx.value.amountRibbits + tx.value.estimatedFeeRibbits;
-    return spendableBalanceRibbits.value < needed;
+    return account.spendableBalanceRibbits < needed;
   });
 
-  const displayFee = computed(() => {
-    const feePep = tx.value.estimatedFeeRibbits / RIBBITS_PER_PEP;
-    return `${parseFloat(feePep.toFixed(8))} PEP`;
-  });
+  const displayFee = computed(() => price.formatPep(tx.value.estimatedFeeRibbits));
 
   const maxRibbits = computed(() => {
     const txSize = estimateTxSize(1, 2);
@@ -52,7 +45,7 @@ export function useSendTransaction() {
       ? Math.max(RECOMMENDED_FEE_RATE, tx.value.fees.fastestFee)
       : RECOMMENDED_FEE_RATE;
     const feeRibbits = Math.ceil(txSize * feeRate);
-    return Math.max(0, spendableBalanceRibbits.value - feeRibbits);
+    return Math.max(0, account.spendableBalanceRibbits - feeRibbits);
   });
 
   async function loadFees() {
@@ -90,7 +83,7 @@ export function useSendTransaction() {
     }
 
     const needed = amountRibbits + tx.value.estimatedFeeRibbits;
-    if (spendableBalanceRibbits.value < needed) {
+    if (account.spendableBalanceRibbits < needed) {
       throw new Error('Insufficient balance');
     }
 

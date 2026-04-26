@@ -26,26 +26,51 @@ const {
   send
 } = useSendTransaction();
 
-const form = useForm(
-  {
-    recipient: '',
-    amountRibbits: 0,
-    isFiatMode: false,
-    password: '',
-    isMax: false,
-    step: 1,
-    txid: ''
-  },
-  { persistKey: 'send', sensitiveFields: ['password'] }
-);
+const form = useForm({
+  recipient: '',
+  amountRibbits: 0,
+  isFiatMode: false,
+  password: '',
+  isMax: false,
+  step: 1,
+  txid: ''
+});
+
+// Draft persists across popup close in chrome.storage.session, dies on browser
+// restart. Password is in-memory only — never written to storage.
+const SESSION_KEY = 'send_draft';
+const DRAFT_FIELDS = ['recipient', 'amountRibbits', 'isFiatMode', 'isMax', 'step', 'txid'] as const;
+
+async function loadDraft() {
+  if (!chrome?.storage?.session) return;
+  const data = await chrome.storage.session.get(SESSION_KEY);
+  const draft = data[SESSION_KEY] as Record<string, unknown> | undefined;
+  if (!draft) return;
+  for (const field of DRAFT_FIELDS) {
+    if (draft[field] !== undefined) (form as any)[field] = draft[field];
+  }
+  // Step 2 can't survive remount — password isn't persisted
+  if (form.step === 2) form.step = 1;
+}
+
+function saveDraft() {
+  if (!chrome?.storage?.session) return;
+  const draft: Record<string, unknown> = {};
+  for (const field of DRAFT_FIELDS) draft[field] = (form as any)[field];
+  chrome.storage.session.set({ [SESSION_KEY]: draft });
+}
+
+function clearDraft() {
+  if (!chrome?.storage?.session) return;
+  chrome.storage.session.remove(SESSION_KEY);
+}
+
+watch(() => DRAFT_FIELDS.map((f) => (form as any)[f]), saveDraft);
 
 // Sync txid from composable to persisted form
 watch(txid, (newTxid) => {
   if (newTxid) form.txid = newTxid;
 });
-
-// Step 2 can't survive remount — password isn't persisted
-if (form.step === 2) form.step = 1;
 
 const displayBalance = computed(() => {
   const ribbits = account.spendableBalanceRibbits;
@@ -152,11 +177,13 @@ async function handleSend() {
 
 function handleCancel() {
   form.reset();
+  clearDraft();
   router.push('/dashboard');
 }
 
 function handleClose() {
   form.reset();
+  clearDraft();
   router.push('/dashboard');
 }
 
@@ -165,6 +192,8 @@ function openExplorer() {
 }
 
 onMounted(async () => {
+  await loadDraft();
+
   // Sync persisted form data to tx object on mount
   if (form.recipient) {
     tx.value.recipient = form.recipient;

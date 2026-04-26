@@ -46,7 +46,6 @@ describe('Wallet Lock vs Reset Behavior', () => {
     // 1. Setup a wallet and some mock session data
     await store.importWallet('mnemonic', 'password');
     localStorage.setItem('peppool_transactions', '[{"txid":"1"}]');
-    localStorage.setItem('peppool_form_send', '{"recipient":"foo","amount":"10"}');
 
     expect(store.isUnlocked).toBe(true);
     expect(store.encryptedMnemonic).toBe('pbkdf2:vault');
@@ -65,8 +64,14 @@ describe('Wallet Lock vs Reset Behavior', () => {
     expect(store.isMnemonicLoaded).toBe(false);
     expect(localStorage.getItem('peppool_transactions')).toBeNull();
 
-    // CHECK: Form data is wiped for privacy
-    expect(localStorage.getItem('peppool_form_send')).toBeNull();
+    // CHECK: Form drafts wiped from chrome.storage.session for privacy
+    expect(chrome.storage.session.remove).toHaveBeenCalledWith([
+      'sessionStartTime',
+      'dataKey',
+      'send_draft',
+      'import_draft_mnemonic',
+      'import_draft_ts'
+    ]);
   });
 
   it('resetWallet() should wipe EVERYTHING', async () => {

@@ -70,25 +70,6 @@ describe('useForm Utility', () => {
     expect(form.isProcessing).toBe(false);
     expect(form.hasError()).toBe(false);
   });
-
-  it('should persist data to localStorage', async () => {
-    const spy = vi.spyOn(Storage.prototype, 'setItem');
-    const form = useForm({ name: 'pepe' }, { persistKey: 'test' });
-
-    form.name = 'kek';
-    await nextTick();
-
-    expect(spy).toHaveBeenCalledWith('peppool_form_test', expect.stringContaining('kek'));
-    spy.mockRestore();
-  });
-
-  it('should restore data from localStorage', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(JSON.stringify({ name: 'stored' }));
-    const form = useForm({ name: 'initial' }, { persistKey: 'test' });
-
-    expect(form.name).toBe('stored');
-    vi.restoreAllMocks();
-  });
 });
 
 describe('Password Validation Logic', () => {

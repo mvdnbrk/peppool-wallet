@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { computed, nextTick, onMounted, watch } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { useSendTransaction } from '@/composables/useSendTransaction';
+import { useSessionDraft } from '@/composables/useSessionDraft';
 import { isValidAddress } from '@/utils/crypto';
 import { useForm } from '@/utils/form';
 import { UX_DELAY_FAST, UX_DELAY_SLOW } from '@/utils/constants';
@@ -38,34 +39,17 @@ const form = useForm({
 
 // Draft persists across popup close in chrome.storage.session, dies on browser
 // restart. Password is in-memory only — never written to storage.
-const SESSION_KEY = 'send_draft';
-const DRAFT_FIELDS = ['recipient', 'amountRibbits', 'isFiatMode', 'isMax', 'step', 'txid'] as const;
-
-async function loadDraft() {
-  if (!chrome?.storage?.session) return;
-  const data = await chrome.storage.session.get(SESSION_KEY);
-  const draft = data[SESSION_KEY] as Record<string, unknown> | undefined;
-  if (!draft) return;
-  for (const field of DRAFT_FIELDS) {
-    if (draft[field] !== undefined) (form as any)[field] = draft[field];
-  }
-  // Step 2 can't survive remount — password isn't persisted
-  if (form.step === 2) form.step = 1;
-}
-
-function saveDraft() {
-  if (!chrome?.storage?.session) return;
-  const draft: Record<string, unknown> = {};
-  for (const field of DRAFT_FIELDS) draft[field] = (form as any)[field];
-  chrome.storage.session.set({ [SESSION_KEY]: draft });
-}
-
-function clearDraft() {
-  if (!chrome?.storage?.session) return;
-  chrome.storage.session.remove(SESSION_KEY);
-}
-
-watch(() => DRAFT_FIELDS.map((f) => (form as any)[f]), saveDraft);
+const draft = useSessionDraft({
+  key: 'send_draft',
+  source: () => ({
+    recipient: form.recipient,
+    amountRibbits: form.amountRibbits,
+    isFiatMode: form.isFiatMode,
+    isMax: form.isMax,
+    step: form.step,
+    txid: form.txid
+  })
+});
 
 // Sync txid from composable to persisted form
 watch(txid, (newTxid) => {
@@ -177,13 +161,13 @@ async function handleSend() {
 
 function handleCancel() {
   form.reset();
-  clearDraft();
+  draft.clear();
   router.push('/dashboard');
 }
 
 function handleClose() {
   form.reset();
-  clearDraft();
+  draft.clear();
   router.push('/dashboard');
 }
 
@@ -192,9 +176,19 @@ function openExplorer() {
 }
 
 onMounted(async () => {
-  await loadDraft();
+  const data = await draft.load();
+  if (data) {
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) (form as any)[key] = value;
+    }
+    // Step 2 can't survive remount — password isn't persisted
+    if (form.step === 2) form.step = 1;
+  }
 
-  // Sync persisted form data to tx object on mount
+  // Let the form's auto-clear-error watcher flush against the restored
+  // values before we run validation, so handleAddressBlur's error sticks.
+  await nextTick();
+
   if (form.recipient) {
     tx.value.recipient = form.recipient;
     handleAddressBlur();

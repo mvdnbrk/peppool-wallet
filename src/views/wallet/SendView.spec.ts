@@ -217,7 +217,7 @@ describe('SendView', () => {
     vi.mocked(isValidAddress).mockReturnValue(false);
 
     vi.mocked(chrome.storage.session.get).mockResolvedValueOnce({
-      send_draft: { recipient: 'invalid-addr' }
+      send_draft: { data: { recipient: 'invalid-addr' }, timestamp: Date.now() }
     });
 
     const wrapper = mount(SendView, { global });

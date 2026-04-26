@@ -27,20 +27,25 @@ const global = {
 
 describe('Settings Detail Views', () => {
   let mockWallet: any;
+  let mockSettings: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    mockWallet = {
-      selectedCurrency: 'USD',
-      selectedExplorer: 'peppool',
-      lockDuration: 15,
+    mockSettings = {
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
+
       setCurrency: vi.fn(),
+      setExplorer: vi.fn(),
       setLockDuration: vi.fn()
+    };
+    mockWallet = {
+      resetLockTimer: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
       wallet: mockWallet,
+      settings: mockSettings,
       route: { path: '/settings' } as any
     } as any);
   });
@@ -53,11 +58,11 @@ describe('Settings Detail Views', () => {
     });
 
     it('should handle labels for hours correctly', async () => {
-      mockWallet.lockDuration = 60;
+      mockSettings.settings.lockDuration = 60;
       const wrapper = mount(PreferencesView, { global });
       expect(wrapper.text()).toContain('1 Hour');
 
-      mockWallet.lockDuration = 180;
+      mockSettings.settings.lockDuration = 180;
       const wrapper2 = mount(PreferencesView, { global });
       expect(wrapper2.text()).toContain('3 Hours');
     });
@@ -83,7 +88,8 @@ describe('Settings Detail Views', () => {
 
       await radioList.vm.$emit('update:modelValue', 60);
 
-      expect(mockWallet.setLockDuration).toHaveBeenCalledWith(60);
+      expect(mockSettings.setLockDuration).toHaveBeenCalledWith(60);
+      expect(mockWallet.resetLockTimer).toHaveBeenCalled();
       vi.advanceTimersByTime(200);
       expect(backMock).toHaveBeenCalled();
     });
@@ -96,7 +102,7 @@ describe('Settings Detail Views', () => {
 
       await radioList.vm.$emit('update:modelValue', 'EUR');
 
-      expect(mockWallet.setCurrency).toHaveBeenCalledWith('EUR');
+      expect(mockSettings.setCurrency).toHaveBeenCalledWith('EUR');
       vi.advanceTimersByTime(200);
       expect(backMock).toHaveBeenCalled();
     });

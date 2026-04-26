@@ -3,7 +3,7 @@ import { useApp } from '@/composables/useApp';
 
 import { EXPLORERS, type ExplorerId } from '@/utils/explorer';
 
-const { router, wallet: walletStore } = useApp();
+const { router, settings: settingsStore } = useApp();
 
 const options = Object.entries(EXPLORERS).map(([id, data]) => ({
   value: id as ExplorerId,
@@ -11,7 +11,7 @@ const options = Object.entries(EXPLORERS).map(([id, data]) => ({
 }));
 
 function selectExplorer(id: ExplorerId) {
-  walletStore.setExplorer(id);
+  settingsStore.setExplorer(id);
   setTimeout(() => router.back(), 200);
 }
 </script>
@@ -27,7 +27,7 @@ function selectExplorer(id: ExplorerId) {
       </p>
 
       <PepRadioList
-        v-model="walletStore.selectedExplorer"
+        :modelValue="settingsStore.settings.explorer"
         :options="options"
         name="explorer"
         @update:modelValue="selectExplorer"

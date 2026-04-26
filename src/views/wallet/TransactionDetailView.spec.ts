@@ -65,7 +65,6 @@ describe('TransactionDetailView', () => {
     });
     mockWallet = reactive({
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-      openExplorerTx: vi.fn(),
       refreshBalance: vi.fn(),
       startPolling: vi.fn(),
       stopPolling: vi.fn()
@@ -74,8 +73,11 @@ describe('TransactionDetailView', () => {
       router: { push: pushMock } as any,
       wallet: mockWallet,
       account: mockAccount,
+      settings: {
+        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 }
+      },
       route: { params: { txid: mockRawTx.txid } } as any
-    });
+    } as any);
   });
 
   it('should show Network Fee only for outgoing transactions', async () => {
@@ -141,6 +143,7 @@ describe('TransactionDetailView', () => {
   });
 
   it('should call openExplorer with correct txid', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(mockRawTx, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
@@ -153,7 +156,8 @@ describe('TransactionDetailView', () => {
 
     await wrapper.find('#view-on-explorer').trigger('click');
 
-    expect(mockWallet.openExplorerTx).toHaveBeenCalledWith(mockRawTx.txid);
+    expect(openSpy).toHaveBeenCalledWith(`https://peppool.space/tx/${mockRawTx.txid}`, '_blank');
+    openSpy.mockRestore();
   });
 
   it('should update details when store transaction list changes', async () => {

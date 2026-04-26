@@ -143,9 +143,7 @@ export function seedDemoData(store: any) {
     localStorage.setItem('peppool_balance', '69');
 
     // Set prices
-    store.prices = { USD: 0.0042, EUR: 0.0039 };
-    localStorage.setItem('peppool_price_usd', '0.0042');
-    localStorage.setItem('peppool_price_eur', '0.0039');
+    localStorage.setItem('peppool_prices', JSON.stringify({ USD: 0.0042, EUR: 0.0039 }));
 
     // Set transactions (2 incoming + 1 outgoing + 1 unconfirmed)
     const address = store.address || DEMO_ADDRESS;

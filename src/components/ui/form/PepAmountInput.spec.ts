@@ -6,8 +6,9 @@ import { useApp } from '@/composables/useApp';
 // Mock useApp
 vi.mock('@/composables/useApp', () => ({
   useApp: vi.fn(() => ({
-    wallet: {
-      selectedCurrency: 'USD'
+    wallet: {},
+    settings: {
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 }
     }
   }))
 }));

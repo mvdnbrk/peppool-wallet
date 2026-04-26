@@ -6,6 +6,8 @@ import { useLockoutStore } from './lockout';
 
 import { Transaction } from '@/models/Transaction';
 import * as api from '@/utils/api';
+import * as settings from '@/utils/settings';
+import { resetSettingsState } from '@/utils/settings';
 
 // Mock the API and Crypto utils
 vi.mock('@/utils/api', async (importOriginal) => {
@@ -35,6 +37,7 @@ describe('Wallet Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     localStorage.clear();
+    resetSettingsState();
     vi.clearAllMocks();
   });
 
@@ -57,7 +60,9 @@ describe('Wallet Store', () => {
     expect(store.accounts[0].label).toBe('Account 1');
     expect(store.accounts[0].path).toBe("m/44'/3434'/0'/0/0");
     expect(localStorage.getItem('peppool_vault')).not.toBeNull();
-    expect(localStorage.getItem('peppool_accounts')).not.toBeNull();
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ peppool_accounts: expect.any(String) })
+    );
   });
 
   it('should sync accounts to chrome.storage.local on wallet creation', async () => {
@@ -109,26 +114,20 @@ describe('Wallet Store', () => {
     await store.createWallet('password123');
     store.lock();
 
-    // Manually corrupt the stored accounts in localStorage
-    localStorage.setItem(
-      'peppool_accounts',
-      JSON.stringify([
-        {
-          address: 'PcorruptedAddress',
-          path: "m/44'/3434'/0'/0/0",
-          label: 'Account 1'
-        }
-      ])
-    );
-    localStorage.setItem('peppool_active_account', '0');
+    // Mock getWalletState to return corrupted accounts for re-init
+    const spy = vi.spyOn(settings, 'getWalletState').mockReturnValue({
+      accounts: [{ address: 'PcorruptedAddress', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }],
+      activeAccountIndex: 0
+    });
 
-    // Re-init store from corrupted localStorage
+    // Re-init store from corrupted state
     setActivePinia(createPinia());
     const freshStore = useWalletStore();
 
     const success = await freshStore.unlock('password123');
     expect(success).toBe(false);
     expect(freshStore.isUnlocked).toBe(false);
+    spy.mockRestore();
   });
 
   it('should handle failed unlock and trigger lockout after 5 attempts', async () => {
@@ -149,11 +148,10 @@ describe('Wallet Store', () => {
 
   it('should auto-unlock via checkSession if chrome.storage has mnemonic', async () => {
     localStorage.setItem('peppool_vault', 'any-vault');
-    localStorage.setItem(
-      'peppool_accounts',
-      JSON.stringify([{ address: 'any-addr', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }])
-    );
-    localStorage.setItem('peppool_active_account', '0');
+    vi.spyOn(settings, 'getWalletState').mockReturnValue({
+      accounts: [{ address: 'any-addr', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }],
+      activeAccountIndex: 0
+    });
 
     // Mock chrome.storage.session.get — store returns sessionStartTime and dataKey
     (global.chrome.storage.session.get as any).mockResolvedValue({
@@ -186,18 +184,23 @@ describe('Wallet Store', () => {
     const store = useWalletStore();
     localStorage.setItem('other_app_key', 'keep-me');
     await store.createWallet('password123');
-    store.prices.USD = 10;
-
     expect(store.isCreated).toBe(true);
     await store.resetWallet();
 
     expect(store.address).toBeNull();
     expect(store.accounts).toHaveLength(0);
     expect(store.isCreated).toBe(false);
-    expect(store.prices.USD).toBe(0);
     expect(localStorage.getItem('peppool_vault')).toBeNull();
     expect(localStorage.getItem('other_app_key')).toBe('keep-me');
-    expect(chrome.storage.local.remove).toHaveBeenCalledWith('peppool_permissions');
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith([
+      'peppool_settings',
+      'peppool_accounts',
+      'peppool_active_account'
+    ]);
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith([
+      'peppool_permissions',
+      'peppool_lockout'
+    ]);
     expect(chrome.storage.session.remove).toHaveBeenCalledWith(['sessionStartTime', 'dataKey']);
   });
 
@@ -230,7 +233,9 @@ describe('Wallet Store', () => {
 
     await store.switchAccount(1);
     expect(store.address).toBe('addr2');
-    expect(localStorage.getItem('peppool_active_account')).toBe('1');
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ peppool_active_account: '1' })
+    );
     const account = useAccountStore();
     expect(account.balance).toBe(1); // Should be refreshed on switch
     expect(account.transactions).toHaveLength(0); // Should be cleared on switch
@@ -263,8 +268,11 @@ describe('Wallet Store', () => {
 
     await store.renameAccount(0, 'New Name');
     expect(store.accounts[0].label).toBe('New Name');
-    expect(JSON.parse(localStorage.getItem('peppool_accounts')!).length).toBe(1);
-    expect(JSON.parse(localStorage.getItem('peppool_accounts')!)[0].label).toBe('New Name');
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        peppool_accounts: expect.stringContaining('New Name')
+      })
+    );
   });
 
   it('should sync accounts to chrome.storage.local on changes', async () => {
@@ -277,27 +285,6 @@ describe('Wallet Store', () => {
         peppool_active_account: '0'
       })
     );
-  });
-
-  it('should calculate fiat balance correctly', async () => {
-    const store = useWalletStore();
-    // Mock an account
-    store.accounts = [
-      {
-        address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
-        path: "m/44'/3434'/0'/0/0",
-        label: 'Account 1'
-      }
-    ];
-    store.activeAccountIndex = 0;
-
-    await store.refreshBalance();
-
-    store.setCurrency('USD');
-    expect(store.balanceFiat).toBe(0.5); // 1 PEP * 0.5 USD
-
-    store.setCurrency('EUR');
-    expect(store.balanceFiat).toBe(0.4); // 1 PEP * 0.4 EUR
   });
 
   it('should compute spendable balance excluding inscription UTXOs', async () => {
@@ -351,53 +338,10 @@ describe('Wallet Store', () => {
     expect(account.spendableBalance).toBe(1); // Falls back to total
   });
 
-  it('should handle currency changes correctly', () => {
-    const store = useWalletStore();
-    expect(store.selectedCurrency).toBe('USD');
-
-    store.setCurrency('EUR');
-    expect(store.selectedCurrency).toBe('EUR');
-    expect(store.currencySymbol).toBe('€');
-    expect(localStorage.getItem('peppool_currency')).toBe('EUR');
-  });
-
-  it('should handle explorer changes correctly', () => {
-    const store = useWalletStore();
-    expect(store.selectedExplorer).toBe('peppool');
-
-    store.setExplorer('pepeblocks');
-    expect(store.selectedExplorer).toBe('pepeblocks');
-    expect(localStorage.getItem('peppool_explorer')).toBe('pepeblocks');
-  });
-
-  it('should open explorer links through actions', () => {
-    const store = useWalletStore();
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-
-    store.openExplorerTx('tx123');
-    expect(openSpy).toHaveBeenCalledWith('https://peppool.space/tx/tx123', '_blank');
-
-    store.setExplorer('pepeblocks');
-    store.openExplorerAddress('addr123');
-    expect(openSpy).toHaveBeenCalledWith('https://pepeblocks.com/address/addr123', '_blank');
-
-    openSpy.mockRestore();
-  });
-
-  it('should update and persist lock duration', () => {
-    const store = useWalletStore();
-    expect(store.lockDuration).toBe(15);
-
-    store.setLockDuration(180);
-    expect(store.lockDuration).toBe(180);
-    expect(localStorage.getItem('peppool_lock_duration')).toBe('180');
-  });
-
   it('should trigger lock after timeout', async () => {
     vi.useFakeTimers();
     const store = useWalletStore();
     store.isUnlocked = true;
-    store.setLockDuration(15);
     await store.resetLockTimer();
 
     vi.advanceTimersByTime(14 * 60 * 1000);
@@ -465,19 +409,19 @@ describe('Wallet Store', () => {
     it('should restore transactions from cache on initialization', () => {
       const addr = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
       localStorage.setItem('peppool_transactions', JSON.stringify({ [addr]: [mockTx] }));
-      localStorage.setItem('peppool_active_account', '0');
-      localStorage.setItem(
-        'peppool_accounts',
-        JSON.stringify([
+      vi.spyOn(settings, 'getWalletState').mockReturnValue({
+        accounts: [
           {
-            address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
+            address: addr,
             path: "m/44'/3434'/0'/0/0",
             label: 'Account 1'
           }
-        ])
-      );
+        ],
+        activeAccountIndex: 0
+      });
 
-      const store = useWalletStore();
+      setActivePinia(createPinia());
+      useWalletStore();
       const account = useAccountStore();
       expect(account.transactions).toHaveLength(1);
       expect(account.transactions[0]!.txid).toBe(mockTx.txid);

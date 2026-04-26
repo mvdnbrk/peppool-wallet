@@ -10,18 +10,19 @@ const backMock = vi.fn();
 vi.mock('@/composables/useApp');
 
 describe('PreferredExplorerView', () => {
-  let mockWallet: any;
+  let mockSettings: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    mockWallet = {
-      selectedExplorer: 'peppool',
+    mockSettings = {
+      settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 },
       setExplorer: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock, back: backMock } as any,
-      wallet: mockWallet,
+      wallet: {} as any,
+      settings: mockSettings,
       route: { path: '/settings/explorer' } as any
     } as any);
   });
@@ -39,7 +40,7 @@ describe('PreferredExplorerView', () => {
     const radioList = wrapper.findComponent(PepRadioList);
     await radioList.vm.$emit('update:modelValue', 'pepeblocks');
 
-    expect(mockWallet.setExplorer).toHaveBeenCalledWith('pepeblocks');
+    expect(mockSettings.setExplorer).toHaveBeenCalledWith('pepeblocks');
     vi.advanceTimersByTime(200);
     expect(backMock).toHaveBeenCalled();
   });

@@ -95,20 +95,17 @@ describe('SendView', () => {
     mockWallet = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       isMnemonicLoaded: true,
-      selectedCurrency: 'USD',
-      currencySymbol: '$',
-      balance: 7,
-      prices: { USD: 10, EUR: 8 },
-      refreshBalance: vi.fn(),
-      openExplorerTx: vi.fn(),
-      openExplorerTxLink: vi.fn()
+      refreshBalance: vi.fn()
     };
     vi.mocked(useApp).mockReturnValue({
       router: { push: pushMock } as any,
       wallet: mockWallet,
       account: mockAccount,
+      settings: {
+        settings: { currency: 'USD', explorer: 'peppool', lockDuration: 15 }
+      },
       route: { path: '/send' } as any
-    });
+    } as any);
   });
 
   const global = {
@@ -361,7 +358,8 @@ describe('SendView', () => {
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
   });
 
-  it('openExplorer should call store.openExplorerTx', () => {
+  it('openExplorer should open explorer link', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     const wrapper = mount(SendView, { global });
     // @ts-ignore
     wrapper.vm.form.txid = 'test-txid';
@@ -369,6 +367,7 @@ describe('SendView', () => {
     // @ts-ignore
     wrapper.vm.openExplorer();
 
-    expect(mockWallet.openExplorerTx).toHaveBeenCalledWith('test-txid');
+    expect(openSpy).toHaveBeenCalledWith('https://peppool.space/tx/test-txid', '_blank');
+    openSpy.mockRestore();
   });
 });

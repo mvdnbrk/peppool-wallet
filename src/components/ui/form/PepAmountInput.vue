@@ -2,7 +2,8 @@
 import { ref, watch, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
 
-import { RIBBITS_PER_PEP, formatFiat } from '@/utils/constants';
+import { RIBBITS_PER_PEP } from '@/utils/constants';
+import { formatFiat } from '@/utils/price';
 import PepInput from './PepInput.vue';
 import PepIcon from '@/components/ui/PepIcon.vue';
 
@@ -28,7 +29,7 @@ const emit = defineEmits<{
   'change-max': [isMax: boolean];
 }>();
 
-const { wallet: walletStore } = useApp();
+const { settings: settingsStore } = useApp();
 
 const inputAmount = ref('');
 let isInternalSync = false;
@@ -115,7 +116,7 @@ function toggleMode() {
     >
       <template #prefix>
         <span class="font-bold text-slate-500">
-          {{ isFiatMode ? walletStore.selectedCurrency : 'PEP' }}
+          {{ isFiatMode ? settingsStore.settings.currency : 'PEP' }}
         </span>
       </template>
 

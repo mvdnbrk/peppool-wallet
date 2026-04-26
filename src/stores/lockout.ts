@@ -24,49 +24,24 @@ function getFailureTier(attempts: number): FailureTier | null {
   return null;
 }
 
-// ── Storage helpers (chrome.storage.local with localStorage fallback) ─────
-const LOCKOUT_KEYS = {
-  attempts: 'peppool_failed_attempts',
-  until: 'peppool_lockout_until'
-} as const;
-
-function hasChromeStorage() {
-  return typeof chrome !== 'undefined' && chrome.storage?.local;
-}
+// ── Storage helpers ──────────────────────────────────────────────────────
+const STORAGE_KEY = 'peppool_lockout';
 
 async function loadState(): Promise<{ attempts: number; until: number }> {
-  if (hasChromeStorage()) {
-    const data = await chrome.storage.local.get([LOCKOUT_KEYS.attempts, LOCKOUT_KEYS.until]);
-    return {
-      attempts: Number(data[LOCKOUT_KEYS.attempts]) || 0,
-      until: Number(data[LOCKOUT_KEYS.until]) || 0
-    };
+  const data = await chrome.storage.local.get(STORAGE_KEY);
+  const lockout = data[STORAGE_KEY] as { attempts?: number; until?: number } | undefined;
+  if (lockout) {
+    return { attempts: Number(lockout.attempts) || 0, until: Number(lockout.until) || 0 };
   }
-  return {
-    attempts: Number(localStorage.getItem(LOCKOUT_KEYS.attempts)) || 0,
-    until: Number(localStorage.getItem(LOCKOUT_KEYS.until)) || 0
-  };
+  return { attempts: 0, until: 0 };
 }
 
 async function saveState(attempts: number, until: number) {
-  if (hasChromeStorage()) {
-    await chrome.storage.local.set({
-      [LOCKOUT_KEYS.attempts]: attempts,
-      [LOCKOUT_KEYS.until]: until
-    });
-  } else {
-    localStorage.setItem(LOCKOUT_KEYS.attempts, attempts.toString());
-    localStorage.setItem(LOCKOUT_KEYS.until, until.toString());
-  }
+  await chrome.storage.local.set({ [STORAGE_KEY]: { attempts, until } });
 }
 
 async function clearState() {
-  if (hasChromeStorage()) {
-    await chrome.storage.local.remove([LOCKOUT_KEYS.attempts, LOCKOUT_KEYS.until]);
-  } else {
-    localStorage.removeItem(LOCKOUT_KEYS.attempts);
-    localStorage.removeItem(LOCKOUT_KEYS.until);
-  }
+  await chrome.storage.local.remove(STORAGE_KEY);
 }
 
 export const useLockoutStore = defineStore('lockout', () => {

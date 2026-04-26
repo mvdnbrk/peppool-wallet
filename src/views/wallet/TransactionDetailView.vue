@@ -2,8 +2,9 @@
 import { ref, onMounted, computed } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { Transaction } from '@/models/Transaction';
+import { pepeExplorer } from '@/utils/explorer';
 
-const { router, route, wallet: walletStore, account } = useApp();
+const { router, route, wallet: walletStore, account, settings: settingsStore } = useApp();
 
 const txid = route.params.txid as string;
 const txFromList = computed(() => account.transactions.find((t: Transaction) => t.txid === txid));
@@ -31,7 +32,7 @@ onMounted(() => {
 });
 
 function openExplorer() {
-  walletStore.openExplorerTx(txid);
+  pepeExplorer.openTx(settingsStore.settings.explorer, txid);
 }
 </script>
 

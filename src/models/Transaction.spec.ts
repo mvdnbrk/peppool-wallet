@@ -34,17 +34,17 @@ describe('Transaction Model', () => {
     expect(tx.isOutgoing).toBe(true);
   });
 
-  it('should calculate outgoing value as net debit from user address (own inputs minus change)', () => {
+  it('should calculate outgoing value as amount sent to recipient (excludes fee)', () => {
     // input: 100M from user, output: 50M to other + 40M change to user, fee: 10M
-    // value = 60M (the wallet's balance decrease — recipient amount + fee)
+    // value = 50M (only what the recipient receives — fee is shown separately)
     const tx = new Transaction(mockRawTx, userAddress);
-    expect(tx.valueRibbits).toBe(60000000);
-    expect(tx.valuePep).toBe(0.6);
+    expect(tx.valueRibbits).toBe(50000000);
+    expect(tx.valuePep).toBe(0.5);
   });
 
   it('should format amount correctly with sign', () => {
     const tx = new Transaction(mockRawTx, userAddress);
-    expect(tx.formattedAmount).toBe('-0.6');
+    expect(tx.formattedAmount).toBe('-0.5');
   });
 
   it('should not overstate outgoing amount when transaction inputs are co-funded by another address', () => {
@@ -107,9 +107,7 @@ describe('Transaction Model', () => {
     expect(tx.txidShort).toBe('12345678...90abcdef');
   });
 
-  it('should show only the fee paid for a self-send (consolidation)', () => {
-    // input: 100M from user, output: 30M + 60M back to user, fee: 10M
-    // Net debit = 100M - 90M = 10M (the wallet loses only the fee).
+  it('should show zero for self-send (consolidation) since no external recipient', () => {
     const selfSendRaw: RawTransaction = {
       ...mockRawTx,
       vout: [
@@ -119,7 +117,7 @@ describe('Transaction Model', () => {
     };
     const tx = new Transaction(selfSendRaw, userAddress);
     expect(tx.isOutgoing).toBe(true);
-    expect(tx.valueRibbits).toBe(10000000);
+    expect(tx.valueRibbits).toBe(0);
   });
 
   describe('Status Display', () => {

@@ -92,13 +92,16 @@ export class Transaction {
       .reduce((sum, vout) => sum + vout.value, 0);
 
     if (this.isOutgoing) {
-      // Net debit from this address: own inputs minus change back to self.
-      // Using non-user vouts would overstate the amount when inputs are co-funded
-      // by another address (the user's wallet only lost what they put in).
+      // Show recipient amount (excludes fee) for normal sends, but cap at the
+      // user's actual contribution so co-funded txs aren't overstated. The fee
+      // is exposed separately via `tx.fee` for the detail view.
+      const nonUserOutputs = this.raw.vout
+        .filter((vout) => vout.scriptpubkey_address !== this.userAddress)
+        .reduce((sum, vout) => sum + vout.value, 0);
       const userInputs = this.raw.vin
         .filter((vin) => vin.prevout?.scriptpubkey_address === this.userAddress)
         .reduce((sum, vin) => sum + (vin.prevout?.value ?? 0), 0);
-      return userInputs - userOutputs;
+      return Math.min(nonUserOutputs, userInputs - userOutputs);
     }
 
     return userOutputs;

@@ -34,17 +34,47 @@ describe('Transaction Model', () => {
     expect(tx.isOutgoing).toBe(true);
   });
 
-  it('should calculate outgoing value as amount sent to recipient (excludes fee)', () => {
+  it('should calculate outgoing value as net debit from user address (own inputs minus change)', () => {
     // input: 100M from user, output: 50M to other + 40M change to user, fee: 10M
-    // value = 50M (only what the recipient receives)
+    // value = 60M (the wallet's balance decrease — recipient amount + fee)
     const tx = new Transaction(mockRawTx, userAddress);
-    expect(tx.valueRibbits).toBe(50000000);
-    expect(tx.valuePep).toBe(0.5);
+    expect(tx.valueRibbits).toBe(60000000);
+    expect(tx.valuePep).toBe(0.6);
   });
 
   it('should format amount correctly with sign', () => {
     const tx = new Transaction(mockRawTx, userAddress);
-    expect(tx.formattedAmount).toBe('-0.5');
+    expect(tx.formattedAmount).toBe('-0.6');
+  });
+
+  it('should not overstate outgoing amount when transaction inputs are co-funded by another address', () => {
+    // Real bug from PcriFK5...'s tx 318897f3: user contributed 10 PEP, another
+    // address contributed ~1.96 PEP, ~11.91 PEP went to recipients. Old logic
+    // showed -11.9; correct net debit is the user's 10 PEP contribution.
+    const coFundedRaw: RawTransaction = {
+      ...mockRawTx,
+      vin: [
+        {
+          txid: 'other-funder',
+          vout: 0,
+          prevout: { scriptpubkey_address: 'someone-else', value: 195770000 }
+        },
+        {
+          txid: 'user-funded',
+          vout: 0,
+          prevout: { scriptpubkey_address: 'user-address', value: 1000000000 }
+        }
+      ],
+      vout: [
+        { scriptpubkey_address: 'recipient', value: 1186880000 },
+        { scriptpubkey_address: 'other-change', value: 4450000 }
+      ],
+      fee: 4440000
+    };
+    const tx = new Transaction(coFundedRaw, userAddress);
+    expect(tx.isOutgoing).toBe(true);
+    expect(tx.valueRibbits).toBe(1000000000);
+    expect(tx.formattedAmount).toBe('-10');
   });
 
   it('should identify incoming transactions correctly', () => {
@@ -77,7 +107,9 @@ describe('Transaction Model', () => {
     expect(tx.txidShort).toBe('12345678...90abcdef');
   });
 
-  it('should show zero for self-send (consolidation) since no external recipient', () => {
+  it('should show only the fee paid for a self-send (consolidation)', () => {
+    // input: 100M from user, output: 30M + 60M back to user, fee: 10M
+    // Net debit = 100M - 90M = 10M (the wallet loses only the fee).
     const selfSendRaw: RawTransaction = {
       ...mockRawTx,
       vout: [
@@ -87,7 +119,7 @@ describe('Transaction Model', () => {
     };
     const tx = new Transaction(selfSendRaw, userAddress);
     expect(tx.isOutgoing).toBe(true);
-    expect(tx.valueRibbits).toBe(0);
+    expect(tx.valueRibbits).toBe(10000000);
   });
 
   describe('Status Display', () => {

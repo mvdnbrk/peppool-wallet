@@ -87,15 +87,21 @@ export class Transaction {
   }
 
   get valueRibbits() {
-    if (this.isOutgoing) {
-      return this.raw.vout
-        .filter((vout) => vout.scriptpubkey_address !== this.userAddress)
-        .reduce((sum, vout) => sum + vout.value, 0);
-    }
-
-    return this.raw.vout
+    const userOutputs = this.raw.vout
       .filter((vout) => vout.scriptpubkey_address === this.userAddress)
       .reduce((sum, vout) => sum + vout.value, 0);
+
+    if (this.isOutgoing) {
+      // Net debit from this address: own inputs minus change back to self.
+      // Using non-user vouts would overstate the amount when inputs are co-funded
+      // by another address (the user's wallet only lost what they put in).
+      const userInputs = this.raw.vin
+        .filter((vin) => vin.prevout?.scriptpubkey_address === this.userAddress)
+        .reduce((sum, vin) => sum + (vin.prevout?.value ?? 0), 0);
+      return userInputs - userOutputs;
+    }
+
+    return userOutputs;
   }
 
   get valuePep() {

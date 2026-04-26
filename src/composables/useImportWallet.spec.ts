@@ -87,7 +87,7 @@ describe('useImportWallet Composable', () => {
     vi.mocked(chrome.storage.session.get).mockResolvedValue({
       import_draft: {
         data: { mnemonic: 'stale word' },
-        timestamp: Date.now() - 6 * 60 * 1000
+        timestamp: Date.now() - (5 * 60 * 1000 + 1)
       }
     });
 

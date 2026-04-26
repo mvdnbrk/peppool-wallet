@@ -22,7 +22,6 @@ describe('wipeCacheOnVersionChange', () => {
     localStorage.setItem('peppool_auth_expires', '999');
     localStorage.setItem('peppool_auth_address', 'Paddr');
     localStorage.setItem('peppool_last_route', '/send');
-    localStorage.setItem('peppool_form_send', '{"recipient":"x"}');
 
     const wiped = wipeCacheOnVersionChange();
 
@@ -35,7 +34,6 @@ describe('wipeCacheOnVersionChange', () => {
     expect(localStorage.getItem('peppool_auth_expires')).toBeNull();
     expect(localStorage.getItem('peppool_auth_address')).toBeNull();
     expect(localStorage.getItem('peppool_last_route')).toBeNull();
-    expect(localStorage.getItem('peppool_form_send')).toBeNull();
   });
 
   it('should preserve vault (only persistent localStorage key)', () => {

@@ -35,17 +35,17 @@ describe('Account Store', () => {
 
   it('should initialize with zero balance', () => {
     const account = useAccountStore();
-    expect(account.balance).toBe(0);
-    expect(account.spendableBalance).toBe(0);
+    expect(account.balanceRibbits).toBe(0);
+    expect(account.spendableBalanceRibbits).toBe(0);
     expect(account.transactions).toHaveLength(0);
     expect(account.canLoadMoreTransactions).toBe(false);
   });
 
   it('should restore cached balance from localStorage', () => {
-    localStorage.setItem('peppool_balance', JSON.stringify({ [addr]: 42 }));
+    localStorage.setItem('peppool_balance', JSON.stringify({ [addr]: 4_200_000_000 }));
     const account = useAccountStore();
     account.loadCachedData(addr);
-    expect(account.balance).toBe(42);
+    expect(account.balanceRibbits).toBe(4_200_000_000);
   });
 
   it('should sync balance from API', async () => {
@@ -54,9 +54,9 @@ describe('Account Store', () => {
 
     await account.sync(addr, true);
 
-    expect(account.balance).toBe(5);
+    expect(account.balanceRibbits).toBe(500_000_000);
     const balanceCache = JSON.parse(localStorage.getItem('peppool_balance')!);
-    expect(balanceCache[addr]).toBe(5);
+    expect(balanceCache[addr]).toBe(500_000_000);
   });
 
   it('should skip sync when tip height unchanged', async () => {
@@ -81,7 +81,7 @@ describe('Account Store', () => {
 
     await account.sync(addr, true);
     expect(api.fetchAddressInfo).toHaveBeenCalled();
-    expect(account.balance).toBe(2);
+    expect(account.balanceRibbits).toBe(200_000_000);
   });
 
   it('should compute spendable balance excluding inscription UTXOs', async () => {
@@ -100,8 +100,8 @@ describe('Account Store', () => {
     const account = useAccountStore();
     await account.sync(addr, true);
 
-    expect(account.balance).toBe(3);
-    expect(account.spendableBalance).toBe(2.9999);
+    expect(account.balanceRibbits).toBe(300_000_000);
+    expect(account.spendableBalanceRibbits).toBe(299_990_000);
   });
 
   it('should fall back to total balance when UTXO fetch fails', async () => {
@@ -111,8 +111,8 @@ describe('Account Store', () => {
     const account = useAccountStore();
     await account.sync(addr, true);
 
-    expect(account.balance).toBe(1);
-    expect(account.spendableBalance).toBe(1);
+    expect(account.balanceRibbits).toBe(100_000_000);
+    expect(account.spendableBalanceRibbits).toBe(100_000_000);
   });
 
   it('should refresh transactions and cache them', async () => {
@@ -214,21 +214,21 @@ describe('Account Store', () => {
 
   it('should reset all state', () => {
     const account = useAccountStore();
-    account.balance = 5;
+    account.balanceRibbits = 500_000_000;
     account.transactions = [{ txid: 'x' } as any];
     account.canLoadMoreTransactions = true;
 
     account.reset();
 
-    expect(account.balance).toBe(0);
-    expect(account.spendableBalance).toBe(0);
+    expect(account.balanceRibbits).toBe(0);
+    expect(account.spendableBalanceRibbits).toBe(0);
     expect(account.transactions).toHaveLength(0);
     expect(account.canLoadMoreTransactions).toBe(false);
   });
 
-  it('should derive spendableBalance from cached balance and inscription value on reload', () => {
+  it('should derive spendableBalanceRibbits from cached balance and inscription value on reload', () => {
     // Simulates popup close/reopen: balance and inscription cache hit before sync runs.
-    localStorage.setItem('peppool_balance', JSON.stringify({ [addr]: 3 }));
+    localStorage.setItem('peppool_balance', JSON.stringify({ [addr]: 300_000_000 }));
     localStorage.setItem(
       'peppool_inscriptions',
       JSON.stringify({
@@ -241,7 +241,30 @@ describe('Account Store', () => {
     // Inscription store loads on first sync; pre-load to mimic wallet store init.
     useInscriptionStore().load(addr);
 
-    expect(account.balance).toBe(3);
-    expect(account.spendableBalance).toBe(2.9999);
+    expect(account.balanceRibbits).toBe(300_000_000);
+    expect(account.spendableBalanceRibbits).toBe(299_990_000);
+  });
+
+  it('should keep balanceRibbits as integer math without float drift', async () => {
+    // 0.1 + 0.2 PEP = 0.3 PEP in float math, but ribbits stay exact.
+    // 30_000_000 ribbits = 0.3 PEP. Inscriptions hold 10_000_000 ribbits = 0.1 PEP.
+    vi.mocked(api.fetchAddressInfo).mockResolvedValue(30_000_000);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'a', vout: 0, value: 20_000_000, status: { confirmed: true } },
+      { txid: 'inscribed', vout: 0, value: 10_000_000, status: { confirmed: true } }
+    ]);
+    vi.mocked(api.fetchAddressInscriptions).mockResolvedValue({
+      inscriptions: [],
+      outputs: ['inscribed:0'],
+      total: 0
+    });
+
+    const account = useAccountStore();
+    await account.sync(addr, true);
+
+    // Pure integer subtraction — no 0.19999999999999998 drift.
+    expect(account.spendableBalanceRibbits).toBe(20_000_000);
+    expect(Number.isInteger(account.balanceRibbits)).toBe(true);
+    expect(Number.isInteger(account.spendableBalanceRibbits)).toBe(true);
   });
 });

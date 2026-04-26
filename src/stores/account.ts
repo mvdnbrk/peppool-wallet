@@ -9,22 +9,23 @@ import {
   isInscriptionUtxo
 } from '@/utils/api';
 import { Transaction } from '@/models/Transaction';
-import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
+import { TXS_PER_PAGE } from '@/utils/constants';
 import { useInscriptionStore } from './inscriptions';
 
 export const useAccountStore = defineStore('account', () => {
   const inscriptionStore = useInscriptionStore();
 
   // ── State ──
-  const balance = ref<number>(0);
+  // Ribbits is the canonical unit (integer). Conversion to PEP/fiat happens at display time.
+  const balanceRibbits = ref<number>(0);
   const transactions = ref<Transaction[]>([]);
   const canLoadMoreTransactions = ref(false);
   let lastTipHeight = 0;
 
   // Spendable = total balance minus value locked in inscription UTXOs.
   // Derived so it survives popup close/reopen: both inputs come from cache.
-  const spendableBalance = computed(() =>
-    Math.max(0, balance.value - inscriptionStore.utxoValueRibbits / RIBBITS_PER_PEP)
+  const spendableBalanceRibbits = computed(() =>
+    Math.max(0, balanceRibbits.value - inscriptionStore.utxoValueRibbits)
   );
 
   // ── Cache (keyed by address) ──
@@ -40,7 +41,7 @@ export const useAccountStore = defineStore('account', () => {
     try {
       const balanceCache = getCache<number>('peppool_balance');
       if (balanceCache[address] != null) {
-        balance.value = balanceCache[address];
+        balanceRibbits.value = balanceCache[address];
       }
 
       const txCache = getCache<unknown[]>('peppool_transactions');
@@ -95,10 +96,9 @@ export const useAccountStore = defineStore('account', () => {
       if (!force && tipHeight === lastTipHeight && lastTipHeight > 0) return;
       lastTipHeight = tipHeight;
 
-      const totalRibbits = await fetchAddressInfo(address);
-      balance.value = totalRibbits / RIBBITS_PER_PEP;
+      balanceRibbits.value = await fetchAddressInfo(address);
       const balanceCache = getCache<number>('peppool_balance');
-      balanceCache[address] = balance.value;
+      balanceCache[address] = balanceRibbits.value;
       localStorage.setItem('peppool_balance', JSON.stringify(balanceCache));
 
       await refreshTransactions(address);
@@ -122,15 +122,15 @@ export const useAccountStore = defineStore('account', () => {
   }
 
   function reset() {
-    balance.value = 0;
+    balanceRibbits.value = 0;
     transactions.value = [];
     canLoadMoreTransactions.value = false;
     lastTipHeight = 0;
   }
 
   return {
-    balance,
-    spendableBalance,
+    balanceRibbits,
+    spendableBalanceRibbits,
     transactions,
     canLoadMoreTransactions,
     loadCachedData,

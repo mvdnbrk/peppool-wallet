@@ -43,7 +43,7 @@ describe('useApp Composable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWalletStore = { isUnlocked: false };
-    mockAccountStore = { balance: 0 };
+    mockAccountStore = { balanceRibbits: 0 };
     mockSettingsStore = { settings: { currency: 'USD' } };
     vi.mocked(useWalletStore).mockReturnValue(mockWalletStore);
     vi.mocked(useAccountStore).mockReturnValue(mockAccountStore);

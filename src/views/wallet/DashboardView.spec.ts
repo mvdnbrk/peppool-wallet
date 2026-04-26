@@ -41,7 +41,7 @@ describe('Wallet Views Navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAccount = {
-      balance: 0,
+      balanceRibbits: 0,
       transactions: [],
       canLoadMoreTransactions: false,
       fetchMoreTransactions: vi.fn()
@@ -135,7 +135,7 @@ describe('Wallet Views Navigation', () => {
   });
 
   it('Dashboard: should adjust font size for large balances', async () => {
-    mockAccount.balance = 1000000000000000; // Force very long string
+    mockAccount.balanceRibbits = 1e23; // 1e15 PEP — long display string
     const wrapper = mount(DashboardView, { global });
 
     const balanceSpan = wrapper.find('span.text-offwhite');

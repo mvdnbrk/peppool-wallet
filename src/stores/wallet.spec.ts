@@ -237,7 +237,7 @@ describe('Wallet Store', () => {
       expect.objectContaining({ peppool_active_account: '1' })
     );
     const account = useAccountStore();
-    expect(account.balance).toBe(1); // Should be refreshed on switch
+    expect(account.balanceRibbits).toBe(100_000_000); // Should be refreshed on switch
     expect(account.transactions).toHaveLength(0); // Should be cleared on switch
   });
 
@@ -313,8 +313,8 @@ describe('Wallet Store', () => {
     await store.refreshBalance(true);
 
     const account = useAccountStore();
-    expect(account.balance).toBe(3); // Total balance
-    expect(account.spendableBalance).toBe(2.9999); // Excludes inscription UTXO (10000 ribbits)
+    expect(account.balanceRibbits).toBe(300_000_000); // Total balance
+    expect(account.spendableBalanceRibbits).toBe(299_990_000); // Excludes inscription UTXO (10000 ribbits)
   });
 
   it('should fall back to total balance when inscription fetch fails', async () => {
@@ -334,8 +334,8 @@ describe('Wallet Store', () => {
     await store.refreshBalance(true);
 
     const account = useAccountStore();
-    expect(account.balance).toBe(1);
-    expect(account.spendableBalance).toBe(1); // Falls back to total
+    expect(account.balanceRibbits).toBe(100_000_000);
+    expect(account.spendableBalanceRibbits).toBe(100_000_000); // Falls back to total
   });
 
   it('should trigger lock after timeout', async () => {

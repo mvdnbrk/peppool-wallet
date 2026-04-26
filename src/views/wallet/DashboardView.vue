@@ -3,13 +3,17 @@ import * as price from '@/utils/price';
 
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
+import { RIBBITS_PER_PEP } from '@/utils/constants';
 
 const { router, wallet: walletStore, account } = useApp();
 
 const isLoadingMore = ref(false);
 
+const balancePep = computed(() => account.balanceRibbits / RIBBITS_PER_PEP);
+const balanceDisplay = computed(() => price.formatAmount(balancePep.value));
+
 const balanceFontSize = computed(() => {
-  const len = price.formatAmount(account.balance).length;
+  const len = balanceDisplay.value.length;
 
   switch (true) {
     case len > 16:
@@ -65,12 +69,12 @@ async function handleLoadMore() {
       <p class="text-sm font-bold tracking-wider text-slate-400 uppercase">Total Balance</p>
       <div class="flex items-baseline justify-center space-x-2">
         <span class="text-offwhite font-bold transition-all duration-300" :class="balanceFontSize">
-          {{ price.formatAmount(account.balance) }}
+          {{ balanceDisplay }}
         </span>
         <span class="text-pep-green-light font-bold">PEP</span>
       </div>
       <p class="text-sm font-bold text-slate-500">
-        {{ price.format(account.balance) }}
+        {{ price.format(account.balanceRibbits) }}
       </p>
     </div>
 

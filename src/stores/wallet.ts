@@ -72,6 +72,7 @@ export const useWalletStore = defineStore('wallet', () => {
   // Initialize cached transactions
   if (address.value) {
     accountStore.loadCachedData(address.value);
+    inscriptionStore.load(address.value);
   }
 
   // ── Actions ──

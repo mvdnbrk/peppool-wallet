@@ -9,6 +9,7 @@ interface PersistedData {
   inscriptions: Record<string, Inscription>;
   outputs: string[];
   lastSyncedHeight: number;
+  utxoValueRibbits?: number;
 }
 
 const STORAGE_KEY = 'peppool_inscriptions';
@@ -34,6 +35,7 @@ export const useInscriptionStore = defineStore('inscriptions', () => {
   const inscriptions = ref<Record<string, Inscription>>({});
   const outputs = ref<string[]>([]);
   const lastSyncedHeight = ref(0);
+  const utxoValueRibbits = ref(0);
   const syncing = ref(false);
 
   let loadedAddress: string | null = null;
@@ -43,6 +45,7 @@ export const useInscriptionStore = defineStore('inscriptions', () => {
     inscriptions.value = data.inscriptions;
     outputs.value = data.outputs;
     lastSyncedHeight.value = data.lastSyncedHeight;
+    utxoValueRibbits.value = data.utxoValueRibbits ?? 0;
     loadedAddress = address;
   }
 
@@ -51,8 +54,14 @@ export const useInscriptionStore = defineStore('inscriptions', () => {
     saveToStorage(loadedAddress, {
       inscriptions: inscriptions.value,
       outputs: outputs.value,
-      lastSyncedHeight: lastSyncedHeight.value
+      lastSyncedHeight: lastSyncedHeight.value,
+      utxoValueRibbits: utxoValueRibbits.value
     });
+  }
+
+  function setUtxoValueRibbits(ribbits: number): void {
+    utxoValueRibbits.value = ribbits;
+    persist();
   }
 
   /**
@@ -124,6 +133,7 @@ export const useInscriptionStore = defineStore('inscriptions', () => {
     inscriptions.value = {};
     outputs.value = [];
     lastSyncedHeight.value = 0;
+    utxoValueRibbits.value = 0;
     loadedAddress = null;
   }
 
@@ -131,9 +141,11 @@ export const useInscriptionStore = defineStore('inscriptions', () => {
     inscriptions: readonly(inscriptions),
     outputs: readonly(outputs),
     lastSyncedHeight: readonly(lastSyncedHeight),
+    utxoValueRibbits: readonly(utxoValueRibbits),
     syncing: readonly(syncing),
     load,
     sync,
+    setUtxoValueRibbits,
     getOutputsSet,
     clear
   };

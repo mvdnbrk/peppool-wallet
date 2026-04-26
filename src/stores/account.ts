@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import {
   fetchAddressInfo,
   fetchTransactions,
   fetchTransaction as apiFetchTransaction,
   fetchTipHeight,
   fetchUtxos,
-  filterSpendableUtxos
+  isInscriptionUtxo
 } from '@/utils/api';
 import { Transaction } from '@/models/Transaction';
 import { RIBBITS_PER_PEP, TXS_PER_PAGE } from '@/utils/constants';
@@ -17,10 +17,15 @@ export const useAccountStore = defineStore('account', () => {
 
   // ── State ──
   const balance = ref<number>(0);
-  const spendableBalance = ref<number>(0);
   const transactions = ref<Transaction[]>([]);
   const canLoadMoreTransactions = ref(false);
   let lastTipHeight = 0;
+
+  // Spendable = total balance minus value locked in inscription UTXOs.
+  // Derived so it survives popup close/reopen: both inputs come from cache.
+  const spendableBalance = computed(() =>
+    Math.max(0, balance.value - inscriptionStore.utxoValueRibbits / RIBBITS_PER_PEP)
+  );
 
   // ── Cache (keyed by address) ──
   function getCache<T>(key: string): Record<string, T> {
@@ -104,13 +109,12 @@ export const useAccountStore = defineStore('account', () => {
           fetchUtxos(address),
           inscriptionStore.getOutputsSet(address)
         ]);
-        const spendableRibbits = filterSpendableUtxos(utxos, inscriptionSet).reduce(
-          (sum, u) => sum + u.value,
-          0
-        );
-        spendableBalance.value = spendableRibbits / RIBBITS_PER_PEP;
+        const inscriptionRibbits = utxos
+          .filter((u) => isInscriptionUtxo(u, inscriptionSet))
+          .reduce((sum, u) => sum + u.value, 0);
+        inscriptionStore.setUtxoValueRibbits(inscriptionRibbits);
       } catch {
-        spendableBalance.value = balance.value;
+        // Leave the inscription value at its cached state.
       }
     } catch (e) {
       console.error('Failed to sync account', e);
@@ -119,7 +123,6 @@ export const useAccountStore = defineStore('account', () => {
 
   function reset() {
     balance.value = 0;
-    spendableBalance.value = 0;
     transactions.value = [];
     canLoadMoreTransactions.value = false;
     lastTipHeight = 0;

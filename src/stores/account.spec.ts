@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useAccountStore } from './account';
+import { useInscriptionStore } from './inscriptions';
 
 import { Transaction } from '@/models/Transaction';
 import * as api from '@/utils/api';
@@ -214,7 +215,6 @@ describe('Account Store', () => {
   it('should reset all state', () => {
     const account = useAccountStore();
     account.balance = 5;
-    account.spendableBalance = 4;
     account.transactions = [{ txid: 'x' } as any];
     account.canLoadMoreTransactions = true;
 
@@ -224,5 +224,24 @@ describe('Account Store', () => {
     expect(account.spendableBalance).toBe(0);
     expect(account.transactions).toHaveLength(0);
     expect(account.canLoadMoreTransactions).toBe(false);
+  });
+
+  it('should derive spendableBalance from cached balance and inscription value on reload', () => {
+    // Simulates popup close/reopen: balance and inscription cache hit before sync runs.
+    localStorage.setItem('peppool_balance', JSON.stringify({ [addr]: 3 }));
+    localStorage.setItem(
+      'peppool_inscriptions',
+      JSON.stringify({
+        [addr]: { inscriptions: {}, outputs: [], lastSyncedHeight: 100, utxoValueRibbits: 10000 }
+      })
+    );
+
+    const account = useAccountStore();
+    account.loadCachedData(addr);
+    // Inscription store loads on first sync; pre-load to mimic wallet store init.
+    useInscriptionStore().load(addr);
+
+    expect(account.balance).toBe(3);
+    expect(account.spendableBalance).toBe(2.9999);
   });
 });

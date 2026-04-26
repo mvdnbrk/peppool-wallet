@@ -7,7 +7,7 @@ interface DraftEnvelope<T> {
 
 interface UseSessionDraftOptions<T> {
   key: string;
-  source: () => T;
+  data: () => T;
   ttlMs?: number;
 }
 
@@ -25,7 +25,7 @@ export function useSessionDraft<T extends object>(opts: UseSessionDraftOptions<T
 
   async function save() {
     await chrome.storage.session.set({
-      [opts.key]: { data: opts.source(), timestamp: Date.now() }
+      [opts.key]: { data: opts.data(), timestamp: Date.now() }
     });
   }
 
@@ -33,7 +33,7 @@ export function useSessionDraft<T extends object>(opts: UseSessionDraftOptions<T
     await chrome.storage.session.remove(opts.key);
   }
 
-  watch(opts.source, save);
+  watch(opts.data, save);
 
   return { load, clear };
 }

@@ -8,11 +8,11 @@ describe('useSessionDraft', () => {
     vi.clearAllMocks();
   });
 
-  it('saves an envelope { data, timestamp } when source changes', async () => {
+  it('saves an envelope { data, timestamp } when data changes', async () => {
     const value = ref('');
     const { load: _load } = useSessionDraft({
       key: 'test_draft',
-      source: () => ({ value: value.value })
+      data: () => ({ value: value.value })
     });
 
     value.value = 'hello';
@@ -37,7 +37,7 @@ describe('useSessionDraft', () => {
     const value = ref('');
     const { load } = useSessionDraft({
       key: 'test_draft',
-      source: () => ({ value: value.value })
+      data: () => ({ value: value.value })
     });
 
     expect(await load()).toEqual({ value: 'restored' });
@@ -51,7 +51,7 @@ describe('useSessionDraft', () => {
     const value = ref('');
     const { load } = useSessionDraft({
       key: 'test_draft',
-      source: () => ({ value: value.value }),
+      data: () => ({ value: value.value }),
       ttlMs: 5_000
     });
 
@@ -65,7 +65,7 @@ describe('useSessionDraft', () => {
     const value = ref('');
     const { load } = useSessionDraft({
       key: 'test_draft',
-      source: () => ({ value: value.value })
+      data: () => ({ value: value.value })
     });
 
     expect(await load()).toBeNull();
@@ -79,7 +79,7 @@ describe('useSessionDraft', () => {
     const value = ref('');
     const { load } = useSessionDraft({
       key: 'test_draft',
-      source: () => ({ value: value.value })
+      data: () => ({ value: value.value })
     });
 
     expect(await load()).toBeNull();
@@ -89,7 +89,7 @@ describe('useSessionDraft', () => {
     const value = ref('');
     const { clear } = useSessionDraft({
       key: 'test_draft',
-      source: () => ({ value: value.value })
+      data: () => ({ value: value.value })
     });
 
     await clear();

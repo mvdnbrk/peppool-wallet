@@ -41,7 +41,7 @@ const form = useForm({
 // restart. Password is in-memory only — never written to storage.
 const draft = useSessionDraft({
   key: 'send_draft',
-  source: () => ({
+  data: () => ({
     recipient: form.recipient,
     amountRibbits: form.amountRibbits,
     isFiatMode: form.isFiatMode,

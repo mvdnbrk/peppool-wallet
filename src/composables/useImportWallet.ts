@@ -27,7 +27,7 @@ export function useImportWallet() {
 
   const draft = useSessionDraft({
     key: 'import_draft',
-    source: () => ({ mnemonic: mnemonic.value }),
+    data: () => ({ mnemonic: mnemonic.value }),
     ttlMs: DRAFT_TTL_MS
   });
 

@@ -287,13 +287,7 @@ export const useWalletStore = defineStore('wallet', () => {
     sessionKey = null;
     hasSessionKey.value = false;
     if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.remove([
-        'sessionStartTime',
-        'dataKey',
-        'send_draft',
-        'import_draft_mnemonic',
-        'import_draft_ts'
-      ]);
+      await chrome.storage.session.remove(['sessionStartTime', 'dataKey', 'send_draft']);
     }
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = null;
@@ -324,13 +318,7 @@ export const useWalletStore = defineStore('wallet', () => {
     await clearAllSettings();
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.remove(['peppool_permissions', 'peppool_lockout']);
-      await chrome.storage.session?.remove([
-        'sessionStartTime',
-        'dataKey',
-        'send_draft',
-        'import_draft_mnemonic',
-        'import_draft_ts'
-      ]);
+      await chrome.storage.session?.remove(['sessionStartTime', 'dataKey', 'send_draft']);
     }
 
     if (lockTimer) clearTimeout(lockTimer);

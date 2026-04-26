@@ -204,9 +204,7 @@ describe('Wallet Store', () => {
     expect(chrome.storage.session.remove).toHaveBeenCalledWith([
       'sessionStartTime',
       'dataKey',
-      'send_draft',
-      'import_draft_mnemonic',
-      'import_draft_ts'
+      'send_draft'
     ]);
   });
 

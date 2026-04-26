@@ -64,13 +64,11 @@ describe('Wallet Lock vs Reset Behavior', () => {
     expect(store.isMnemonicLoaded).toBe(false);
     expect(localStorage.getItem('peppool_transactions')).toBeNull();
 
-    // CHECK: Form drafts wiped from chrome.storage.session for privacy
+    // CHECK: Send draft wiped from chrome.storage.session for privacy
     expect(chrome.storage.session.remove).toHaveBeenCalledWith([
       'sessionStartTime',
       'dataKey',
-      'send_draft',
-      'import_draft_mnemonic',
-      'import_draft_ts'
+      'send_draft'
     ]);
   });
 

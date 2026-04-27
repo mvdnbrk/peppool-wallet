@@ -10,6 +10,7 @@ vi.mock('@/stores/wallet', () => ({
 
 describe('Router Logic', () => {
   let walletStore: any;
+  let sessionStore: Record<string, string>;
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -24,7 +25,20 @@ describe('Router Logic', () => {
       checkSession: vi.fn().mockResolvedValue(false)
     };
     vi.mocked(useWalletStore).mockReturnValue(walletStore);
-    localStorage.clear();
+
+    // Back chrome.storage.session with an in-memory map so router reads/writes round-trip
+    sessionStore = {};
+    vi.mocked(chrome.storage.session.get).mockImplementation(async (key: any) => {
+      const k = typeof key === 'string' ? key : key?.[0];
+      return k && sessionStore[k] !== undefined ? { [k]: sessionStore[k] } : {};
+    });
+    vi.mocked(chrome.storage.session.set).mockImplementation(async (items: any) => {
+      Object.assign(sessionStore, items);
+    });
+    vi.mocked(chrome.storage.session.remove).mockImplementation(async (key: any) => {
+      const keys = Array.isArray(key) ? key : [key];
+      for (const k of keys) delete sessionStore[k];
+    });
   });
 
   it('should redirect from dashboard to root if wallet is locked', async () => {
@@ -80,7 +94,7 @@ describe('Router Logic', () => {
   });
 
   it('should auto-restore last route if persistent and unlocked', async () => {
-    localStorage.setItem('peppool_last_route', '/send');
+    sessionStore.last_route = '/send';
     walletStore.isUnlocked = true;
     resetSessionCheck();
 
@@ -90,17 +104,17 @@ describe('Router Logic', () => {
   });
 
   it('should NOT auto-restore if route is NOT persistent', async () => {
-    localStorage.setItem('peppool_last_route', '/settings'); // settings has no persist:true
+    sessionStore.last_route = '/settings'; // settings has no persist:true
     walletStore.isUnlocked = true;
     resetSessionCheck();
 
     await router.push('/');
     expect(router.currentRoute.value.path).toBe('/dashboard');
-    expect(localStorage.getItem('peppool_last_route')).toBeNull();
+    expect(sessionStore.last_route).toBeUndefined();
   });
 
   it('should auto-restore public persistent routes even if locked', async () => {
-    localStorage.setItem('peppool_last_route', '/import'); // /import has persist:true
+    sessionStore.last_route = '/import'; // /import has persist:true
     walletStore.isUnlocked = false;
     resetSessionCheck();
 

@@ -80,7 +80,8 @@ router.beforeEach(async (to, _from, next) => {
     sessionChecked = true;
 
     // Auto-restore last route
-    const savedRoute = localStorage.getItem('peppool_last_route');
+    const data = await chrome.storage.session.get('last_route');
+    const savedRoute = data.last_route as string | undefined;
     if (savedRoute && to.path === '/') {
       const resolved = router.resolve(savedRoute);
       const isPersistent = resolved.matched.length > 0 && resolved.meta.persist;
@@ -92,7 +93,7 @@ router.beforeEach(async (to, _from, next) => {
       if (isPersistent && (walletStore.isUnlocked || isPublic)) {
         return next(savedRoute);
       }
-      localStorage.removeItem('peppool_last_route');
+      await chrome.storage.session.remove('last_route');
     }
   }
 
@@ -114,12 +115,12 @@ router.beforeEach(async (to, _from, next) => {
 });
 
 // Save route after each navigation ONLY if persist is true
-router.afterEach((to) => {
+router.afterEach(async (to) => {
   if (to.meta.persist) {
-    localStorage.setItem('peppool_last_route', to.path);
+    await chrome.storage.session.set({ last_route: to.path });
   } else {
     // If we navigate to a non-persistent page (like Settings or Dashboard),
     // clear the last route so we default back to Dashboard next time.
-    localStorage.removeItem('peppool_last_route');
+    await chrome.storage.session.remove('last_route');
   }
 });

@@ -8,6 +8,9 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
 
 ### Changed
+- Move last route hint from localStorage to chrome.storage.session ([#30](https://github.com/mvdnbrk/peppool-wallet/pull/30))
+- Extract `useSessionDraft` composable shared by Send and Import drafts ([#29](https://github.com/mvdnbrk/peppool-wallet/pull/29))
+- Move send form draft from localStorage to chrome.storage.session ([#27](https://github.com/mvdnbrk/peppool-wallet/pull/27))
 - Use ribbits as canonical unit in stores and composables; format at display time ([#25](https://github.com/mvdnbrk/peppool-wallet/issues/25))
 - Split wallet store into separate wallet and account stores ([#20](https://github.com/mvdnbrk/peppool-wallet/pull/20))
 - Consolidate price logic into single price module with unified cache key ([#24](https://github.com/mvdnbrk/peppool-wallet/pull/24))

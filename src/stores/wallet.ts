@@ -7,11 +7,12 @@ import {
   getDerivationPath,
   parseDerivationPath
 } from '@/utils/crypto';
-import { encrypt, decrypt, deriveKeyBytes, decryptWithKey, importKey } from '@/utils/encryption';
+import { encrypt, decrypt, deriveKeyBytes } from '@/utils/encryption';
 import { hasAddressActivity } from '@/utils/api';
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { refreshPrices, clearPrices } from '@/utils/price';
 import { getWalletState, saveWalletState, clearAllSettings } from '@/utils/settings';
+import { useSession } from '@/composables/useSession';
 import { useLockoutStore } from './lockout';
 import { useSettingsStore } from './settings';
 import { useInscriptionStore } from './inscriptions';
@@ -21,27 +22,6 @@ export interface Account {
   address: string;
   path: string;
   label: string;
-}
-
-// ── Background worker messaging ────────────────────────────────────────────
-async function setAutoLockAlarm(delayMinutes: number) {
-  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-    try {
-      await chrome.runtime.sendMessage({ type: 'set-auto-lock', delayMinutes });
-    } catch {
-      /* background worker unavailable */
-    }
-  }
-}
-
-async function clearAutoLockAlarm() {
-  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-    try {
-      await chrome.runtime.sendMessage({ type: 'clear-auto-lock' });
-    } catch {
-      /* background worker unavailable */
-    }
-  }
 }
 
 export const useWalletStore = defineStore('wallet', () => {
@@ -57,15 +37,15 @@ export const useWalletStore = defineStore('wallet', () => {
   const accounts = ref<Account[]>(walletStateData.accounts);
   const activeAccountIndex = ref<number>(walletStateData.activeAccountIndex);
   const encryptedMnemonic = ref<string | null>(localStorage.getItem('peppool_vault'));
-  let sessionKey: CryptoKey | null = null;
-  const hasSessionKey = ref(false);
-  const isUnlocked = ref(false);
 
-  let lockTimer: ReturnType<typeof setTimeout> | null = null;
+  const session = useSession({
+    encryptedMnemonic,
+    getLockDuration: () => settings.lockDuration
+  });
 
   // ── Computed ──
   const isCreated = computed(() => !!encryptedMnemonic.value);
-  const isMnemonicLoaded = computed(() => hasSessionKey.value);
+  const isMnemonicLoaded = computed(() => session.hasSessionKey.value);
   const activeAccount = computed(() => accounts.value[activeAccountIndex.value] || null);
   const address = computed(() => activeAccount.value?.address || null);
 
@@ -78,71 +58,13 @@ export const useWalletStore = defineStore('wallet', () => {
   // ── Actions ──
   async function checkSession() {
     await lockout.restore();
-    if (typeof chrome === 'undefined' || !chrome.storage?.session) return false;
-
-    const sessionData = await chrome.storage.session.get(['sessionStartTime', 'dataKey']);
-    const sessionStart = sessionData.sessionStartTime as number | undefined;
-    const hex = sessionData.dataKey as string | undefined;
-
-    if (!sessionStart || !hex) return false;
-
-    const elapsed = Date.now() - sessionStart;
-    if (elapsed >= settings.lockDuration * 60 * 1000) {
-      await chrome.storage.session.remove(['sessionStartTime', 'dataKey']);
-      return false;
-    }
-
-    try {
-      const rawBytes = fromHex(hex);
-      sessionKey = await importKey(rawBytes.buffer as ArrayBuffer, ['decrypt']);
-      rawBytes.fill(0);
-      hasSessionKey.value = true;
-      isUnlocked.value = true;
-    } catch {
-      isUnlocked.value = false;
-      return false;
-    }
-
-    resetLockTimer();
-    return true;
-  }
-
-  async function resetLockTimer() {
-    if (!isUnlocked.value) return;
-
-    const durationMs = settings.lockDuration * 60 * 1000;
-
-    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.set({ sessionStartTime: Date.now() });
-    }
-
-    if (lockTimer) clearTimeout(lockTimer);
-    lockTimer = setTimeout(() => lock(), durationMs);
-    await setAutoLockAlarm(settings.lockDuration);
-  }
-
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-  async function debouncedResetLockTimer() {
-    if (!isUnlocked.value || debounceTimer) return;
-    debounceTimer = setTimeout(() => {
-      debounceTimer = null;
-    }, 1000);
-    await resetLockTimer();
-  }
-
-  async function withMnemonic<T>(fn: (mnemonic: string) => T | Promise<T>): Promise<T> {
-    if (!sessionKey || !encryptedMnemonic.value) {
-      throw new Error('Wallet is locked');
-    }
-    const mnemonic = await decryptWithKey(encryptedMnemonic.value, sessionKey);
-    return fn(mnemonic);
+    return session.checkSession();
   }
 
   async function refreshAuth() {
-    if (!sessionKey) return;
+    if (!session.hasSessionKey.value) return;
     try {
-      await withMnemonic(async (mnemonic) => {
+      await session.withMnemonic(async (mnemonic) => {
         const authKey = deriveAuthKeyPair(mnemonic);
         await ensureAuth(authKey.address, authKey.privateKey, authKey.compressed);
       });
@@ -158,7 +80,7 @@ export const useWalletStore = defineStore('wallet', () => {
       await refreshPrices();
 
       await accountStore.sync(address.value, force);
-      await resetLockTimer();
+      await session.resetLockTimer();
     } catch (e) {
       console.error('Failed to refresh balance', e);
     }
@@ -169,33 +91,12 @@ export const useWalletStore = defineStore('wallet', () => {
     await importWallet(mnemonic, password);
   }
 
-  function toHex(bytes: Uint8Array): string {
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  function fromHex(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
-    }
-    return bytes;
-  }
-
-  async function cacheKeyBytes(keyBytes: Uint8Array) {
-    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.set({ dataKey: toHex(keyBytes) });
-    }
-    sessionKey = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
-    hasSessionKey.value = true;
-    keyBytes.fill(0);
-  }
-
   async function importWallet(mnemonic: string, password: string) {
     const walletAddress = deriveAddress(mnemonic, 0, 0);
     const encrypted = await encrypt(mnemonic, password);
 
     encryptedMnemonic.value = encrypted;
-    await cacheKeyBytes(await deriveKeyBytes(password, encrypted));
+    await session.cacheKeyBytes(await deriveKeyBytes(password, encrypted));
 
     const initialAccount: Account = {
       address: walletAddress,
@@ -205,12 +106,12 @@ export const useWalletStore = defineStore('wallet', () => {
 
     accounts.value = [initialAccount];
     activeAccountIndex.value = 0;
-    isUnlocked.value = true;
+    session.markUnlocked();
 
     localStorage.setItem('peppool_vault', encrypted);
     await saveWalletState({ accounts: accounts.value, activeAccountIndex: 0 });
 
-    await resetLockTimer();
+    await session.resetLockTimer();
     await lockout.reset();
     await refreshBalance(true);
     await discoverAccounts(mnemonic);
@@ -267,9 +168,9 @@ export const useWalletStore = defineStore('wallet', () => {
       const mnemonic = await decrypt(encryptedMnemonic.value, password);
       verifyVaultIntegrity(mnemonic);
 
-      await cacheKeyBytes(await deriveKeyBytes(password, encryptedMnemonic.value));
-      isUnlocked.value = true;
-      await resetLockTimer();
+      await session.cacheKeyBytes(await deriveKeyBytes(password, encryptedMnemonic.value));
+      session.markUnlocked();
+      await session.resetLockTimer();
       await lockout.reset();
       await refreshBalance(true);
       return true;
@@ -283,25 +184,16 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function lock() {
-    isUnlocked.value = false;
-    sessionKey = null;
-    hasSessionKey.value = false;
-    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.remove(['sessionStartTime', 'dataKey', 'send_draft']);
-    }
-    if (lockTimer) clearTimeout(lockTimer);
-    lockTimer = null;
+    await session.lock();
     localStorage.removeItem('peppool_transactions');
-    await clearAutoLockAlarm();
   }
 
   async function resetWallet() {
+    await session.lock();
+
     accounts.value = [];
     activeAccountIndex.value = 0;
     encryptedMnemonic.value = null;
-    sessionKey = null;
-    hasSessionKey.value = false;
-    isUnlocked.value = false;
     clearPrices();
     accountStore.reset();
     clearAuth();
@@ -314,18 +206,13 @@ export const useWalletStore = defineStore('wallet', () => {
       }
     }
 
-    // Wipe chrome.storage (settings, accounts, permissions, session)
+    // Wipe chrome.storage (settings, accounts, permissions)
     await clearAllSettings();
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.remove(['peppool_permissions', 'peppool_lockout']);
-      await chrome.storage.session?.remove(['sessionStartTime', 'dataKey', 'send_draft']);
     }
 
-    if (lockTimer) clearTimeout(lockTimer);
-    lockTimer = null;
-
     lockout.reset();
-    clearAutoLockAlarm();
   }
 
   async function switchAccount(index: number) {
@@ -338,10 +225,10 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   async function addAccount(label?: string) {
-    if (!sessionKey) {
+    if (!session.hasSessionKey.value) {
       throw new Error('Wallet is locked. Please re-authenticate.');
     }
-    await withMnemonic(async (mnemonic) => {
+    await session.withMnemonic(async (mnemonic) => {
       const nextIndex = accounts.value.length;
       const newAddress = deriveAddress(mnemonic, nextIndex, 0);
       const newAccount: Account = {
@@ -382,7 +269,7 @@ export const useWalletStore = defineStore('wallet', () => {
     activeAccount,
     address,
     encryptedMnemonic: readonly(encryptedMnemonic),
-    isUnlocked,
+    isUnlocked: session.isUnlocked,
     isCreated,
     isMnemonicLoaded,
     lockout,
@@ -390,7 +277,7 @@ export const useWalletStore = defineStore('wallet', () => {
     createWallet,
     importWallet,
     refreshBalance,
-    resetLockTimer: debouncedResetLockTimer,
+    resetLockTimer: session.debouncedResetLockTimer,
     startPolling,
     stopPolling,
     unlock,
@@ -399,7 +286,7 @@ export const useWalletStore = defineStore('wallet', () => {
     switchAccount,
     addAccount,
     renameAccount,
-    withMnemonic,
+    withMnemonic: session.withMnemonic,
     updateVault
   };
 });

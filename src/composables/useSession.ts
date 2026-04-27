@@ -7,22 +7,18 @@ interface UseSessionOptions {
 }
 
 async function setAutoLockAlarm(delayMinutes: number) {
-  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-    try {
-      await chrome.runtime.sendMessage({ type: 'set-auto-lock', delayMinutes });
-    } catch {
-      /* background worker unavailable */
-    }
+  try {
+    await chrome.runtime.sendMessage({ type: 'set-auto-lock', delayMinutes });
+  } catch {
+    /* background worker unavailable */
   }
 }
 
 async function clearAutoLockAlarm() {
-  if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-    try {
-      await chrome.runtime.sendMessage({ type: 'clear-auto-lock' });
-    } catch {
-      /* background worker unavailable */
-    }
+  try {
+    await chrome.runtime.sendMessage({ type: 'clear-auto-lock' });
+  } catch {
+    /* background worker unavailable */
   }
 }
 
@@ -47,9 +43,7 @@ export function useSession(opts: UseSessionOptions) {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   async function cacheKeyBytes(keyBytes: Uint8Array) {
-    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.set({ dataKey: toHex(keyBytes) });
-    }
+    await chrome.storage.session.set({ dataKey: toHex(keyBytes) });
     sessionKey = await importKey(keyBytes.buffer as ArrayBuffer, ['decrypt']);
     hasSessionKey.value = true;
     keyBytes.fill(0);
@@ -60,9 +54,7 @@ export function useSession(opts: UseSessionOptions) {
 
     const durationMs = opts.getLockDuration() * 60 * 1000;
 
-    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.set({ sessionStartTime: Date.now() });
-    }
+    await chrome.storage.session.set({ sessionStartTime: Date.now() });
 
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = setTimeout(() => lock(), durationMs);
@@ -78,8 +70,6 @@ export function useSession(opts: UseSessionOptions) {
   }
 
   async function checkSession(): Promise<boolean> {
-    if (typeof chrome === 'undefined' || !chrome.storage?.session) return false;
-
     const sessionData = await chrome.storage.session.get(['sessionStartTime', 'dataKey']);
     const sessionStart = sessionData.sessionStartTime as number | undefined;
     const hex = sessionData.dataKey as string | undefined;
@@ -119,9 +109,7 @@ export function useSession(opts: UseSessionOptions) {
     isUnlocked.value = false;
     sessionKey = null;
     hasSessionKey.value = false;
-    if (typeof chrome !== 'undefined' && chrome.storage?.session) {
-      await chrome.storage.session.clear();
-    }
+    await chrome.storage.session.clear();
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = null;
     await clearAutoLockAlarm();

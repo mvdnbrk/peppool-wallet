@@ -208,9 +208,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     // Wipe chrome.storage (settings, accounts, permissions)
     await clearAllSettings();
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await chrome.storage.local.remove(['peppool_permissions', 'peppool_lockout']);
-    }
+    await chrome.storage.local.remove(['peppool_permissions', 'peppool_lockout']);
 
     lockout.reset();
   }

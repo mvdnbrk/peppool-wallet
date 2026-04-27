@@ -8,6 +8,8 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
 
 ### Changed
+- Drop redundant `typeof chrome` guards now that the codebase treats `chrome` as the always-defined extension global ([#32](https://github.com/mvdnbrk/peppool-wallet/pull/32))
+- Extract `useSession` composable from wallet store; lock now clears the entire `chrome.storage.session` instead of a hardcoded key allowlist ([#31](https://github.com/mvdnbrk/peppool-wallet/pull/31))
 - Move last route hint from localStorage to chrome.storage.session ([#30](https://github.com/mvdnbrk/peppool-wallet/pull/30))
 - Extract `useSessionDraft` composable shared by Send and Import drafts ([#29](https://github.com/mvdnbrk/peppool-wallet/pull/29))
 - Move send form draft from localStorage to chrome.storage.session ([#27](https://github.com/mvdnbrk/peppool-wallet/pull/27))

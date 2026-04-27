@@ -201,11 +201,7 @@ describe('Wallet Store', () => {
       'peppool_permissions',
       'peppool_lockout'
     ]);
-    expect(chrome.storage.session.remove).toHaveBeenCalledWith([
-      'sessionStartTime',
-      'dataKey',
-      'send_draft'
-    ]);
+    expect(chrome.storage.session.clear).toHaveBeenCalled();
   });
 
   it('encryptedMnemonic should be exposed as readonly', async () => {

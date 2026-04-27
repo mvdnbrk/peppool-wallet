@@ -64,12 +64,9 @@ describe('Wallet Lock vs Reset Behavior', () => {
     expect(store.isMnemonicLoaded).toBe(false);
     expect(localStorage.getItem('peppool_transactions')).toBeNull();
 
-    // CHECK: Send draft wiped from chrome.storage.session for privacy
-    expect(chrome.storage.session.remove).toHaveBeenCalledWith([
-      'sessionStartTime',
-      'dataKey',
-      'send_draft'
-    ]);
+    // CHECK: Entire session storage wiped — lock ends the session, so any draft
+    // (send, import, etc.) goes with it. Avoids hardcoding a per-form key allowlist.
+    expect(chrome.storage.session.clear).toHaveBeenCalled();
   });
 
   it('resetWallet() should wipe EVERYTHING', async () => {

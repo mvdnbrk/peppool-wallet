@@ -58,8 +58,7 @@ describe('useImportWallet Composable', () => {
 
   it('should restore draft from session storage on mount', async () => {
     vi.mocked(chrome.storage.session.get).mockResolvedValue({
-      import_draft_mnemonic: 'restored word',
-      import_draft_ts: Date.now()
+      import_draft: { data: { mnemonic: 'restored word' }, timestamp: Date.now() }
     });
 
     const [composable] = withSetup(() => useImportWallet());
@@ -75,8 +74,28 @@ describe('useImportWallet Composable', () => {
     await flushPromises();
 
     expect(chrome.storage.session.set).toHaveBeenCalledWith(
-      expect.objectContaining({ import_draft_mnemonic: 'new word' })
+      expect.objectContaining({
+        import_draft: expect.objectContaining({
+          data: { mnemonic: 'new word' },
+          timestamp: expect.any(Number)
+        })
+      })
     );
+  });
+
+  it('should drop draft when older than 5-minute TTL', async () => {
+    vi.mocked(chrome.storage.session.get).mockResolvedValue({
+      import_draft: {
+        data: { mnemonic: 'stale word' },
+        timestamp: Date.now() - (5 * 60 * 1000 + 1)
+      }
+    });
+
+    const [composable] = withSetup(() => useImportWallet());
+    await flushPromises();
+
+    expect(composable.mnemonic.value).toBe('');
+    expect(chrome.storage.session.remove).toHaveBeenCalledWith('import_draft');
   });
 
   it('should validate mnemonic and word list', () => {

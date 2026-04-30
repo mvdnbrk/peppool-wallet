@@ -2,21 +2,11 @@
  * Peppool Wallet - Content Script
  *
  * Acts as a bridge between the Inpage script and the Background worker.
+ * The inpage script is loaded directly into the page's main world via the
+ * manifest's `world: "MAIN"` declaration, so no script injection is needed here.
  */
 
-// 1. Inject the Inpage script
-function injectInpageScript() {
-  try {
-    const script = document.createElement('script');
-    script.src = chrome.runtime.getURL('assets/inpage.js');
-    script.onload = () => script.remove();
-    (document.head || document.documentElement).appendChild(script);
-  } catch (err) {
-    console.error('Peppool Wallet: Failed to inject inpage script', err);
-  }
-}
-
-// 2. Listen for messages from the Inpage script
+// Listen for messages from the Inpage script
 window.addEventListener('message', (event) => {
   // Only accept messages from the same window and targeted at us
   if (event.source !== window || event.data?.target !== 'peppool-content') return;
@@ -46,5 +36,3 @@ window.addEventListener('message', (event) => {
     }
   );
 });
-
-injectInpageScript();

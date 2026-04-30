@@ -1,3 +1,5 @@
+import { CHROME_STORAGE_KEYS } from '@/constants/storage';
+
 /**
  * Per-origin permission entry.
  * `accounts` lists the addresses the user approved for this origin.
@@ -14,15 +16,13 @@ export interface PermissionsMap {
   [origin: string]: SitePermission;
 }
 
-const STORAGE_KEY = 'peppool_permissions';
-
 export async function loadPermissions(): Promise<PermissionsMap> {
-  const data = await chrome.storage.local.get(STORAGE_KEY);
-  return (data[STORAGE_KEY] || {}) as PermissionsMap;
+  const data = await chrome.storage.local.get(CHROME_STORAGE_KEYS.PERMISSIONS);
+  return (data[CHROME_STORAGE_KEYS.PERMISSIONS] || {}) as PermissionsMap;
 }
 
 export async function savePermissions(permissions: PermissionsMap): Promise<void> {
-  await chrome.storage.local.set({ [STORAGE_KEY]: permissions });
+  await chrome.storage.local.set({ [CHROME_STORAGE_KEYS.PERMISSIONS]: permissions });
 }
 
 export function hasPermission(

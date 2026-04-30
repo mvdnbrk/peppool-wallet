@@ -11,6 +11,7 @@ import {
 import { Transaction } from '@/models/Transaction';
 import { TXS_PER_PAGE } from '@/utils/constants';
 import { useInscriptionStore } from './inscriptions';
+import { LOCAL_STORAGE_KEYS } from '@/constants/storage';
 
 export const useAccountStore = defineStore('account', () => {
   const inscriptionStore = useInscriptionStore();
@@ -39,12 +40,12 @@ export const useAccountStore = defineStore('account', () => {
 
   function loadCachedData(address: string) {
     try {
-      const balanceCache = getCache<number>('peppool_balance');
+      const balanceCache = getCache<number>(LOCAL_STORAGE_KEYS.BALANCE);
       if (balanceCache[address] != null) {
         balanceRibbits.value = balanceCache[address];
       }
 
-      const txCache = getCache<unknown[]>('peppool_transactions');
+      const txCache = getCache<unknown[]>(LOCAL_STORAGE_KEYS.TRANSACTIONS);
       if (txCache[address]) {
         transactions.value = txCache[address].map((raw: any) => new Transaction(raw, address));
       }
@@ -59,9 +60,9 @@ export const useAccountStore = defineStore('account', () => {
       const rawTxs = await fetchTransactions(address);
       transactions.value = rawTxs.map((raw) => new Transaction(raw, address));
       canLoadMoreTransactions.value = rawTxs.length >= TXS_PER_PAGE;
-      const txCache = getCache<unknown[]>('peppool_transactions');
+      const txCache = getCache<unknown[]>(LOCAL_STORAGE_KEYS.TRANSACTIONS);
       txCache[address] = rawTxs.slice(0, 20);
-      localStorage.setItem('peppool_transactions', JSON.stringify(txCache));
+      localStorage.setItem(LOCAL_STORAGE_KEYS.TRANSACTIONS, JSON.stringify(txCache));
     } catch (e) {
       console.error('Failed to fetch transactions', e);
     }
@@ -97,9 +98,9 @@ export const useAccountStore = defineStore('account', () => {
       lastTipHeight = tipHeight;
 
       balanceRibbits.value = await fetchAddressInfo(address);
-      const balanceCache = getCache<number>('peppool_balance');
+      const balanceCache = getCache<number>(LOCAL_STORAGE_KEYS.BALANCE);
       balanceCache[address] = balanceRibbits.value;
-      localStorage.setItem('peppool_balance', JSON.stringify(balanceCache));
+      localStorage.setItem(LOCAL_STORAGE_KEYS.BALANCE, JSON.stringify(balanceCache));
 
       await refreshTransactions(address);
       await inscriptionStore.sync(address, tipHeight);

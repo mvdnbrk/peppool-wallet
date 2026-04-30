@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { CHROME_STORAGE_KEYS } from '@/constants/storage';
 
 // ── Escalating lockout tiers ───────────────────────────────────────────────
 // Each tier defines when it activates and how long the lockout lasts.
@@ -25,11 +26,11 @@ function getFailureTier(attempts: number): FailureTier | null {
 }
 
 // ── Storage helpers ──────────────────────────────────────────────────────
-const STORAGE_KEY = 'peppool_lockout';
-
 async function loadState(): Promise<{ attempts: number; until: number }> {
-  const data = await chrome.storage.local.get(STORAGE_KEY);
-  const lockout = data[STORAGE_KEY] as { attempts?: number; until?: number } | undefined;
+  const data = await chrome.storage.local.get(CHROME_STORAGE_KEYS.LOCKOUT);
+  const lockout = data[CHROME_STORAGE_KEYS.LOCKOUT] as
+    | { attempts?: number; until?: number }
+    | undefined;
   if (lockout) {
     return { attempts: Number(lockout.attempts) || 0, until: Number(lockout.until) || 0 };
   }
@@ -37,11 +38,11 @@ async function loadState(): Promise<{ attempts: number; until: number }> {
 }
 
 async function saveState(attempts: number, until: number) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: { attempts, until } });
+  await chrome.storage.local.set({ [CHROME_STORAGE_KEYS.LOCKOUT]: { attempts, until } });
 }
 
 async function clearState() {
-  await chrome.storage.local.remove(STORAGE_KEY);
+  await chrome.storage.local.remove(CHROME_STORAGE_KEYS.LOCKOUT);
 }
 
 export const useLockoutStore = defineStore('lockout', () => {

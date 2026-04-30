@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 import { getSettings } from './settings';
 import { fetchPepPrice } from './api';
 import { RIBBITS_PER_PEP } from './constants';
+import { LOCAL_STORAGE_KEYS } from '@/constants/storage';
 
 export interface Prices {
   USD: number;
@@ -9,12 +10,11 @@ export interface Prices {
 }
 
 const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€' };
-const STORAGE_KEY = 'peppool_prices';
 
 const prices: Prices = reactive({ USD: 0, EUR: 0 });
 
 function loadFromCache(): void {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.PRICES);
   if (raw) {
     try {
       const cached = JSON.parse(raw);
@@ -34,13 +34,13 @@ export function getPrices(): Prices {
 export async function refreshPrices(): Promise<void> {
   const fetched = await fetchPepPrice();
   Object.assign(prices, fetched);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...prices }));
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PRICES, JSON.stringify({ ...prices }));
 }
 
 export function clearPrices(): void {
   prices.USD = 0;
   prices.EUR = 0;
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.PRICES);
 }
 
 /**

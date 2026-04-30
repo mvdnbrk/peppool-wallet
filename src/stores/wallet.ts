@@ -17,6 +17,7 @@ import { useLockoutStore } from './lockout';
 import { useSettingsStore } from './settings';
 import { useInscriptionStore } from './inscriptions';
 import { useAccountStore } from './account';
+import { LOCAL_STORAGE_KEYS, CHROME_STORAGE_KEYS, STORAGE_PREFIX } from '@/constants/storage';
 
 export interface Account {
   address: string;
@@ -36,7 +37,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   const accounts = ref<Account[]>(walletStateData.accounts);
   const activeAccountIndex = ref<number>(walletStateData.activeAccountIndex);
-  const encryptedMnemonic = ref<string | null>(localStorage.getItem('peppool_vault'));
+  const encryptedMnemonic = ref<string | null>(localStorage.getItem(LOCAL_STORAGE_KEYS.VAULT));
 
   const session = useSession({
     encryptedMnemonic,
@@ -108,7 +109,7 @@ export const useWalletStore = defineStore('wallet', () => {
     activeAccountIndex.value = 0;
     session.markUnlocked();
 
-    localStorage.setItem('peppool_vault', encrypted);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.VAULT, encrypted);
     await saveWalletState({ accounts: accounts.value, activeAccountIndex: 0 });
 
     await session.resetLockTimer();
@@ -185,7 +186,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   async function lock() {
     await session.lock();
-    localStorage.removeItem('peppool_transactions');
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.TRANSACTIONS);
   }
 
   async function resetWallet() {
@@ -201,14 +202,17 @@ export const useWalletStore = defineStore('wallet', () => {
     // Wipe all peppool localStorage keys (cache + vault)
     const keys = Object.keys(localStorage);
     for (const key of keys) {
-      if (key.startsWith('peppool_')) {
+      if (key.startsWith(STORAGE_PREFIX)) {
         localStorage.removeItem(key);
       }
     }
 
     // Wipe chrome.storage (settings, accounts, permissions)
     await clearAllSettings();
-    await chrome.storage.local.remove(['peppool_permissions', 'peppool_lockout']);
+    await chrome.storage.local.remove([
+      CHROME_STORAGE_KEYS.PERMISSIONS,
+      CHROME_STORAGE_KEYS.LOCKOUT
+    ]);
 
     lockout.reset();
   }
@@ -248,7 +252,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   function updateVault(encrypted: string) {
     encryptedMnemonic.value = encrypted;
-    localStorage.setItem('peppool_vault', encrypted);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.VAULT, encrypted);
   }
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;

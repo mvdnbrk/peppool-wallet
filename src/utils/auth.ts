@@ -1,6 +1,7 @@
 import * as message from 'bitcoinjs-message';
 import { PEPECOIN } from './networks';
 import { API_TIMEOUT_MS, APP_NAME, APP_VERSION } from './constants';
+import { LOCAL_STORAGE_KEYS } from '@/constants/storage';
 
 const API_BASE = import.meta.env.VITE_MAINNET_API || 'https://peppool.space/api';
 
@@ -9,10 +10,6 @@ const AUTH_HEADERS = {
   'X-App-Name': APP_NAME,
   'X-App-Version': APP_VERSION
 };
-
-const STORAGE_KEY_TOKEN = 'peppool_auth_token';
-const STORAGE_KEY_EXPIRES = 'peppool_auth_expires';
-const STORAGE_KEY_ADDRESS = 'peppool_auth_address';
 
 interface ChallengeResponse {
   nonce: string;
@@ -69,29 +66,29 @@ async function requestToken(address: string, signature: string): Promise<TokenRe
 }
 
 function storeToken(token: string, expiresAt: number, address: string) {
-  localStorage.setItem(STORAGE_KEY_TOKEN, token);
-  localStorage.setItem(STORAGE_KEY_EXPIRES, expiresAt.toString());
-  localStorage.setItem(STORAGE_KEY_ADDRESS, address);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, token);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_EXPIRES, expiresAt.toString());
+  localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_ADDRESS, address);
 }
 
 function clearStoredToken() {
-  localStorage.removeItem(STORAGE_KEY_TOKEN);
-  localStorage.removeItem(STORAGE_KEY_EXPIRES);
-  localStorage.removeItem(STORAGE_KEY_ADDRESS);
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_EXPIRES);
+  localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_ADDRESS);
 }
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(STORAGE_KEY_TOKEN);
+  return localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
 }
 
 function getStoredExpiry(): number {
-  const expiresAt = localStorage.getItem(STORAGE_KEY_EXPIRES);
+  const expiresAt = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_EXPIRES);
   if (!expiresAt) return 0;
   return parseInt(expiresAt, 10) * 1000;
 }
 
 function getStoredAddress(): string | null {
-  return localStorage.getItem(STORAGE_KEY_ADDRESS);
+  return localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_ADDRESS);
 }
 
 function isTokenExpired(): boolean {

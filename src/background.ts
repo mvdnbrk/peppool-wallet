@@ -10,6 +10,7 @@
  */
 
 import { loadPermissions, savePermissions, hasPermission, revokeOrigin } from '@/utils/permissions';
+import { CHROME_STORAGE_KEYS } from '@/constants/storage';
 
 const ALARM_NAME_AUTOLOCK = 'peppool-inactivity-lock';
 
@@ -183,11 +184,11 @@ async function handleDappRequest(
  * Returns the active account's address from chrome.storage, or null.
  */
 async function getActiveAddress(): Promise<string | null> {
-  const activeData = (await chrome.storage.local.get('peppool_active_account')) as any;
-  const activeAccountIndex = parseInt(activeData.peppool_active_account || '0');
+  const activeData = (await chrome.storage.local.get(CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT)) as any;
+  const activeAccountIndex = parseInt(activeData[CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT] || '0');
 
-  const accountsData = (await chrome.storage.local.get('peppool_accounts')) as any;
-  const accountsRaw = accountsData.peppool_accounts as string | undefined;
+  const accountsData = (await chrome.storage.local.get(CHROME_STORAGE_KEYS.ACCOUNTS)) as any;
+  const accountsRaw = accountsData[CHROME_STORAGE_KEYS.ACCOUNTS] as string | undefined;
   const accounts = accountsRaw ? JSON.parse(accountsRaw) : [];
   return accounts[activeAccountIndex]?.address || null;
 }

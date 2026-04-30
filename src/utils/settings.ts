@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import type { ExplorerId } from './explorer';
 import type { Account } from '@/stores/wallet';
+import { CHROME_STORAGE_KEYS } from '@/constants/storage';
 
 export interface Settings {
   currency: 'USD' | 'EUR';
@@ -25,22 +26,23 @@ const walletState: WalletState = reactive({ ...WALLET_STATE_DEFAULTS });
  */
 export async function loadSettings(): Promise<void> {
   const data = await chrome.storage.local.get([
-    'peppool_settings',
-    'peppool_accounts',
-    'peppool_active_account'
+    CHROME_STORAGE_KEYS.SETTINGS,
+    CHROME_STORAGE_KEYS.ACCOUNTS,
+    CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT
   ]);
 
-  if (data.peppool_settings) {
-    Object.assign(settings, SETTINGS_DEFAULTS, data.peppool_settings);
+  if (data[CHROME_STORAGE_KEYS.SETTINGS]) {
+    Object.assign(settings, SETTINGS_DEFAULTS, data[CHROME_STORAGE_KEYS.SETTINGS]);
   }
 
-  if (data.peppool_accounts) {
-    const raw = data.peppool_accounts;
+  if (data[CHROME_STORAGE_KEYS.ACCOUNTS]) {
+    const raw = data[CHROME_STORAGE_KEYS.ACCOUNTS];
     walletState.accounts = typeof raw === 'string' ? JSON.parse(raw) : raw;
   }
 
-  if (data.peppool_active_account != null) {
-    walletState.activeAccountIndex = parseInt(String(data.peppool_active_account)) || 0;
+  if (data[CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT] != null) {
+    walletState.activeAccountIndex =
+      parseInt(String(data[CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT])) || 0;
   }
 }
 
@@ -54,17 +56,17 @@ export function getWalletState(): WalletState {
 
 export async function saveSettings(partial: Partial<Settings>): Promise<void> {
   Object.assign(settings, partial);
-  await chrome.storage.local.set({ peppool_settings: { ...settings } });
+  await chrome.storage.local.set({ [CHROME_STORAGE_KEYS.SETTINGS]: { ...settings } });
 }
 
 export async function saveWalletState(state: Partial<WalletState>): Promise<void> {
   Object.assign(walletState, state);
   const update: Record<string, any> = {};
   if (state.accounts !== undefined) {
-    update.peppool_accounts = JSON.stringify(walletState.accounts);
+    update[CHROME_STORAGE_KEYS.ACCOUNTS] = JSON.stringify(walletState.accounts);
   }
   if (state.activeAccountIndex !== undefined) {
-    update.peppool_active_account = walletState.activeAccountIndex.toString();
+    update[CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT] = walletState.activeAccountIndex.toString();
   }
   await chrome.storage.local.set(update);
 }
@@ -72,9 +74,9 @@ export async function saveWalletState(state: Partial<WalletState>): Promise<void
 export async function clearAllSettings(): Promise<void> {
   resetSettingsState();
   await chrome.storage.local.remove([
-    'peppool_settings',
-    'peppool_accounts',
-    'peppool_active_account'
+    CHROME_STORAGE_KEYS.SETTINGS,
+    CHROME_STORAGE_KEYS.ACCOUNTS,
+    CHROME_STORAGE_KEYS.ACTIVE_ACCOUNT
   ]);
 }
 

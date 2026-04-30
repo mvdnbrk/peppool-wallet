@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, readonly } from 'vue';
 import { fetchAddressInscriptions, fetchInscription, fetchInscriptionOutputs } from '@/utils/api';
 import type { Inscription } from '@/models/Inscription';
+import { LOCAL_STORAGE_KEYS } from '@/constants/storage';
 
 const BATCH_SIZE = 5;
 
@@ -12,10 +13,9 @@ interface PersistedData {
   utxoValueRibbits?: number;
 }
 
-const STORAGE_KEY = 'peppool_inscriptions';
 function getCache(): Record<string, PersistedData> {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.INSCRIPTIONS) || '{}');
   } catch {
     return {};
   }
@@ -28,7 +28,7 @@ function loadFromStorage(address: string): PersistedData {
 function saveToStorage(address: string, data: PersistedData): void {
   const cache = getCache();
   cache[address] = data;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+  localStorage.setItem(LOCAL_STORAGE_KEYS.INSCRIPTIONS, JSON.stringify(cache));
 }
 
 export const useInscriptionStore = defineStore('inscriptions', () => {

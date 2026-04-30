@@ -8,6 +8,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
 
 ### Changed
+- Centralize all persistent storage keys in `src/constants/storage.ts` so consumers reference a single source of truth ([#33](https://github.com/mvdnbrk/peppool-wallet/pull/33))
 - Drop redundant `typeof chrome` guards now that the codebase treats `chrome` as the always-defined extension global ([#32](https://github.com/mvdnbrk/peppool-wallet/pull/32))
 - Extract `useSession` composable from wallet store; lock now clears the entire `chrome.storage.session` instead of a hardcoded key allowlist ([#31](https://github.com/mvdnbrk/peppool-wallet/pull/31))
 - Move last route hint from localStorage to chrome.storage.session ([#30](https://github.com/mvdnbrk/peppool-wallet/pull/30))
@@ -20,6 +21,9 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Wipe derived cache on app version change ([#22](https://github.com/mvdnbrk/peppool-wallet/pull/22))
 - Move lock timer to session storage with inactivity-based locking ([#18](https://github.com/mvdnbrk/peppool-wallet/pull/18))
 - Defer UTXO fetch to send step and show spendable balance on send view ([#19](https://github.com/mvdnbrk/peppool-wallet/pull/19))
+
+### Fixed
+- Inject inpage provider via the manifest's main world so the wallet stops breaking pages that enforce Trusted Types CSP ([b6cd1fe](https://github.com/mvdnbrk/peppool-wallet/commit/b6cd1fe))
 
 ## [0.2.1](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.1) - 2026-04-18
 

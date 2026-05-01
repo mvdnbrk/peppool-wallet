@@ -42,7 +42,7 @@ export function useChangePassword() {
     // Re-encrypt with new password
     await walletStore.withMnemonic(async (mnemonic) => {
       const newEncrypted = await encrypt(mnemonic, newPassword);
-      walletStore.updateVault(newEncrypted);
+      await walletStore.updateVault(newEncrypted);
     });
 
     isSuccess.value = true;

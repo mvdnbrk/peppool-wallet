@@ -8,6 +8,7 @@ import { Transaction } from '@/models/Transaction';
 import * as api from '@/utils/api';
 import * as settings from '@/utils/settings';
 import { resetSettingsState } from '@/utils/settings';
+import { resetVaultState, getVault } from '@/utils/vault';
 
 // Mock the API and Crypto utils
 vi.mock('@/utils/api', async (importOriginal) => {
@@ -38,6 +39,7 @@ describe('Wallet Store', () => {
     setActivePinia(createPinia());
     localStorage.clear();
     resetSettingsState();
+    resetVaultState();
     vi.clearAllMocks();
   });
 
@@ -59,7 +61,10 @@ describe('Wallet Store', () => {
     expect(store.accounts).toHaveLength(1);
     expect(store.accounts[0].label).toBe('Account 1');
     expect(store.accounts[0].path).toBe("m/44'/3434'/0'/0/0");
-    expect(localStorage.getItem('peppool_vault')).not.toBeNull();
+    expect(getVault()).not.toBeNull();
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ peppool_vault: expect.any(String) })
+    );
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ peppool_accounts: expect.any(String) })
     );
@@ -147,7 +152,8 @@ describe('Wallet Store', () => {
   });
 
   it('should auto-unlock via checkSession if chrome.storage has mnemonic', async () => {
-    localStorage.setItem('peppool_vault', 'any-vault');
+    const { saveVault } = await import('@/utils/vault');
+    await saveVault('any-vault');
     vi.spyOn(settings, 'getWalletState').mockReturnValue({
       accounts: [{ address: 'any-addr', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }],
       activeAccountIndex: 0
@@ -190,8 +196,9 @@ describe('Wallet Store', () => {
     expect(store.address).toBeNull();
     expect(store.accounts).toHaveLength(0);
     expect(store.isCreated).toBe(false);
-    expect(localStorage.getItem('peppool_vault')).toBeNull();
+    expect(getVault()).toBeNull();
     expect(localStorage.getItem('other_app_key')).toBe('keep-me');
+    expect(chrome.storage.local.remove).toHaveBeenCalledWith('peppool_vault');
     expect(chrome.storage.local.remove).toHaveBeenCalledWith([
       'peppool_settings',
       'peppool_accounts',

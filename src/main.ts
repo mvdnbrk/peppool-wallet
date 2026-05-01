@@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
 import { router } from '@/router';
 import { wipeCacheOnVersionChange } from '@/utils/cache';
 import { loadSettings } from '@/utils/settings';
+import { loadVault } from '@/utils/vault';
 import '@tailwindplus/elements';
 import './style.css';
 import App from './App.vue';
@@ -10,8 +11,8 @@ import App from './App.vue';
 // Wipe stale cache before Pinia stores read from localStorage
 wipeCacheOnVersionChange();
 
-// Load settings from chrome.storage.local before Pinia stores initialize
-await loadSettings();
+// Load settings and vault from chrome.storage.local before Pinia stores initialize
+await Promise.all([loadSettings(), loadVault()]);
 import PepButton from '@/components/ui/PepButton.vue';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 import PepInput from '@/components/ui/form/PepInput.vue';

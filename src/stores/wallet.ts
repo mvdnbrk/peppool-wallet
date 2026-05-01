@@ -12,6 +12,7 @@ import { hasAddressActivity } from '@/utils/api';
 import { ensureAuth, clearAuth } from '@/utils/auth';
 import { refreshPrices, clearPrices } from '@/utils/price';
 import { getWalletState, saveWalletState, clearAllSettings } from '@/utils/settings';
+import { getVault, saveVault, clearVault } from '@/utils/vault';
 import { useSession } from '@/composables/useSession';
 import { useLockoutStore } from './lockout';
 import { useSettingsStore } from './settings';
@@ -37,7 +38,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
   const accounts = ref<Account[]>(walletStateData.accounts);
   const activeAccountIndex = ref<number>(walletStateData.activeAccountIndex);
-  const encryptedMnemonic = ref<string | null>(localStorage.getItem(LOCAL_STORAGE_KEYS.VAULT));
+  const encryptedMnemonic = ref<string | null>(getVault());
 
   const session = useSession({
     encryptedMnemonic,
@@ -109,7 +110,7 @@ export const useWalletStore = defineStore('wallet', () => {
     activeAccountIndex.value = 0;
     session.markUnlocked();
 
-    localStorage.setItem(LOCAL_STORAGE_KEYS.VAULT, encrypted);
+    await saveVault(encrypted);
     await saveWalletState({ accounts: accounts.value, activeAccountIndex: 0 });
 
     await session.resetLockTimer();
@@ -199,7 +200,7 @@ export const useWalletStore = defineStore('wallet', () => {
     accountStore.reset();
     clearAuth();
 
-    // Wipe all peppool localStorage keys (cache + vault)
+    // Wipe all peppool localStorage cache keys
     const keys = Object.keys(localStorage);
     for (const key of keys) {
       if (key.startsWith(STORAGE_PREFIX)) {
@@ -207,7 +208,8 @@ export const useWalletStore = defineStore('wallet', () => {
       }
     }
 
-    // Wipe chrome.storage (settings, accounts, permissions)
+    // Wipe chrome.storage (vault, settings, accounts, permissions)
+    await clearVault();
     await clearAllSettings();
     await chrome.storage.local.remove([
       CHROME_STORAGE_KEYS.PERMISSIONS,
@@ -250,9 +252,9 @@ export const useWalletStore = defineStore('wallet', () => {
     await saveWalletState({ accounts: accounts.value });
   }
 
-  function updateVault(encrypted: string) {
+  async function updateVault(encrypted: string) {
     encryptedMnemonic.value = encrypted;
-    localStorage.setItem(LOCAL_STORAGE_KEYS.VAULT, encrypted);
+    await saveVault(encrypted);
   }
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;

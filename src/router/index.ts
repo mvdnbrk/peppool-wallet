@@ -41,7 +41,7 @@ const routes = [
   { path: '/reset-wallet', component: ResetWalletView },
   { path: '/tx/:txid', component: TransactionDetailView, meta: { persist: true } },
   { path: '/inscriptions', component: InscriptionsView },
-  { path: '/inscription/:id', component: InscriptionDetailView },
+  { path: '/inscription/:id', component: InscriptionDetailView, meta: { persist: true } },
   { path: '/settings/preferences', component: PreferencesView },
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },

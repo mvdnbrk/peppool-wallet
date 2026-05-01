@@ -1,5 +1,5 @@
 import { estimateTxSize, type UTXO } from '@/utils/crypto';
-import type { RecommendedFees } from '@/utils/api';
+import type { RecommendedFees } from '@/models/Fees';
 import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
 
 export class SendTransaction {

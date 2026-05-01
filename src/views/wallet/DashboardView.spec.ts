@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
+import { setActivePinia, createPinia } from 'pinia';
 import DashboardView from './DashboardView.vue';
 import ReceiveView from './ReceiveView.vue';
 import { Transaction } from '@/models/Transaction';
@@ -39,6 +40,7 @@ describe('Wallet Views Navigation', () => {
   let mockAccount: any;
 
   beforeEach(() => {
+    setActivePinia(createPinia());
     vi.clearAllMocks();
     mockAccount = {
       balanceRibbits: 0,

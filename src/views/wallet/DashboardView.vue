@@ -4,8 +4,11 @@ import * as price from '@/utils/price';
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
+import { useInscriptionStore } from '@/stores/inscriptions';
 
 const { router, wallet: walletStore, account } = useApp();
+const inscriptionStore = useInscriptionStore();
+const inscriptionCount = computed(() => Object.keys(inscriptionStore.inscriptions).length);
 
 const isLoadingMore = ref(false);
 
@@ -83,6 +86,26 @@ async function handleLoadMore() {
       <PepButton @click="router.push('/send')"> Send </PepButton>
       <PepButton @click="router.push('/receive')" variant="secondary"> Receive </PepButton>
     </div>
+
+    <!-- Inscriptions -->
+    <button
+      id="inscriptions-entry"
+      type="button"
+      @click="router.push('/inscriptions')"
+      class="mb-4 flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-left transition-colors hover:border-slate-600"
+    >
+      <div class="flex flex-col">
+        <span class="text-offwhite text-sm font-bold">Inscriptions</span>
+        <span class="text-xs font-semibold text-slate-500">
+          {{
+            inscriptionCount === 0
+              ? 'None yet'
+              : `${inscriptionCount} item${inscriptionCount === 1 ? '' : 's'}`
+          }}
+        </span>
+      </div>
+      <PepIcon name="chevron-right" size="16" class="text-slate-500" />
+    </button>
 
     <!-- Recent Activity -->
     <div

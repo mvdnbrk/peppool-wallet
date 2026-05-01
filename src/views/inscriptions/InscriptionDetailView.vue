@@ -21,6 +21,11 @@ const inscription = computed(() => inscriptionStore.inscriptions[id] || fetched.
 
 const title = computed(() => (inscription.value?.properties?.title as string) || null);
 
+const traits = computed(() => {
+  const raw = inscription.value?.properties?.traits as Record<string, string> | undefined;
+  return raw ? Object.entries(raw) : [];
+});
+
 const valuePep = computed(() =>
   inscription.value ? price.formatAmount(inscription.value.value / RIBBITS_PER_PEP) : '-'
 );
@@ -89,6 +94,18 @@ function openExplorer() {
         <h3 v-if="title" class="text-offwhite px-1 text-lg font-bold break-words">
           {{ title }}
         </h3>
+
+        <PepCard v-if="traits.length" class="space-y-2 p-3">
+          <div
+            v-for="([key, value], i) in traits"
+            :key="key"
+            class="flex items-baseline justify-between"
+            :class="{ 'border-t border-slate-700/30 pt-2': i > 0 }"
+          >
+            <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">{{ key }}</span>
+            <span class="text-offwhite truncate pl-2 text-xs font-semibold">{{ value }}</span>
+          </div>
+        </PepCard>
 
         <PepCard class="space-y-2 p-3">
           <div class="flex items-baseline justify-between">

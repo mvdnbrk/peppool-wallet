@@ -4,6 +4,9 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ## [Unreleased](https://github.com/mvdnbrk/peppool-wallet/compare/v0.2.2...main)
 
+### Fixed
+- Exclude unconfirmed balance from spendable amount on send page so MAX no longer promises funds coin selection won't spend ([#38](https://github.com/mvdnbrk/peppool-wallet/pull/38))
+
 ## [0.2.2](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.2) - 2026-05-01
 
 ### Added

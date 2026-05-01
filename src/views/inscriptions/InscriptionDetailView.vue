@@ -19,6 +19,8 @@ const error = ref('');
 
 const inscription = computed(() => inscriptionStore.inscriptions[id] || fetched.value);
 
+const title = computed(() => (inscription.value?.properties?.title as string) || null);
+
 const valuePep = computed(() =>
   inscription.value ? price.formatAmount(inscription.value.value / RIBBITS_PER_PEP) : '-'
 );
@@ -83,6 +85,10 @@ function openExplorer() {
             :interactive="true"
           />
         </div>
+
+        <h3 v-if="title" class="text-offwhite px-1 text-lg font-bold break-words">
+          {{ title }}
+        </h3>
 
         <PepCard class="space-y-2 p-3">
           <div class="flex items-baseline justify-between">

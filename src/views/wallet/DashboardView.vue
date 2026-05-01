@@ -65,6 +65,16 @@ async function handleLoadMore() {
       <PepIcon name="chevron-right" size="16" class="text-slate-500" />
     </div>
 
+    <!-- Inscriptions Indicator -->
+    <div
+      id="inscriptions-entry"
+      @click="router.push('/inscriptions')"
+      class="mb-2 flex cursor-pointer items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-slate-800/50"
+    >
+      <span class="text-xs font-bold text-white">{{ inscriptionCount }} inscriptions</span>
+      <PepIcon name="chevron-right" size="16" class="text-slate-500" />
+    </div>
+
     <!-- Balance Card -->
     <div
       class="group relative mb-4 space-y-2 rounded-2xl border border-slate-700 bg-slate-800 p-6 text-center"
@@ -86,26 +96,6 @@ async function handleLoadMore() {
       <PepButton @click="router.push('/send')"> Send </PepButton>
       <PepButton @click="router.push('/receive')" variant="secondary"> Receive </PepButton>
     </div>
-
-    <!-- Inscriptions -->
-    <button
-      id="inscriptions-entry"
-      type="button"
-      @click="router.push('/inscriptions')"
-      class="mb-4 flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-left transition-colors hover:border-slate-600"
-    >
-      <div class="flex flex-col">
-        <span class="text-offwhite text-sm font-bold">Inscriptions</span>
-        <span class="text-xs font-semibold text-slate-500">
-          {{
-            inscriptionCount === 0
-              ? 'None yet'
-              : `${inscriptionCount} item${inscriptionCount === 1 ? '' : 's'}`
-          }}
-        </span>
-      </div>
-      <PepIcon name="chevron-right" size="16" class="text-slate-500" />
-    </button>
 
     <!-- Recent Activity -->
     <div

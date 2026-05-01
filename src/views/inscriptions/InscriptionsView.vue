@@ -41,12 +41,9 @@ function open(id: string) {
 
       <div
         v-else-if="isEmpty"
-        class="flex flex-1 flex-col items-center justify-center space-y-2 text-center text-slate-500"
+        class="flex flex-1 flex-col items-center justify-center text-slate-500"
       >
         <p class="text-sm font-bold">No inscriptions yet</p>
-        <p class="max-w-xs text-xs text-slate-600">
-          Pepinals you receive on this address will appear here.
-        </p>
       </div>
 
       <div v-else class="flex-1 overflow-y-auto pr-1 pb-4">

@@ -33,12 +33,15 @@ describe('Onboarding Navigation', () => {
     });
   });
 
-  it('ImportWalletView: should have backTo prop set to /', () => {
+  it('ImportWalletView: uses an onBack handler so it can clear the session draft before navigating', () => {
+    // Why: pressing back is an explicit "I'm leaving this flow" — the typed mnemonic
+    // shouldn't survive it. Popup-close persistence is intentional and handled separately.
     const wrapper = mount(ImportWalletView, {
       global: { stubs, components: { PepPageHeader, PepMainLayout } }
     });
     const header = wrapper.findComponent(PepPageHeader);
-    expect(header.props('backTo')).toBe('/');
+    expect(header.props('backTo')).toBeUndefined();
+    expect(typeof header.props('onBack')).toBe('function');
   });
 
   it('CreateWalletView: should have backTo prop set to / when at step 1', () => {

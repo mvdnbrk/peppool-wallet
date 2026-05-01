@@ -25,7 +25,8 @@ const mockImportWallet = {
   invalidWords: ref([] as string[]),
   isValid: ref(false),
   importAction: vi.fn().mockResolvedValue(true),
-  sanitizeMnemonic: vi.fn()
+  sanitizeMnemonic: vi.fn(),
+  clearDraft: vi.fn().mockResolvedValue(undefined)
 };
 
 vi.mock('@/composables/useImportWallet', () => ({
@@ -72,6 +73,18 @@ describe('ImportWalletView Logic', () => {
       PepPageHeader
     }
   };
+
+  it('clears the session draft when the user presses back so the next visit starts fresh', async () => {
+    // Why: a typed-then-abandoned mnemonic must not survive an explicit back navigation.
+    // (Popup-close persistence is intentional and covered by the draft TTL — see CLAUDE.md.)
+    const wrapper = mount(ImportWalletView, { global });
+
+    await wrapper.find('textarea').setValue(VALID_MNEMONIC);
+    await wrapper.find('#header-back-button').trigger('click');
+
+    expect(mockImportWallet.clearDraft).toHaveBeenCalled();
+    expect(pushMock).toHaveBeenCalledWith('/');
+  });
 
   it('should call store.importWallet and navigate to dashboard on success', async () => {
     const wrapper = mount(ImportWalletView, { global });

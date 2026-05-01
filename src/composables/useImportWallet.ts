@@ -53,11 +53,17 @@ export function useImportWallet() {
     return true;
   }
 
+  async function clearDraft() {
+    mnemonic.value = '';
+    await draft.clear();
+  }
+
   return {
     mnemonic,
     invalidWords,
     isValid,
     importAction,
-    sanitizeMnemonic
+    sanitizeMnemonic,
+    clearDraft
   };
 }

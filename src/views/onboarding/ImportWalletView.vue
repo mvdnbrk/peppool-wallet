@@ -12,8 +12,14 @@ const {
   invalidWords,
   isValid: isMnemonicValid,
   importAction,
-  sanitizeMnemonic
+  sanitizeMnemonic,
+  clearDraft
 } = useImportWallet();
+
+async function handleBack() {
+  await clearDraft();
+  router.push('/');
+}
 
 const form = useForm({
   mnemonic: '',
@@ -63,7 +69,7 @@ async function handleImport() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Import wallet" backTo="/" />
+      <PepPageHeader title="Import wallet" :on-back="handleBack" />
     </template>
 
     <PepForm

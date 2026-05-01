@@ -17,3 +17,8 @@ export const RawAddressInfoSchema = v.object({
 });
 
 export type RawAddressInfo = v.InferOutput<typeof RawAddressInfoSchema>;
+
+export interface AddressBalance {
+  confirmed: number;
+  pending: number;
+}

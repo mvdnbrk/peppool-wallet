@@ -15,7 +15,7 @@ vi.mock('@/utils/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/utils/api')>();
   return {
     ...actual,
-    fetchAddressInfo: vi.fn(() => Promise.resolve(100000000)),
+    fetchAddressInfo: vi.fn(() => Promise.resolve({ confirmed: 100000000, pending: 0 })),
     fetchPepPrice: vi.fn(() => Promise.resolve({ USD: 0.5, EUR: 0.4 })),
     fetchTransactions: vi.fn(() => Promise.resolve([])),
     hasAddressActivity: vi.fn(() => Promise.resolve(false)),
@@ -305,7 +305,7 @@ describe('Wallet Store', () => {
     ];
     store.activeAccountIndex = 0;
 
-    vi.mocked(api.fetchAddressInfo).mockResolvedValue(300000000); // 3 PEP total
+    vi.mocked(api.fetchAddressInfo).mockResolvedValue({ confirmed: 300000000, pending: 0 }); // 3 PEP total
     vi.mocked(api.fetchUtxos).mockResolvedValue([
       { txid: 'spendable1', vout: 0, value: 200000000, status: { confirmed: true } },
       { txid: 'inscribed1', vout: 1, value: 10000, status: { confirmed: true } },
@@ -335,7 +335,7 @@ describe('Wallet Store', () => {
     ];
     store.activeAccountIndex = 0;
 
-    vi.mocked(api.fetchAddressInfo).mockResolvedValue(100000000);
+    vi.mocked(api.fetchAddressInfo).mockResolvedValue({ confirmed: 100000000, pending: 0 });
     vi.mocked(api.fetchUtxos).mockRejectedValue(new Error('Network error'));
 
     await store.refreshBalance(true);

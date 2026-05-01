@@ -34,7 +34,7 @@ describe('wipeCacheOnVersionChange', () => {
     expect(localStorage.getItem('peppool_auth_address')).toBeNull();
   });
 
-  it('should preserve vault (only persistent localStorage key)', () => {
+  it('should preserve a legacy vault in localStorage so loadVault() can migrate it', () => {
     localStorage.setItem('peppool_app_version', '1.0.0');
     localStorage.setItem('peppool_vault', 'encrypted-mnemonic');
 

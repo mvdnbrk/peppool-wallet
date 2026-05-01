@@ -2,10 +2,13 @@ import { APP_VERSION } from './constants';
 import { LOCAL_STORAGE_KEYS, STORAGE_PREFIX } from '@/constants/storage';
 
 /**
- * Keys to preserve on version change. Settings and wallet state live in
- * chrome.storage.local — only the vault and version marker remain in localStorage.
+ * Keys to preserve on version change. Settings, wallet state, and the vault
+ * now live in chrome.storage.local; only the version marker stays in
+ * localStorage. The legacy `peppool_vault` key is kept here so users upgrading
+ * from a pre-migration build don't lose their vault before loadVault() can
+ * migrate it into chrome.storage.local.
  */
-const KEEP_KEYS: string[] = [LOCAL_STORAGE_KEYS.VAULT, LOCAL_STORAGE_KEYS.APP_VERSION];
+const KEEP_KEYS: string[] = ['peppool_vault', LOCAL_STORAGE_KEYS.APP_VERSION];
 
 /**
  * Compare stored app version against current. If different, wipe all

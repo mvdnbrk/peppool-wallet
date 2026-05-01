@@ -18,15 +18,22 @@ export const useAccountStore = defineStore('account', () => {
 
   // ── State ──
   // Ribbits is the canonical unit (integer). Conversion to PEP/fiat happens at display time.
-  const balanceRibbits = ref<number>(0);
+  const confirmedBalanceRibbits = ref<number>(0);
+  const pendingBalanceRibbits = ref<number>(0);
   const transactions = ref<Transaction[]>([]);
   const canLoadMoreTransactions = ref(false);
   let lastTipHeight = 0;
 
-  // Spendable = total balance minus value locked in inscription UTXOs.
-  // Derived so it survives popup close/reopen: both inputs come from cache.
+  // Total balance (confirmed + mempool) — what users see on the dashboard.
+  const balanceRibbits = computed(
+    () => confirmedBalanceRibbits.value + pendingBalanceRibbits.value
+  );
+
+  // Spendable = confirmed balance minus value locked in confirmed inscription UTXOs.
+  // Mempool balance is excluded because coin selection only spends confirmed UTXOs;
+  // including pending here would let the send page promise funds it can't actually spend (issue #35).
   const spendableBalanceRibbits = computed(() =>
-    Math.max(0, balanceRibbits.value - inscriptionStore.utxoValueRibbits)
+    Math.max(0, confirmedBalanceRibbits.value - inscriptionStore.utxoValueRibbits)
   );
 
   // ── Cache (keyed by address) ──
@@ -40,9 +47,13 @@ export const useAccountStore = defineStore('account', () => {
 
   function loadCachedData(address: string) {
     try {
-      const balanceCache = getCache<number>(LOCAL_STORAGE_KEYS.BALANCE);
-      if (balanceCache[address] != null) {
-        balanceRibbits.value = balanceCache[address];
+      const balanceCache = getCache<{ confirmed: number; pending: number } | number>(
+        LOCAL_STORAGE_KEYS.BALANCE
+      );
+      const cached = balanceCache[address];
+      if (typeof cached === 'object' && cached !== null) {
+        confirmedBalanceRibbits.value = cached.confirmed;
+        pendingBalanceRibbits.value = cached.pending;
       }
 
       const txCache = getCache<unknown[]>(LOCAL_STORAGE_KEYS.TRANSACTIONS);
@@ -97,9 +108,13 @@ export const useAccountStore = defineStore('account', () => {
       if (!force && tipHeight === lastTipHeight && lastTipHeight > 0) return;
       lastTipHeight = tipHeight;
 
-      balanceRibbits.value = await fetchAddressInfo(address);
-      const balanceCache = getCache<number>(LOCAL_STORAGE_KEYS.BALANCE);
-      balanceCache[address] = balanceRibbits.value;
+      const { confirmed, pending } = await fetchAddressInfo(address);
+      confirmedBalanceRibbits.value = confirmed;
+      pendingBalanceRibbits.value = pending;
+      const balanceCache = getCache<{ confirmed: number; pending: number }>(
+        LOCAL_STORAGE_KEYS.BALANCE
+      );
+      balanceCache[address] = { confirmed, pending };
       localStorage.setItem(LOCAL_STORAGE_KEYS.BALANCE, JSON.stringify(balanceCache));
 
       await refreshTransactions(address);
@@ -110,8 +125,10 @@ export const useAccountStore = defineStore('account', () => {
           fetchUtxos(address),
           inscriptionStore.getOutputsSet(address)
         ]);
+        // Only confirmed inscription UTXOs are subtracted, matching filterSpendableUtxos()
+        // which spends only confirmed outputs (issue #35).
         const inscriptionRibbits = utxos
-          .filter((u) => isInscriptionUtxo(u, inscriptionSet))
+          .filter((u) => u.status.confirmed && isInscriptionUtxo(u, inscriptionSet))
           .reduce((sum, u) => sum + u.value, 0);
         inscriptionStore.setUtxoValueRibbits(inscriptionRibbits);
       } catch {
@@ -123,7 +140,8 @@ export const useAccountStore = defineStore('account', () => {
   }
 
   function reset() {
-    balanceRibbits.value = 0;
+    confirmedBalanceRibbits.value = 0;
+    pendingBalanceRibbits.value = 0;
     transactions.value = [];
     canLoadMoreTransactions.value = false;
     lastTipHeight = 0;
@@ -131,6 +149,8 @@ export const useAccountStore = defineStore('account', () => {
 
   return {
     balanceRibbits,
+    confirmedBalanceRibbits,
+    pendingBalanceRibbits,
     spendableBalanceRibbits,
     transactions,
     canLoadMoreTransactions,

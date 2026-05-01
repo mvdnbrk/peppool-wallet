@@ -7,7 +7,7 @@ import {
   type Inscription,
   type RawAddressInscriptionsResponse
 } from '@/models/Inscription';
-import { RawAddressInfoSchema } from '@/models/AddressInfo';
+import { RawAddressInfoSchema, type AddressBalance } from '@/models/AddressInfo';
 import { RecommendedFeesSchema, type RecommendedFees } from '@/models/Fees';
 import { UtxoSchema, type Utxo } from '@/models/Utxo';
 import { PriceSchema, type Price } from '@/models/Price';
@@ -107,12 +107,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
-export async function fetchAddressInfo(address: string): Promise<number> {
+export async function fetchAddressInfo(address: string): Promise<AddressBalance> {
   const raw = await request<unknown>(`/address/${encodeURIComponent(address)}`);
   const data = v.parse(RawAddressInfoSchema, raw);
-  const confirmedBalance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
-  const mempoolBalance = data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum;
-  return confirmedBalance + mempoolBalance;
+  const confirmed = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
+  const pending = data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum;
+  return { confirmed, pending };
 }
 
 export async function hasAddressActivity(address: string): Promise<boolean> {

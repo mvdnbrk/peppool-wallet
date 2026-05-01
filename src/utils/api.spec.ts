@@ -127,8 +127,9 @@ describe('API Utils', () => {
 
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(data));
 
-    const balanceRibbits = await fetchAddressInfo('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
-    expect(balanceRibbits).toBe(RIBBITS_PER_PEP * 1.3);
+    const balance = await fetchAddressInfo('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+    expect(balance.confirmed).toBe(RIBBITS_PER_PEP * 0.8);
+    expect(balance.pending).toBe(RIBBITS_PER_PEP * 0.5);
   });
 
   it('should detect address activity based on tx_count', async () => {

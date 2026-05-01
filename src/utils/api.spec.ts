@@ -14,9 +14,9 @@ import {
   fetchInscriptionOutputs,
   fetchAddressInscriptions,
   fetchInscription,
-  isInscriptionUtxo,
-  type ApiUtxo
+  isInscriptionUtxo
 } from './api';
+import type { Utxo } from '@/models/Utxo';
 import { RIBBITS_PER_PEP } from './constants';
 import { clearAuth } from './auth';
 
@@ -110,12 +110,18 @@ describe('API Utils', () => {
     const data = {
       address: 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU',
       chain_stats: {
+        funded_txo_count: 1,
         funded_txo_sum: RIBBITS_PER_PEP,
-        spent_txo_sum: RIBBITS_PER_PEP * 0.2
+        spent_txo_count: 0,
+        spent_txo_sum: RIBBITS_PER_PEP * 0.2,
+        tx_count: 1
       },
       mempool_stats: {
+        funded_txo_count: 0,
         funded_txo_sum: RIBBITS_PER_PEP * 0.5,
-        spent_txo_sum: 0
+        spent_txo_count: 0,
+        spent_txo_sum: 0,
+        tx_count: 0
       }
     };
 
@@ -126,23 +132,33 @@ describe('API Utils', () => {
   });
 
   it('should detect address activity based on tx_count', async () => {
+    const emptyStats = {
+      funded_txo_count: 0,
+      funded_txo_sum: 0,
+      spent_txo_count: 0,
+      spent_txo_sum: 0,
+      tx_count: 0
+    };
     const dataActive = {
-      chain_stats: { tx_count: 1 },
-      mempool_stats: { tx_count: 0 }
+      address: 'addr',
+      chain_stats: { ...emptyStats, tx_count: 1 },
+      mempool_stats: emptyStats
     };
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(dataActive));
     expect(await hasAddressActivity('addr')).toBe(true);
 
     const dataMempoolOnly = {
-      chain_stats: { tx_count: 0 },
-      mempool_stats: { tx_count: 1 }
+      address: 'addr',
+      chain_stats: emptyStats,
+      mempool_stats: { ...emptyStats, tx_count: 1 }
     };
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(dataMempoolOnly));
     expect(await hasAddressActivity('addr')).toBe(true);
 
     const dataInactive = {
-      chain_stats: { tx_count: 0 },
-      mempool_stats: { tx_count: 0 }
+      address: 'addr',
+      chain_stats: emptyStats,
+      mempool_stats: emptyStats
     };
     (vi.mocked(fetch) as any).mockResolvedValue(mockResponse(dataInactive));
     expect(await hasAddressActivity('addr')).toBe(false);
@@ -308,13 +324,13 @@ describe('API Utils', () => {
 
   it('isInscriptionUtxo matches against inscription output set', () => {
     const inscriptionSet = new Set(['abc123:0', 'def456:2']);
-    const inscriptionUtxo: ApiUtxo = {
+    const inscriptionUtxo: Utxo = {
       txid: 'abc123',
       vout: 0,
       value: 100_000,
       status: { confirmed: true }
     };
-    const safeUtxo: ApiUtxo = {
+    const safeUtxo: Utxo = {
       txid: 'abc123',
       vout: 1,
       value: 500_000_000,

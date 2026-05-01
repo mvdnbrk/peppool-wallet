@@ -2,9 +2,15 @@ import { API_TIMEOUT_MS, APP_NAME, APP_VERSION } from './constants';
 import { RawTransactionSchema, type RawTransaction } from '@/models/Transaction';
 import {
   RawInscriptionResponseSchema,
+  RawAddressInscriptionsResponseSchema,
   toInscription,
-  type Inscription
+  type Inscription,
+  type RawAddressInscriptionsResponse
 } from '@/models/Inscription';
+import { RawAddressInfoSchema } from '@/models/AddressInfo';
+import { RecommendedFeesSchema, type RecommendedFees } from '@/models/Fees';
+import { UtxoSchema, type Utxo } from '@/models/Utxo';
+import { PriceSchema, type Price } from '@/models/Price';
 import { getStoredToken, clearAuth } from './auth';
 import * as v from 'valibot';
 
@@ -101,61 +107,32 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
-export interface AddressStats {
-  funded_txo_count: number;
-  funded_txo_sum: number;
-  spent_txo_count: number;
-  spent_txo_sum: number;
-  tx_count: number;
-}
-
-export interface AddressInfo {
-  address: string;
-  chain_stats: AddressStats;
-  mempool_stats: AddressStats;
-}
-
 export async function fetchAddressInfo(address: string): Promise<number> {
-  const data = await request<AddressInfo>(`/address/${encodeURIComponent(address)}`);
+  const raw = await request<unknown>(`/address/${encodeURIComponent(address)}`);
+  const data = v.parse(RawAddressInfoSchema, raw);
   const confirmedBalance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
   const mempoolBalance = data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum;
   return confirmedBalance + mempoolBalance;
 }
 
 export async function hasAddressActivity(address: string): Promise<boolean> {
-  const data = await request<AddressInfo>(`/address/${encodeURIComponent(address)}`);
+  const raw = await request<unknown>(`/address/${encodeURIComponent(address)}`);
+  const data = v.parse(RawAddressInfoSchema, raw);
   return data.chain_stats.tx_count + data.mempool_stats.tx_count > 0;
 }
 
-export async function fetchPepPrice(): Promise<{ USD: number; EUR: number }> {
-  return await request<{ USD: number; EUR: number }>('/prices');
-}
-
-export interface RecommendedFees {
-  fastestFee: number;
-  halfHourFee: number;
-  hourFee: number;
-  economyFee: number;
-  minimumFee: number;
+export async function fetchPepPrice(): Promise<Price> {
+  const raw = await request<unknown>('/prices');
+  return v.parse(PriceSchema, raw);
 }
 
 export async function fetchRecommendedFees(): Promise<RecommendedFees> {
-  return await request<RecommendedFees>('/fees/recommended');
+  const raw = await request<unknown>('/fees/recommended');
+  return v.parse(RecommendedFeesSchema, raw);
 }
 
 export async function validateAddress(address: string): Promise<{ isvalid: boolean }> {
   return await request<{ isvalid: boolean }>(`/validate-address/${encodeURIComponent(address)}`);
-}
-
-export interface ApiUtxo {
-  txid: string;
-  vout: number;
-  value: number;
-  status: {
-    confirmed: boolean;
-    block_height?: number;
-    block_time?: number;
-  };
 }
 
 export async function fetchTransactions(
@@ -167,8 +144,9 @@ export async function fetchTransactions(
   return data.map((tx) => v.parse(RawTransactionSchema, tx));
 }
 
-export async function fetchUtxos(address: string): Promise<ApiUtxo[]> {
-  return await request<ApiUtxo[]>(`/address/${encodeURIComponent(address)}/utxo`);
+export async function fetchUtxos(address: string): Promise<Utxo[]> {
+  const data = await request<unknown[]>(`/address/${encodeURIComponent(address)}/utxo`);
+  return data.map((u) => v.parse(UtxoSchema, u));
 }
 
 /**
@@ -182,21 +160,14 @@ export async function fetchInscriptionOutputs(address: string): Promise<string[]
   return data.outputs;
 }
 
-export interface AddressInscriptionsResponse {
-  inscriptions: string[];
-  outputs: string[];
-  total: number;
-}
-
 /**
  * Fetches both inscription IDs and output identifiers for an address.
  */
 export async function fetchAddressInscriptions(
   address: string
-): Promise<AddressInscriptionsResponse> {
-  return await request<AddressInscriptionsResponse>(
-    `/address/${encodeURIComponent(address)}/inscriptions`
-  );
+): Promise<RawAddressInscriptionsResponse> {
+  const raw = await request<unknown>(`/address/${encodeURIComponent(address)}/inscriptions`);
+  return v.parse(RawAddressInscriptionsResponseSchema, raw);
 }
 
 /**
@@ -212,14 +183,14 @@ export async function fetchInscription(id: string): Promise<Inscription> {
  * Returns true if the given UTXO holds an inscription and should be excluded from coin selection.
  * Matches against a Set of "txid:vout" output identifiers.
  */
-export function isInscriptionUtxo(utxo: ApiUtxo, inscriptionOutputs: Set<string>): boolean {
+export function isInscriptionUtxo(utxo: Utxo, inscriptionOutputs: Set<string>): boolean {
   return inscriptionOutputs.has(`${utxo.txid}:${utxo.vout}`);
 }
 
 /**
  * Filters UTXOs to only confirmed, non-inscription outputs safe for spending.
  */
-export function filterSpendableUtxos(utxos: ApiUtxo[], inscriptionOutputs: Set<string>): ApiUtxo[] {
+export function filterSpendableUtxos(utxos: Utxo[], inscriptionOutputs: Set<string>): Utxo[] {
   return utxos.filter((u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionOutputs));
 }
 

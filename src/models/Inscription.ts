@@ -33,6 +33,16 @@ export const RawInscriptionResponseSchema = v.object({
 
 export type RawInscriptionResponse = v.InferOutput<typeof RawInscriptionResponseSchema>;
 
+export const RawAddressInscriptionsResponseSchema = v.object({
+  inscriptions: v.array(v.string()),
+  outputs: v.array(v.string()),
+  total: v.number()
+});
+
+export type RawAddressInscriptionsResponse = v.InferOutput<
+  typeof RawAddressInscriptionsResponseSchema
+>;
+
 export function toInscription(raw: RawInscriptionResponse): Inscription {
   return {
     id: raw.id,

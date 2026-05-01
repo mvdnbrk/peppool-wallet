@@ -6,6 +6,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ### Fixed
 - Exclude unconfirmed balance from spendable amount on send page so MAX no longer promises funds coin selection won't spend ([#38](https://github.com/mvdnbrk/peppool-wallet/pull/38))
+- Subtract pending outgoing spend from spendable balance so funds tied up in an unconfirmed broadcast are no longer shown as available ([#39](https://github.com/mvdnbrk/peppool-wallet/pull/39))
 
 ## [0.2.2](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.2) - 2026-05-01
 

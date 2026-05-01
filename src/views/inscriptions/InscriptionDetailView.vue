@@ -54,10 +54,6 @@ onMounted(async () => {
   }
 });
 
-function send() {
-  router.push(`/send-inscription/${id}`);
-}
-
 function openExplorer() {
   pepeExplorer.openInscription(settingsStore.settings.explorer, id);
 }
@@ -141,12 +137,9 @@ function openExplorer() {
     </div>
 
     <template #actions>
-      <div v-if="inscription" class="flex flex-col gap-2">
-        <PepButton id="view-on-explorer" @click="openExplorer" variant="secondary" class="w-full">
-          View on Explorer
-        </PepButton>
-        <PepButton id="send-inscription" @click="send" class="w-full"> Send </PepButton>
-      </div>
+      <PepButton v-if="inscription" id="view-on-explorer" @click="openExplorer" class="w-full">
+        View on Explorer
+      </PepButton>
     </template>
   </PepMainLayout>
 </template>

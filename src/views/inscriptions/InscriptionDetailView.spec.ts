@@ -73,7 +73,7 @@ describe('InscriptionDetailView', () => {
       route: { params: { id } } as any,
       wallet: {} as any,
       account: {} as any,
-      settings: {} as any
+      settings: { settings: { explorer: 'peppool' } } as any
     } as any);
   }
 
@@ -101,13 +101,17 @@ describe('InscriptionDetailView', () => {
     expect(wrapper.text()).toContain('#7');
   });
 
-  it('navigates to the send-inscription route when Send is clicked', async () => {
+  it('opens the explorer URL for the inscription when View on Explorer is clicked', async () => {
     mockStore({ abc123i0: makeInscription() });
     bindRoute('abc123i0');
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 
     const wrapper = mount(InscriptionDetailView, { global: { stubs } });
     await flushPromises();
-    await wrapper.find('#send-inscription').trigger('click');
-    expect(pushMock).toHaveBeenCalledWith('/send-inscription/abc123i0');
+    await wrapper.find('#view-on-explorer').trigger('click');
+    expect(openSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/inscription/abc123i0'),
+      '_blank'
+    );
   });
 });

@@ -8,6 +8,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Inscription data sync with background refresh and cached UTXO exclusion ([#12](https://github.com/mvdnbrk/peppool-wallet/pull/12))
 
 ### Changed
+- Move encrypted vault from localStorage to `chrome.storage.local` with one-time migration on first launch ([#34](https://github.com/mvdnbrk/peppool-wallet/pull/34))
 - Centralize all persistent storage keys in `src/constants/storage.ts` so consumers reference a single source of truth ([#33](https://github.com/mvdnbrk/peppool-wallet/pull/33))
 - Drop redundant `typeof chrome` guards now that the codebase treats `chrome` as the always-defined extension global ([#32](https://github.com/mvdnbrk/peppool-wallet/pull/32))
 - Extract `useSession` composable from wallet store; lock now clears the entire `chrome.storage.session` instead of a hardcoded key allowlist ([#31](https://github.com/mvdnbrk/peppool-wallet/pull/31))

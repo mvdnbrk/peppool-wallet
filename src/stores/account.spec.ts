@@ -147,6 +147,30 @@ describe('Account Store', () => {
     expect(account.spendableBalanceRibbits).toBe(500_000_000);
   });
 
+  it('should subtract pending outgoing spend from spendable balance', async () => {
+    // After broadcasting an outgoing tx, mempool_stats.spent_txo_sum jumps and pending
+    // goes negative. The input UTXO is gone from /utxo, but chain_stats still counts it,
+    // so confirmed alone overstates spendable funds until the tx confirms.
+    vi.mocked(api.fetchAddressInfo).mockResolvedValue({
+      confirmed: 500_000_000,
+      pending: -100_000_000
+    });
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'remaining', vout: 0, value: 400_000_000, status: { confirmed: true } }
+    ]);
+    vi.mocked(api.fetchAddressInscriptions).mockResolvedValue({
+      inscriptions: [],
+      outputs: [],
+      total: 0
+    });
+
+    const account = useAccountStore();
+    await account.sync(addr, true);
+
+    expect(account.balanceRibbits).toBe(400_000_000);
+    expect(account.spendableBalanceRibbits).toBe(400_000_000);
+  });
+
   it('should ignore unconfirmed inscription UTXOs when computing spendable', async () => {
     // A pending inscription UTXO must not be subtracted from confirmed balance —
     // otherwise spendable drops below what filterSpendableUtxos() will actually find (issue #35).

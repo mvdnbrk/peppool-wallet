@@ -29,12 +29,17 @@ export const useAccountStore = defineStore('account', () => {
     () => confirmedBalanceRibbits.value + pendingBalanceRibbits.value
   );
 
-  // Spendable = confirmed balance minus value locked in confirmed inscription UTXOs.
-  // Mempool balance is excluded because coin selection only spends confirmed UTXOs;
-  // including pending here would let the send page promise funds it can't actually spend (issue #35).
-  const spendableBalanceRibbits = computed(() =>
-    Math.max(0, confirmedBalanceRibbits.value - inscriptionStore.utxoValueRibbits)
-  );
+  // Spendable matches what filterSpendableUtxos() will actually return at sign time:
+  // - Positive pending (incoming deposit) is excluded — coin selection only spends confirmed UTXOs (issue #35).
+  // - Negative pending (outgoing unconfirmed tx) IS subtracted — the input UTXO is gone from /utxo
+  //   even though chain_stats still counts it, so confirmed alone overstates funds until the tx confirms.
+  const spendableBalanceRibbits = computed(() => {
+    const pendingDebit = Math.min(0, pendingBalanceRibbits.value);
+    return Math.max(
+      0,
+      confirmedBalanceRibbits.value + pendingDebit - inscriptionStore.utxoValueRibbits
+    );
+  });
 
   // ── Cache (keyed by address) ──
   function getCache<T>(key: string): Record<string, T> {

@@ -24,7 +24,7 @@ const sandboxValue = computed(() => (props.interactive ? 'allow-scripts allow-po
 </script>
 
 <template>
-  <div class="bg-slate-900/40">
+  <div class="h-full w-full bg-slate-900/40" :class="{ 'pointer-events-none': !interactive }">
     <img
       v-if="kind === 'image'"
       :src="url"

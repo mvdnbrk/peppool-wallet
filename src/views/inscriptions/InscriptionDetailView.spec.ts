@@ -25,7 +25,7 @@ const stubs = {
   PepButton: {
     template: '<button @click="$emit(\'click\')"><slot /></button>'
   },
-  PepInscriptionContent: {
+  PepInscription: {
     template: '<div class="stub-content" />',
     props: ['id', 'contentType', 'interactive']
   }

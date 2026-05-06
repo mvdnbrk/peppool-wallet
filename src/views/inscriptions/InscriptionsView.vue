@@ -56,11 +56,7 @@ function open(id: string) {
             class="group overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50 text-left transition-colors hover:border-slate-600"
           >
             <div class="aspect-square w-full overflow-hidden">
-              <PepInscriptionContent
-                :id="item.id"
-                :content-type="item.contentType"
-                :interactive="false"
-              />
+              <PepInscription :id="item.id" :content-type="item.contentType" :interactive="false" />
             </div>
             <div class="border-t border-slate-700/50 px-3 py-2">
               <p class="text-offwhite truncate text-xs font-bold">#{{ item.number }}</p>

@@ -80,7 +80,7 @@ function openExplorer() {
 
       <div v-else-if="inscription" class="flex-1 space-y-4 overflow-y-auto pr-1 pb-4">
         <div class="aspect-square w-full overflow-hidden rounded-2xl border border-slate-700">
-          <PepInscriptionContent
+          <PepInscription
             :id="inscription.id"
             :content-type="inscription.contentType"
             :interactive="true"

@@ -16,7 +16,7 @@ const stubs = {
   },
   PepPageHeader: { template: '<div />', props: ['title', 'onBack'] },
   PepSpinner: { template: '<div />' },
-  PepInscriptionContent: {
+  PepInscription: {
     template: '<div class="stub-content" />',
     props: ['id', 'contentType', 'interactive']
   }

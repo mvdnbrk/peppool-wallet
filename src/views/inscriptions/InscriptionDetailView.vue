@@ -106,7 +106,7 @@ function openExplorer() {
         <PepCard class="space-y-2 p-3">
           <div class="flex items-baseline justify-between">
             <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Number</span>
-            <span class="text-offwhite text-xs font-semibold">#{{ inscription.number }}</span>
+            <span class="text-offwhite text-xs font-semibold">{{ inscription.number }}</span>
           </div>
           <div class="flex items-baseline justify-between border-t border-slate-700/30 pt-2">
             <span class="text-xs font-bold tracking-wider text-slate-500 uppercase">Type</span>

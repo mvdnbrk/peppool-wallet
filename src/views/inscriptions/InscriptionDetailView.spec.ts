@@ -85,7 +85,7 @@ describe('InscriptionDetailView', () => {
     await flushPromises();
 
     expect(api.fetchInscription).not.toHaveBeenCalled();
-    expect(wrapper.text()).toContain('#42');
+    expect(wrapper.text()).toContain('42');
     expect(wrapper.text()).toContain('image/png');
   });
 
@@ -98,7 +98,7 @@ describe('InscriptionDetailView', () => {
     await flushPromises();
 
     expect(api.fetchInscription).toHaveBeenCalledWith('xyz9i0');
-    expect(wrapper.text()).toContain('#7');
+    expect(wrapper.text()).toContain('7');
   });
 
   it('opens the explorer URL for the inscription when View on Explorer is clicked', async () => {

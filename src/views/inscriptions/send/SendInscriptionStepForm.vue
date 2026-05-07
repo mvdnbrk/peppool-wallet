@@ -31,7 +31,7 @@ onMounted(() => {
           <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase"
             >Sending Inscription</span
           >
-          <span class="text-offwhite truncate text-sm font-bold">#{{ inscription.number }}</span>
+          <span class="text-offwhite truncate text-sm font-bold">{{ inscription.number }}</span>
         </div>
       </div>
 

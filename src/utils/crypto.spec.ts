@@ -8,6 +8,7 @@ import {
   deriveSigner,
   parseDerivationPath,
   createSignedTx,
+  createSignedInscriptionTx,
   signMessage,
   type UTXO,
   estimateTxSize,
@@ -228,6 +229,95 @@ describe('Crypto Utils', () => {
       );
 
       expect(signedHex).toBe('signed-hex-output');
+    });
+  });
+
+  describe('Inscription Transaction Signing', () => {
+    const recipient = 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU';
+    const validDummyHex =
+      '0100000001bc9606ba9ed606fa66006000000000000000000000000000000000000000000000000000ffffffff0100e1f505000000001976a91476a91476a91476a91476a91476a91476a91476a91488ac00000000';
+    const inscriptionTxid = 'a'.repeat(64);
+    const feeTxid = 'b'.repeat(64);
+    const signer = deriveSigner(mnemonic);
+
+    const inscriptionUtxo: UTXO = {
+      txid: inscriptionTxid,
+      vout: 0,
+      value: 10000, // postage in ribbits
+      rawHex: validDummyHex
+    };
+
+    it('should add the inscription UTXO as input 0 and recipient as output 0', async () => {
+      const psbtSpy = vi.spyOn(bitcoin, 'Psbt');
+      const feeUtxos: UTXO[] = [
+        { txid: feeTxid, vout: 0, value: RIBBITS_PER_PEP, rawHex: validDummyHex }
+      ];
+
+      await createSignedInscriptionTx(signer, recipient, inscriptionUtxo, feeUtxos, 100_000);
+
+      const psbtInstance = psbtSpy.mock.results[psbtSpy.mock.results.length - 1].value;
+      const firstInput = psbtInstance.addInput.mock.calls[0][0];
+      const firstOutput = psbtInstance.addOutput.mock.calls[0][0];
+
+      expect(firstInput.hash).toBe(inscriptionTxid);
+      expect(firstInput.index).toBe(0);
+      expect(firstOutput.address).toBe(recipient);
+      expect(firstOutput.value).toBe(BigInt(inscriptionUtxo.value));
+    });
+
+    it('should preserve the original postage on the recipient output', async () => {
+      const psbtSpy = vi.spyOn(bitcoin, 'Psbt');
+      const feeUtxos: UTXO[] = [
+        { txid: feeTxid, vout: 0, value: RIBBITS_PER_PEP, rawHex: validDummyHex }
+      ];
+
+      await createSignedInscriptionTx(signer, recipient, inscriptionUtxo, feeUtxos, 100_000);
+
+      const psbtInstance = psbtSpy.mock.results[psbtSpy.mock.results.length - 1].value;
+      const recipientOutput = psbtInstance.addOutput.mock.calls[0][0];
+      expect(recipientOutput.value).toBe(BigInt(10000));
+    });
+
+    it('should add a change output back to the sender when leftover > 0', async () => {
+      const psbtSpy = vi.spyOn(bitcoin, 'Psbt');
+      const feeUtxos: UTXO[] = [
+        { txid: feeTxid, vout: 0, value: RIBBITS_PER_PEP, rawHex: validDummyHex }
+      ];
+
+      await createSignedInscriptionTx(signer, recipient, inscriptionUtxo, feeUtxos, 100_000);
+
+      const psbtInstance = psbtSpy.mock.results[psbtSpy.mock.results.length - 1].value;
+      // outputs: [recipient, change]
+      expect(psbtInstance.addOutput.mock.calls.length).toBe(2);
+      const change = psbtInstance.addOutput.mock.calls[1][0];
+      expect(change.value).toBe(BigInt(RIBBITS_PER_PEP - 100_000));
+    });
+
+    it('should omit change output when fee inputs exactly cover the fee', async () => {
+      const psbtSpy = vi.spyOn(bitcoin, 'Psbt');
+      const feeUtxos: UTXO[] = [{ txid: feeTxid, vout: 0, value: 100_000, rawHex: validDummyHex }];
+
+      await createSignedInscriptionTx(signer, recipient, inscriptionUtxo, feeUtxos, 100_000);
+
+      const psbtInstance = psbtSpy.mock.results[psbtSpy.mock.results.length - 1].value;
+      expect(psbtInstance.addOutput.mock.calls.length).toBe(1);
+    });
+
+    it('should throw when fee inputs do not cover the fee', async () => {
+      const feeUtxos: UTXO[] = [{ txid: feeTxid, vout: 0, value: 50_000, rawHex: validDummyHex }];
+      await expect(
+        createSignedInscriptionTx(signer, recipient, inscriptionUtxo, feeUtxos, 100_000)
+      ).rejects.toThrow('Insufficient funds to cover fee');
+    });
+
+    it('should throw when inscription UTXO is missing rawHex', async () => {
+      const bare: UTXO = { txid: inscriptionTxid, vout: 0, value: 10000 };
+      const feeUtxos: UTXO[] = [
+        { txid: feeTxid, vout: 0, value: RIBBITS_PER_PEP, rawHex: validDummyHex }
+      ];
+      await expect(
+        createSignedInscriptionTx(signer, recipient, bare, feeUtxos, 100_000)
+      ).rejects.toThrow('Missing raw hex');
     });
   });
 });

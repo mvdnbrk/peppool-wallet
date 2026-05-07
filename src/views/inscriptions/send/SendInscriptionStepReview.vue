@@ -31,7 +31,7 @@ const { wallet: walletStore } = useApp();
               >Sending</span
             >
             <span class="text-offwhite truncate text-base font-bold"
-              >Inscription #{{ inscription.number }}</span
+              >Inscription {{ inscription.number }}</span
             >
           </div>
         </div>

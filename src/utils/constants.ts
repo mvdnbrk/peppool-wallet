@@ -9,6 +9,13 @@ export const APP_VERSION = pkg.version;
 // 1,000 ribbits/byte = 0.01 PEP per KB (Network recommendation)
 export const RECOMMENDED_FEE_RATE = 1000;
 export const MIN_SEND_PEP = 0.01;
+
+// Pepecoin (Dogecoin-derived) soft dust rule: outputs below 1 PEP add a flat
+// surcharge to the effective minimum fee miners enforce. Inscription postage
+// outputs are always sub-dust, which is why inscription transfers stall at
+// the size-only floor unless the surcharge is paid up front.
+export const SOFT_DUST_LIMIT_RIBBITS = 100_000_000;
+export const SOFT_DUST_FEE_RIBBITS = 4_000_000;
 export const MIN_PASSWORD_LENGTH = 8;
 export const TXS_PER_PAGE = 25;
 

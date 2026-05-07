@@ -20,7 +20,7 @@ import {
 import { decrypt as decryptMnemonic } from '@/utils/encryption';
 import type { RecommendedFees } from '@/models/Fees';
 import type { Inscription } from '@/models/Inscription';
-import { RECOMMENDED_FEE_RATE } from '@/utils/constants';
+import { RECOMMENDED_FEE_RATE, SOFT_DUST_FEE_RIBBITS } from '@/utils/constants';
 
 interface FeeSelection {
   feeUtxos: UTXO[];
@@ -40,8 +40,10 @@ export function parseSatpoint(satpoint: string): { txid: string; vout: number } 
 
 /**
  * Greedy fee selection: walk spendable UTXOs in order, accumulating until the
- * fee for (1 inscription input + N fee inputs + 2 outputs) is covered. Returns
- * the chosen UTXOs and the exact fee for the resulting tx shape.
+ * fee for (1 inscription input + N fee inputs + 2 outputs) is covered. The
+ * inscription postage output is always sub-dust, so the soft-dust surcharge
+ * is added on top of the size-based fee — without it, miners ignore the tx
+ * (observed empirically: confirmed inscription transfers all paid this).
  */
 export function selectFeeUtxos(spendable: UTXO[], feeRate: number): FeeSelection {
   const feeUtxos: UTXO[] = [];
@@ -50,9 +52,8 @@ export function selectFeeUtxos(spendable: UTXO[], feeRate: number): FeeSelection
   for (const utxo of spendable) {
     feeUtxos.push(utxo);
     total += utxo.value;
-    // 1 inscription input + N fee inputs, 2 outputs (recipient + change)
     const size = estimateTxSize(1 + feeUtxos.length, 2);
-    const fee = Math.ceil(size * feeRate);
+    const fee = Math.ceil(size * feeRate) + SOFT_DUST_FEE_RIBBITS;
     if (total >= fee) {
       return { feeUtxos, feeRibbits: fee };
     }
@@ -75,13 +76,14 @@ export function useSendInscription() {
 
   /**
    * Estimated fee for display on the review screen. Assumes 2 inputs (1
-   * inscription + 1 funding) and 2 outputs (recipient + change). The actual
-   * fee at send time may differ by one input's worth if more funding UTXOs
-   * are needed, but this matches typical transfers.
+   * inscription + 1 funding) and 2 outputs (recipient + change), plus the
+   * soft-dust surcharge for the sub-dust postage output. The actual fee at
+   * send time may differ by one input's worth if more funding UTXOs are
+   * needed, but this matches typical transfers.
    */
   const estimatedFeeRibbits = computed(() => {
     const size = estimateTxSize(2, 2);
-    return Math.ceil(size * feeRate.value);
+    return Math.ceil(size * feeRate.value) + SOFT_DUST_FEE_RIBBITS;
   });
 
   const isInsufficientFunds = computed(() => {

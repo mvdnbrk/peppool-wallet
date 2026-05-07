@@ -65,22 +65,29 @@ describe('parseSatpoint', () => {
 describe('selectFeeUtxos', () => {
   const rawHex = 'deadbeef';
 
-  it('selects one UTXO when it covers the fee', () => {
-    const utxos = [{ txid: 't1', vout: 0, value: 1_000_000, rawHex }];
+  it('selects one UTXO when it covers the fee plus the soft-dust surcharge', () => {
+    const utxos = [{ txid: 't1', vout: 0, value: 10_000_000, rawHex }];
     const { feeUtxos, feeRibbits } = selectFeeUtxos(utxos, 1000);
     expect(feeUtxos).toHaveLength(1);
-    expect(feeRibbits).toBeGreaterThan(0);
-    expect(feeRibbits).toBeLessThanOrEqual(1_000_000);
+    // Size-based fee for (2 inputs, 2 outputs) at 1000 ribbits/byte = 374,000.
+    // Plus 4,000,000 ribbits soft-dust surcharge for the postage output.
+    expect(feeRibbits).toBe(4_374_000);
   });
 
   it('accumulates UTXOs when the first does not cover the fee', () => {
     const utxos = [
-      { txid: 't1', vout: 0, value: 1_000, rawHex },
-      { txid: 't2', vout: 0, value: 5_000, rawHex },
-      { txid: 't3', vout: 0, value: 1_000_000, rawHex }
+      { txid: 't1', vout: 0, value: 100_000, rawHex },
+      { txid: 't2', vout: 0, value: 200_000, rawHex },
+      { txid: 't3', vout: 0, value: 10_000_000, rawHex }
     ];
     const { feeUtxos } = selectFeeUtxos(utxos, 1000);
     expect(feeUtxos.length).toBeGreaterThan(1);
+  });
+
+  it('includes the soft-dust surcharge in the calculated fee', () => {
+    const utxos = [{ txid: 't1', vout: 0, value: 10_000_000, rawHex }];
+    const { feeRibbits } = selectFeeUtxos(utxos, 1000);
+    expect(feeRibbits).toBeGreaterThanOrEqual(4_000_000);
   });
 
   it('throws when total spendable cannot cover any fee', () => {

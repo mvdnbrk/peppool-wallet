@@ -246,7 +246,10 @@ export async function createSignedInscriptionTx(
   psbt.signAllInputs(signer);
   psbt.finalizeAllInputs();
 
-  return psbt.extractTransaction().toHex();
+  // Bypass bitcoinjs-lib's 5000 sat/byte safety check: the soft-dust surcharge
+  // (~4M ribbits) is concentrated in a small ~374-byte tx, which trips the
+  // guard even though the absolute fee is correct for Pepecoin's miner policy.
+  return psbt.extractTransaction(true).toHex();
 }
 
 /**

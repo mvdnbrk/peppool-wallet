@@ -184,6 +184,75 @@ export async function createSignedTx(
 }
 
 /**
+ * Build, sign, and finalize an inscription transfer.
+ *
+ * Ord follows the first-input/first-output rule: the sat range from the first
+ * input falls into the first output. So we lock the inscription UTXO into
+ * input 0 and the recipient (preserving postage) into output 0. Fee inputs
+ * and change come after.
+ */
+export async function createSignedInscriptionTx(
+  signer: Signer,
+  recipient: string,
+  inscriptionUtxo: UTXO,
+  feeUtxos: UTXO[],
+  feeRibbits: number
+): Promise<string> {
+  if (!inscriptionUtxo.rawHex) {
+    throw new Error(`Missing raw hex for UTXO ${inscriptionUtxo.txid}`);
+  }
+
+  const feeInputSum = feeUtxos.reduce((sum, u) => sum + u.value, 0);
+  const change = feeInputSum - feeRibbits;
+
+  if (change < 0) {
+    throw new Error('Insufficient funds to cover fee');
+  }
+
+  const psbt = new bitcoin.Psbt({ network: PEPECOIN });
+  psbt.version = 1;
+
+  psbt.addInput({
+    hash: inscriptionUtxo.txid,
+    index: inscriptionUtxo.vout,
+    nonWitnessUtxo: new Uint8Array(Buffer.from(inscriptionUtxo.rawHex, 'hex'))
+  });
+
+  for (const utxo of feeUtxos) {
+    if (!utxo.rawHex) throw new Error(`Missing raw hex for UTXO ${utxo.txid}`);
+    psbt.addInput({
+      hash: utxo.txid,
+      index: utxo.vout,
+      nonWitnessUtxo: new Uint8Array(Buffer.from(utxo.rawHex, 'hex'))
+    });
+  }
+
+  psbt.addOutput({
+    address: recipient,
+    value: BigInt(inscriptionUtxo.value)
+  });
+
+  if (change > 0) {
+    const { address: myAddress } = bitcoin.payments.p2pkh({
+      pubkey: signer.publicKey,
+      network: PEPECOIN
+    });
+    psbt.addOutput({
+      address: myAddress!,
+      value: BigInt(change)
+    });
+  }
+
+  psbt.signAllInputs(signer);
+  psbt.finalizeAllInputs();
+
+  // Bypass bitcoinjs-lib's 5000 sat/byte safety check: the soft-dust surcharge
+  // (~4M ribbits) is concentrated in a small ~374-byte tx, which trips the
+  // guard even though the absolute fee is correct for Pepecoin's miner policy.
+  return psbt.extractTransaction(true).toHex();
+}
+
+/**
  * Sign an arbitrary message with a P2PKH private key.
  * This uses the standard Bitcoin (Pepecoin) signed message format.
  */

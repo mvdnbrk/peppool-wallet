@@ -14,6 +14,7 @@ import ResetWalletView from '@/views/settings/ResetWalletView.vue';
 import TransactionDetailView from '@/views/wallet/TransactionDetailView.vue';
 import InscriptionsView from '@/views/inscriptions/InscriptionsView.vue';
 import InscriptionDetailView from '@/views/inscriptions/InscriptionDetailView.vue';
+import SendInscriptionView from '@/views/inscriptions/send/SendInscriptionView.vue';
 import CurrencyView from '@/views/settings/CurrencyView.vue';
 import PreferredExplorerView from '@/views/settings/PreferredExplorerView.vue';
 import AutoLockView from '@/views/settings/AutoLockView.vue';
@@ -42,6 +43,7 @@ const routes = [
   { path: '/tx/:txid', component: TransactionDetailView, meta: { persist: true } },
   { path: '/inscriptions', component: InscriptionsView },
   { path: '/inscription/:id', component: InscriptionDetailView, meta: { persist: true } },
+  { path: '/inscription/:id/send', component: SendInscriptionView, meta: { persist: true } },
   { path: '/settings/preferences', component: PreferencesView },
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },

@@ -12,6 +12,8 @@ import ChangePasswordView from '@/views/settings/ChangePasswordView.vue';
 import ForgotPasswordView from '@/views/onboarding/ForgotPasswordView.vue';
 import ResetWalletView from '@/views/settings/ResetWalletView.vue';
 import TransactionDetailView from '@/views/wallet/TransactionDetailView.vue';
+import InscriptionsView from '@/views/inscriptions/InscriptionsView.vue';
+import InscriptionDetailView from '@/views/inscriptions/InscriptionDetailView.vue';
 import CurrencyView from '@/views/settings/CurrencyView.vue';
 import PreferredExplorerView from '@/views/settings/PreferredExplorerView.vue';
 import AutoLockView from '@/views/settings/AutoLockView.vue';
@@ -38,6 +40,8 @@ const routes = [
   { path: '/forgot-password', component: ForgotPasswordView },
   { path: '/reset-wallet', component: ResetWalletView },
   { path: '/tx/:txid', component: TransactionDetailView, meta: { persist: true } },
+  { path: '/inscriptions', component: InscriptionsView },
+  { path: '/inscription/:id', component: InscriptionDetailView, meta: { persist: true } },
   { path: '/settings/preferences', component: PreferencesView },
   { path: '/settings/security', component: SecurityView },
   { path: '/settings/about', component: AboutView },

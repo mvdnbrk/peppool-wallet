@@ -36,6 +36,7 @@ import PepSpinner from '@/components/ui/PepSpinner.vue';
 import PepSuccessState from '@/components/ui/PepSuccessState.vue';
 import PepAmountInput from '@/components/ui/form/PepAmountInput.vue';
 import PepTransactionItem from '@/components/ui/list/PepTransactionItem.vue';
+import PepInscription from '@/components/ui/PepInscription.vue';
 import * as constants from '@/utils/constants';
 
 const app = createApp(App);
@@ -99,4 +100,5 @@ app.component('PepSpinner', PepSpinner);
 app.component('PepSuccessState', PepSuccessState);
 app.component('PepAmountInput', PepAmountInput);
 app.component('PepTransactionItem', PepTransactionItem);
+app.component('PepInscription', PepInscription);
 app.mount('#app');

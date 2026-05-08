@@ -4,8 +4,11 @@ import * as price from '@/utils/price';
 import { useApp } from '@/composables/useApp';
 import { onMounted, computed, ref } from 'vue';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
+import { useInscriptionStore } from '@/stores/inscriptions';
 
 const { router, wallet: walletStore, account } = useApp();
+const inscriptionStore = useInscriptionStore();
+const inscriptionCount = computed(() => Object.keys(inscriptionStore.inscriptions).length);
 
 const isLoadingMore = ref(false);
 
@@ -59,6 +62,16 @@ async function handleLoadMore() {
       class="mb-2 flex cursor-pointer items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-slate-800/50"
     >
       <span class="text-xs font-bold text-white">{{ walletStore.activeAccount?.label }}</span>
+      <PepIcon name="chevron-right" size="16" class="text-slate-500" />
+    </div>
+
+    <!-- Inscriptions Indicator -->
+    <div
+      id="inscriptions-entry"
+      @click="router.push('/inscriptions')"
+      class="mb-2 flex cursor-pointer items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-slate-800/50"
+    >
+      <span class="text-xs font-bold text-white">{{ inscriptionCount }} inscriptions</span>
       <PepIcon name="chevron-right" size="16" class="text-slate-500" />
     </div>
 

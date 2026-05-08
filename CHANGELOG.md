@@ -4,6 +4,10 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ## [Unreleased](https://github.com/mvdnbrk/peppool-wallet/compare/v0.2.3...main)
 
+### Added
+- Display inscriptions: grid, detail view and dashboard entry ([#40](https://github.com/mvdnbrk/peppool-wallet/pull/40))
+- Inscription send flow ([#43](https://github.com/mvdnbrk/peppool-wallet/pull/43))
+
 ## [0.2.3](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.2.3) - 2026-05-01
 
 ### Fixed

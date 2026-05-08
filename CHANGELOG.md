@@ -2,7 +2,9 @@
 
 All notable changes to `peppool-wallet` are documented in this file.
 
-## [Unreleased](https://github.com/mvdnbrk/peppool-wallet/compare/v0.2.3...main)
+## [Unreleased](https://github.com/mvdnbrk/peppool-wallet/compare/v0.3.0...main)
+
+## [0.3.0](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.3.0) - 2026-05-08
 
 ### Added
 - Display inscriptions: grid, detail view and dashboard entry ([#40](https://github.com/mvdnbrk/peppool-wallet/pull/40))

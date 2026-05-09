@@ -21,7 +21,6 @@ import { SendTransaction } from '@/models/SendTransaction';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 
 interface Recipient {
   address: string;
@@ -43,14 +42,11 @@ const walletStore = useWalletStore();
 const inscriptionStore = useInscriptionStore();
 
 const {
-  requestId,
   origin,
   requestData,
-  password,
   error,
   invalidRequest,
   isProcessing,
-  isMnemonicLoaded,
   runWithMnemonic,
   approve,
   reject
@@ -125,9 +121,6 @@ async function handleApprove() {
 function handleReject() {
   reject('User rejected the transaction');
 }
-
-// Expose for template clarity (parity with previous SignTxView ids)
-void requestId;
 </script>
 
 <template>
@@ -167,17 +160,7 @@ void requestId;
         </div>
       </div>
 
-      <div v-if="!isMnemonicLoaded" class="space-y-2">
-        <PepPasswordInput
-          id="sign-tx-password"
-          v-model="password"
-          label="Enter Password to Confirm"
-          placeholder="Your password"
-          :error="error"
-          @keyup.enter="handleApprove"
-        />
-      </div>
-      <div v-else-if="error" class="px-1 text-sm text-red-400">
+      <div v-if="error" class="px-1 text-sm text-red-400">
         {{ error }}
       </div>
     </div>

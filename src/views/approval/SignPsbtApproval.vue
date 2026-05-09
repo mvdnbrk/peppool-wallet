@@ -7,7 +7,6 @@ import { RIBBITS_PER_PEP } from '@/utils/constants';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
 
@@ -24,17 +23,8 @@ interface PsbtIO {
 
 const walletStore = useWalletStore();
 
-const {
-  origin,
-  requestData,
-  password,
-  error,
-  isProcessing,
-  isMnemonicLoaded,
-  runWithMnemonic,
-  approve,
-  reject
-} = useApprovalRequest<SignPsbtParams>();
+const { origin, requestData, error, isProcessing, runWithMnemonic, approve, reject } =
+  useApprovalRequest<SignPsbtParams>();
 
 const psbtDetails = computed(() => {
   if (!requestData.value) return null;
@@ -244,17 +234,7 @@ function handleReject() {
         </div>
       </div>
 
-      <div v-if="!isMnemonicLoaded" class="space-y-2">
-        <PepPasswordInput
-          id="sign-tx-password"
-          v-model="password"
-          label="Enter Password to Confirm"
-          placeholder="Your password"
-          :error="error"
-          @keyup.enter="handleApprove"
-        />
-      </div>
-      <div v-else-if="error" class="px-1 text-sm text-red-400">
+      <div v-if="error" class="px-1 text-sm text-red-400">
         {{ error }}
       </div>
     </div>

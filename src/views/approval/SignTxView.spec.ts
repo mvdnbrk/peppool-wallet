@@ -54,6 +54,9 @@ const { mockSignInput, mockFinalizeAllInputs, mockExtractTransaction, mockPsbt }
     const mockExtractTransaction = vi.fn().mockReturnValue({ toHex: () => 'finalized-tx-hex' });
     const mockPsbt = {
       inputCount: 2,
+      txInputs: [],
+      txOutputs: [],
+      data: { inputs: [] },
       signInput: mockSignInput,
       finalizeAllInputs: mockFinalizeAllInputs,
       extractTransaction: mockExtractTransaction,

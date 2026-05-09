@@ -25,12 +25,17 @@ if (!provider) {
 ```
 
 ```javascript
-// Option B: Listen for injection (recommended for SPAs)
-window.addEventListener('pep_providers#peppool', (event) => {
+// Option B: Announce/request pattern (recommended for SPAs and late-loading dApps)
+window.addEventListener('pep_providers:announce', (event) => {
   const provider = event.detail.provider;
-  console.log('Peppool Wallet detected:', provider.name);
+  console.log('Wallet detected:', provider.name);
 });
+
+// Ask any wallets that loaded before this listener to re-announce themselves.
+window.dispatchEvent(new Event('pep_providers:request'));
 ```
+
+The wallet emits `pep_providers:announce` once on injection (so dApps already listening at `document_start` are notified) and again whenever it observes a `pep_providers:request` event. Modeled after EIP-6963.
 
 ### Provider Shape
 

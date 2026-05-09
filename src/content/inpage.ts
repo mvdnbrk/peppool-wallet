@@ -86,13 +86,24 @@ function injectProvider() {
     pep_providers.push(PeppoolProvider);
     (window as any).pep_providers = pep_providers;
 
-    // Namespaced discovery event so dApps can listen for specific providers
-    window.dispatchEvent(
-      new CustomEvent('pep_providers#peppool', { detail: { provider: PeppoolProvider } })
-    );
-
     // Direct access shortcut
     (window as any).PepecoinProvider = PeppoolProvider;
+
+    // Discovery: dApps that load after injection can dispatch
+    // `pep_providers:request` to receive a `pep_providers:announce` event
+    // with the provider in `event.detail`. Modeled after EIP-6963.
+    const announce = () => {
+      window.dispatchEvent(
+        new CustomEvent('pep_providers:announce', { detail: { provider: PeppoolProvider } })
+      );
+    };
+    if (!(window as any).__peppoolRequestListener) {
+      window.addEventListener('pep_providers:request', announce);
+      (window as any).__peppoolRequestListener = true;
+    }
+
+    // Initial announce for dApps already listening at document_start.
+    announce();
   } catch (err) {
     console.error('Peppool Wallet: Injection failed', err);
   }

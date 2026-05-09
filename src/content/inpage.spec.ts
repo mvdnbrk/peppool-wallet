@@ -12,6 +12,10 @@ function cleanWindowState() {
   delete (window as any).pep_providers;
   delete (window as any).wbip_providers;
   delete (window as any).PepecoinProvider;
+  // Note: __peppoolRequestListener is intentionally not cleaned. The listener
+  // it guards is registered on window once and cannot be removed without a
+  // reference, so deleting the flag would re-add a duplicate listener on the
+  // next injection.
 }
 
 async function loadInpage() {
@@ -52,9 +56,9 @@ describe('Inpage Provider Injection', () => {
     expect(direct).toBe(providers[0]);
   });
 
-  it('dispatches pep_providers#peppool discovery event with provider in detail', async () => {
+  it('dispatches pep_providers:announce with provider in detail on injection', async () => {
     const handler = vi.fn();
-    window.addEventListener('pep_providers#peppool', handler);
+    window.addEventListener('pep_providers:announce', handler);
 
     await loadInpage();
 
@@ -62,7 +66,22 @@ describe('Inpage Provider Injection', () => {
     const event = handler.mock.calls[0][0] as CustomEvent;
     expect(event.detail.provider.id).toBe('peppool');
 
-    window.removeEventListener('pep_providers#peppool', handler);
+    window.removeEventListener('pep_providers:announce', handler);
+  });
+
+  it('re-announces when a dApp dispatches pep_providers:request after injection', async () => {
+    await loadInpage();
+
+    const handler = vi.fn();
+    window.addEventListener('pep_providers:announce', handler);
+
+    window.dispatchEvent(new Event('pep_providers:request'));
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    const event = handler.mock.calls[0][0] as CustomEvent;
+    expect(event.detail.provider.id).toBe('peppool');
+
+    window.removeEventListener('pep_providers:announce', handler);
   });
 
   it('does not set window.wbip_providers (Pepecoin is not Bitcoin)', async () => {

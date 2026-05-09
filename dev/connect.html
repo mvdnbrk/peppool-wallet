@@ -370,10 +370,10 @@
             return false;
         }
 
-        // --- Discovery: listen for event ---
-        window.addEventListener('pep_providers#peppool', (e) => {
+        // --- Discovery: announce/request pattern ---
+        window.addEventListener('pep_providers:announce', (e) => {
             setBadge('event-status', 'received', 'found');
-            log('event', 'ok', 'pep_providers#peppool event fired');
+            log('event', 'ok', 'pep_providers:announce received');
             if (!provider && e.detail?.provider) {
                 provider = e.detail.provider;
                 setBadge('discovery-status', 'found', 'found');
@@ -382,9 +382,12 @@
             }
         });
 
-        // Check on load (provider may already be injected)
+        // Ask any wallets injected before this listener to re-announce.
+        window.dispatchEvent(new Event('pep_providers:request'));
+
+        // Fallback: also probe the array directly in case a wallet
+        // doesn't implement the announce/request pattern.
         if (!checkProviders()) {
-            // Retry after a short delay in case content script hasn't run yet
             setTimeout(checkProviders, 500);
             setTimeout(checkProviders, 2000);
         }

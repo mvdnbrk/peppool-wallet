@@ -61,7 +61,8 @@ const txDetails = computed(() => {
   if (method.value === 'signPsbt') {
     return {
       type: 'Sign PSBT',
-      psbt: requestData.value.params.psbt
+      psbt: requestData.value.params.psbt,
+      broadcast: requestData.value.params.broadcast === true
     };
   }
 
@@ -192,34 +193,46 @@ async function handleSendTransfer(mnemonic: string) {
 }
 
 async function handleSignPsbt(mnemonic: string) {
-  const { psbt: base64Psbt } = requestData.value.params;
+  const { psbt: base64Psbt, broadcast } = requestData.value.params;
   const psbt = bitcoin.Psbt.fromBase64(base64Psbt, { network: PEPECOIN });
 
   const { accountIndex, addressIndex } = parseDerivationPath(walletStore.activeAccount!.path);
   const signer = deriveSigner(mnemonic, accountIndex, addressIndex);
 
   // Only sign inputs that belong to this signer's key
-  const signedIndexes: number[] = [];
+  let signedCount = 0;
   for (let i = 0; i < psbt.inputCount; i++) {
     try {
       psbt.signInput(i, signer);
-      signedIndexes.push(i);
+      signedCount++;
     } catch {
       // Input does not belong to this signer — skip
     }
   }
 
-  if (signedIndexes.length === 0) {
+  if (signedCount === 0) {
     throw new Error('No inputs in this PSBT belong to your wallet');
+  }
+
+  const result: { psbt: string; txid?: string } = { psbt: psbt.toBase64() };
+
+  if (broadcast === true) {
+    psbt.finalizeAllInputs();
+    const txHex = psbt.extractTransaction().toHex();
+    result.txid = await broadcastTx(txHex);
+    result.psbt = psbt.toBase64();
   }
 
   chrome.runtime.sendMessage({
     target: 'peppool-background-response',
     requestId: requestId.value,
-    result: { psbt: psbt.toBase64(), signedIndexes }
+    result
   });
 
   await chrome.storage.local.remove(`request_${requestId.value}`);
+  if (broadcast === true) {
+    await walletStore.refreshBalance(true);
+  }
   window.close();
 }
 
@@ -281,6 +294,13 @@ async function handleReject() {
           <p class="text-xs leading-relaxed text-slate-400">
             This dApp wants to sign a Partially Signed Transaction (PSBT). Review the details
             carefully.
+          </p>
+          <p
+            v-if="!txDetails.broadcast"
+            class="mt-3 text-xs leading-relaxed font-medium text-amber-400"
+          >
+            This transaction will not be broadcast from your wallet. It may be broadcast later by a
+            third party.
           </p>
           <div
             class="mt-4 h-24 overflow-hidden rounded border border-slate-800 bg-slate-950 p-2 font-mono text-[10px] break-all text-slate-500"

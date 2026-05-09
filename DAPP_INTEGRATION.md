@@ -115,12 +115,38 @@ console.log('Transaction Broadcasted:', txid);
 Sign a Partially Signed Pepecoin Transaction (PSBT). The dApp provides a base64-encoded PSBT, and the wallet signs only the inputs that match the user's public key.
 
 ```javascript
-const { psbt, signedIndexes } = await provider.request('signPsbt', {
+const { psbt } = await provider.request('signPsbt', {
   psbt: 'base64_encoded_psbt_string...'
 });
 
 // psbt: base64-encoded PSBT with signatures added
-// signedIndexes: array of input indexes that were signed (e.g. [0, 2])
+```
+
+**Parameters**
+
+| Property | Type | Description |
+|---|---|---|
+| `psbt` | `string` | The base64-encoded PSBT to sign. |
+| `broadcast` | `boolean` (optional) | If `true`, the wallet finalizes the PSBT after signing and broadcasts the resulting transaction. Defaults to `false`. |
+
+**Result (`SignPsbtResult`)**
+
+| Property | Description |
+|---|---|
+| `psbt` | The base64-encoded signed PSBT. |
+| `txid` | The transaction id as a hex-encoded string. Only returned when the transaction was broadcast (`broadcast: true`). |
+
+**Broadcasting after signing**
+
+Set `broadcast: true` to have the wallet finalize and broadcast the PSBT once the user approves. Otherwise the signed PSBT is returned without broadcasting, so the dApp (or another party) can finalize and broadcast it later.
+
+```javascript
+const { psbt, txid } = await provider.request('signPsbt', {
+  psbt: 'base64_encoded_psbt_string...',
+  broadcast: true
+});
+
+console.log('Transaction Broadcasted:', txid);
 ```
 
 ---

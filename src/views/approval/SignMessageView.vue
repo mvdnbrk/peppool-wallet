@@ -1,101 +1,45 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { computed } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 import { signMessage } from '@/utils/crypto';
+import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
 import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 
-const walletStore = useWalletStore();
-
-const requestId = ref('');
-const origin = ref('');
-const messageToSign = ref('');
-const password = ref('');
-const error = ref('');
-const isProcessing = ref(false);
-
-const isMnemonicLoaded = computed(() => walletStore.isMnemonicLoaded);
-
-onMounted(async () => {
-  const params = new URLSearchParams(window.location.search);
-  requestId.value = params.get('id') || '';
-  origin.value = params.get('origin') || '';
-
-  // Read the full request from storage (message can be multiline/long)
-  const key = `request_${requestId.value}`;
-  const stored = await chrome.storage.local.get(key);
-  const request = stored[key] as { params?: { message?: string } } | undefined;
-  if (request?.params?.message) {
-    messageToSign.value = request.params.message;
-  }
-
-  await walletStore.checkSession();
-});
-
-async function handleApprove() {
-  if (!requestId.value) return;
-  error.value = '';
-
-  try {
-    if (!walletStore.isMnemonicLoaded) {
-      if (!password.value) {
-        error.value = 'Please enter your password';
-        return;
-      }
-      isProcessing.value = true;
-      const success = await walletStore.unlock(password.value);
-      if (!success) {
-        error.value = 'Invalid password';
-        isProcessing.value = false;
-        return;
-      }
-    }
-
-    isProcessing.value = true;
-    await walletStore.withMnemonic(async (mnemonic) => {
-      const signature = signMessage(
-        mnemonic,
-        messageToSign.value,
-        walletStore.activeAccountIndex,
-        0
-      );
-
-      chrome.runtime.sendMessage({
-        target: 'peppool-background-response',
-        requestId: requestId.value,
-        result: {
-          signature,
-          address: walletStore.address,
-          message: messageToSign.value
-        }
-      });
-    });
-
-    // Cleanup storage
-    await chrome.storage.local.remove(`request_${requestId.value}`);
-
-    window.close();
-  } catch (err: any) {
-    console.error('Sign message failed', err);
-    error.value = err.message || 'Failed to sign message';
-    isProcessing.value = false;
-  }
+interface SignMessageParams {
+  message: string;
 }
 
-async function handleReject() {
-  if (!requestId.value) return;
+const walletStore = useWalletStore();
 
-  chrome.runtime.sendMessage({
-    target: 'peppool-background-response',
-    requestId: requestId.value,
-    error: 'User rejected the signature request'
+const {
+  origin,
+  requestData,
+  password,
+  error,
+  isProcessing,
+  isMnemonicLoaded,
+  runWithMnemonic,
+  approve,
+  reject
+} = useApprovalRequest<SignMessageParams>();
+
+const messageToSign = computed(() => requestData.value?.params.message ?? '');
+
+async function handleApprove() {
+  await runWithMnemonic(async (mnemonic) => {
+    const signature = signMessage(mnemonic, messageToSign.value, walletStore.activeAccountIndex, 0);
+    await approve({
+      signature,
+      address: walletStore.address,
+      message: messageToSign.value
+    });
   });
+}
 
-  // Cleanup storage
-  await chrome.storage.local.remove(`request_${requestId.value}`);
-
-  window.close();
+function handleReject() {
+  reject('User rejected the signature request');
 }
 </script>
 

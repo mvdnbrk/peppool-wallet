@@ -6,6 +6,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ### Fixed
 - Restore `npm run dev` by scoping `manualChunks` to the production build so CRXJS's service-worker Rollup pass no longer fails with `UNRESOLVED_ENTRY` ([#46](https://github.com/mvdnbrk/peppool-wallet/pull/46))
+- Allow the Vite dev server in the extension CSP during `npm run dev` so the popup loads without `ERR_FAILED`; production CSP is unchanged ([#49](https://github.com/mvdnbrk/peppool-wallet/pull/49))
 
 ## [0.3.0](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.3.0) - 2026-05-08
 

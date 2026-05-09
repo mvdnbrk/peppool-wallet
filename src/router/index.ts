@@ -26,7 +26,8 @@ import EditAccountView from '@/views/settings/EditAccountView.vue';
 import ConnectedSitesView from '@/views/settings/ConnectedSitesView.vue';
 import ConnectSiteView from '@/views/approval/ConnectSiteView.vue';
 import SignMessageView from '@/views/approval/SignMessageView.vue';
-import SignTxView from '@/views/approval/SignTxView.vue';
+import SendTransferApproval from '@/views/approval/SendTransferApproval.vue';
+import SignPsbtApproval from '@/views/approval/SignPsbtApproval.vue';
 
 const routes = [
   { path: '/', component: WelcomeView },
@@ -55,7 +56,8 @@ const routes = [
   { path: '/settings/auto-lock', component: AutoLockView },
   { path: '/approve/connect', component: ConnectSiteView },
   { path: '/approve/sign-message', component: SignMessageView },
-  { path: '/approve/sign-tx', component: SignTxView },
+  { path: '/approve/send-transfer', component: SendTransferApproval },
+  { path: '/approve/sign-psbt', component: SignPsbtApproval },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 

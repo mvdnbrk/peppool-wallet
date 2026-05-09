@@ -63,8 +63,13 @@ function handleApprovalRouting() {
     return;
   }
 
-  if (method === 'sendTransfer' || method === 'signPsbt') {
-    router.push('/approve/sign-tx' + query);
+  if (method === 'sendTransfer') {
+    router.push('/approve/send-transfer' + query);
+    return;
+  }
+
+  if (method === 'signPsbt') {
+    router.push('/approve/sign-psbt' + query);
     return;
   }
 }

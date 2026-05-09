@@ -38,35 +38,101 @@ const isProcessing = ref(false);
 
 const isMnemonicLoaded = computed(() => walletStore.isMnemonicLoaded);
 
-const txDetails = computed(() => {
-  if (!requestData.value) return null;
+const transferDetails = computed(() => {
+  if (!requestData.value || method.value !== 'sendTransfer') return null;
+  const params = requestData.value.params;
+  const recipients = Array.isArray(params.recipients)
+    ? params.recipients
+    : [{ address: params.recipient, amount: params.amount }];
 
-  if (method.value === 'sendTransfer') {
-    const params = requestData.value.params;
-    const recipients = Array.isArray(params.recipients)
-      ? params.recipients
-      : [{ address: params.recipient, amount: params.amount }];
-
-    return {
-      type: 'Transfer',
-      recipients: recipients.map((r: any) => ({
-        address: r.address,
-        amountPep: r.amount / RIBBITS_PER_PEP
-      })),
-      totalAmountPep:
-        recipients.reduce((sum: number, r: any) => sum + r.amount, 0) / RIBBITS_PER_PEP
-    };
-  }
-
-  if (method.value === 'signPsbt') {
-    return {
-      type: 'Sign PSBT',
-      psbt: requestData.value.params.psbt
-    };
-  }
-
-  return null;
+  return {
+    recipients: recipients.map((r: any) => ({
+      address: r.address,
+      amountPep: r.amount / RIBBITS_PER_PEP
+    })),
+    totalAmountPep: recipients.reduce((sum: number, r: any) => sum + r.amount, 0) / RIBBITS_PER_PEP
+  };
 });
+
+const psbtDetails = computed(() => {
+  if (!requestData.value || method.value !== 'signPsbt') return null;
+  return {
+    psbt: requestData.value.params.psbt,
+    broadcast: requestData.value.params.broadcast === true,
+    ...decodePsbtSummary(requestData.value.params.psbt, walletStore.address)
+  };
+});
+
+const hasDetails = computed(() => !!transferDetails.value || !!psbtDetails.value);
+
+interface PsbtIO {
+  address: string | null;
+  amountPep: number | null;
+  mine: boolean;
+}
+
+function decodePsbtSummary(
+  base64: string,
+  myAddress: string | null
+): { inputs: PsbtIO[]; outputs: PsbtIO[]; netChangePep: number | null; decodeError: boolean } {
+  try {
+    const psbt = bitcoin.Psbt.fromBase64(base64, { network: PEPECOIN });
+
+    const inputs: PsbtIO[] = psbt.txInputs.map((txIn: any, i: number) => {
+      const data = psbt.data.inputs[i];
+      let address: string | null = null;
+      let value: number | null = null;
+      if (data?.nonWitnessUtxo) {
+        const prevTx = bitcoin.Transaction.fromBuffer(data.nonWitnessUtxo);
+        const out = prevTx.outs[txIn.index];
+        if (out) {
+          value = Number(out.value);
+          try {
+            address = bitcoin.address.fromOutputScript(out.script, PEPECOIN);
+          } catch {
+            /* non-standard script */
+          }
+        }
+      }
+      return {
+        address,
+        amountPep: value === null ? null : value / RIBBITS_PER_PEP,
+        mine: !!myAddress && address === myAddress
+      };
+    });
+
+    const outputs: PsbtIO[] = psbt.txOutputs.map((o: any) => {
+      let address: string | null = null;
+      try {
+        address = bitcoin.address.fromOutputScript(o.script, PEPECOIN);
+      } catch {
+        /* non-standard script */
+      }
+      return {
+        address,
+        amountPep: Number(o.value) / RIBBITS_PER_PEP,
+        mine: !!myAddress && address === myAddress
+      };
+    });
+
+    const allInputAmountsKnown = inputs.every((i) => i.amountPep !== null);
+    let netChangePep: number | null = null;
+    if (allInputAmountsKnown) {
+      const myIn = inputs.filter((i) => i.mine).reduce((s, i) => s + (i.amountPep ?? 0), 0);
+      const myOut = outputs.filter((o) => o.mine).reduce((s, o) => s + (o.amountPep ?? 0), 0);
+      netChangePep = myOut - myIn;
+    }
+
+    return { inputs, outputs, netChangePep, decodeError: false };
+  } catch {
+    return { inputs: [], outputs: [], netChangePep: null, decodeError: true };
+  }
+}
+
+function formatPep(amount: number | null): string {
+  if (amount === null) return '—';
+  return `${amount.toLocaleString('en-US', { maximumFractionDigits: 8 })} PEP`;
+}
 
 onMounted(async () => {
   const params = new URLSearchParams(window.location.search);
@@ -192,34 +258,46 @@ async function handleSendTransfer(mnemonic: string) {
 }
 
 async function handleSignPsbt(mnemonic: string) {
-  const { psbt: base64Psbt } = requestData.value.params;
+  const { psbt: base64Psbt, broadcast } = requestData.value.params;
   const psbt = bitcoin.Psbt.fromBase64(base64Psbt, { network: PEPECOIN });
 
   const { accountIndex, addressIndex } = parseDerivationPath(walletStore.activeAccount!.path);
   const signer = deriveSigner(mnemonic, accountIndex, addressIndex);
 
   // Only sign inputs that belong to this signer's key
-  const signedIndexes: number[] = [];
+  let signedCount = 0;
   for (let i = 0; i < psbt.inputCount; i++) {
     try {
       psbt.signInput(i, signer);
-      signedIndexes.push(i);
+      signedCount++;
     } catch {
       // Input does not belong to this signer — skip
     }
   }
 
-  if (signedIndexes.length === 0) {
+  if (signedCount === 0) {
     throw new Error('No inputs in this PSBT belong to your wallet');
+  }
+
+  const result: { psbt: string; txid?: string } = { psbt: psbt.toBase64() };
+
+  if (broadcast === true) {
+    psbt.finalizeAllInputs();
+    const txHex = psbt.extractTransaction().toHex();
+    result.txid = await broadcastTx(txHex);
+    result.psbt = psbt.toBase64();
   }
 
   chrome.runtime.sendMessage({
     target: 'peppool-background-response',
     requestId: requestId.value,
-    result: { psbt: psbt.toBase64(), signedIndexes }
+    result
   });
 
   await chrome.storage.local.remove(`request_${requestId.value}`);
+  if (broadcast === true) {
+    await walletStore.refreshBalance(true);
+  }
   window.close();
 }
 
@@ -251,15 +329,15 @@ async function handleReject() {
       </div>
     </div>
 
-    <div v-else-if="txDetails" class="space-y-6">
+    <div v-else-if="hasDetails" class="space-y-6">
       <div class="space-y-2 text-center">
         <h2 class="truncate text-sm font-medium text-slate-400">{{ origin }}</h2>
-        <p class="text-lg font-bold text-white">Requests {{ txDetails.type }}</p>
+        <p class="text-lg font-bold text-white">Review Transaction</p>
       </div>
 
-      <div v-if="method === 'sendTransfer'" class="space-y-4">
+      <div v-if="transferDetails" class="space-y-4">
         <div
-          v-for="(r, i) in txDetails.recipients"
+          v-for="(r, i) in transferDetails.recipients"
           :key="i"
           class="space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-4"
         >
@@ -276,17 +354,93 @@ async function handleReject() {
         </div>
       </div>
 
-      <div v-if="method === 'signPsbt'" class="space-y-4">
-        <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
-          <p class="text-xs leading-relaxed text-slate-400">
-            This dApp wants to sign a Partially Signed Transaction (PSBT). Review the details
-            carefully.
+      <div v-if="psbtDetails" class="space-y-3">
+        <!-- Net effect -->
+        <div
+          v-if="psbtDetails.netChangePep !== null"
+          class="rounded-xl border border-slate-800 bg-slate-900 p-4"
+        >
+          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">
+            {{ psbtDetails.netChangePep < 0 ? 'You will send' : 'You will receive' }}
+          </span>
+          <p class="text-pepe-green mt-1 text-lg font-bold">
+            {{ formatPep(Math.abs(psbtDetails.netChangePep)) }}
           </p>
+        </div>
+
+        <!-- Inputs -->
+        <div
+          v-if="psbtDetails.inputs.length"
+          class="space-y-2 rounded-xl border border-slate-800 bg-slate-900 p-4"
+        >
+          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">From</span>
           <div
-            class="mt-4 h-24 overflow-hidden rounded border border-slate-800 bg-slate-950 p-2 font-mono text-[10px] break-all text-slate-500"
+            v-for="(io, i) in psbtDetails.inputs"
+            :key="`in-${i}`"
+            class="flex items-start justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
           >
-            {{ txDetails.psbt }}
+            <div class="min-w-0 space-y-0.5">
+              <p class="font-mono text-xs break-all text-slate-300">
+                {{ io.address ?? 'Non-standard script' }}
+              </p>
+              <span
+                v-if="io.mine"
+                class="text-pepe-green inline-block text-[10px] font-bold tracking-wider uppercase"
+                >Your wallet</span
+              >
+            </div>
+            <span class="shrink-0 text-xs font-bold text-slate-200">{{
+              formatPep(io.amountPep)
+            }}</span>
           </div>
+        </div>
+
+        <!-- Outputs -->
+        <div
+          v-if="psbtDetails.outputs.length"
+          class="space-y-2 rounded-xl border border-slate-800 bg-slate-900 p-4"
+        >
+          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">To</span>
+          <div
+            v-for="(io, i) in psbtDetails.outputs"
+            :key="`out-${i}`"
+            class="flex items-start justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+          >
+            <div class="min-w-0 space-y-0.5">
+              <p class="font-mono text-xs break-all text-slate-300">
+                {{ io.address ?? 'Non-standard script' }}
+              </p>
+              <span
+                v-if="io.mine"
+                class="text-pepe-green inline-block text-[10px] font-bold tracking-wider uppercase"
+                >Your wallet</span
+              >
+            </div>
+            <span class="shrink-0 text-xs font-bold text-slate-200">{{
+              formatPep(io.amountPep)
+            }}</span>
+          </div>
+        </div>
+
+        <!-- Decode failure fallback -->
+        <div
+          v-if="psbtDetails.decodeError"
+          class="rounded-xl border border-slate-800 bg-slate-900 p-4"
+        >
+          <p class="text-xs leading-relaxed text-slate-400">
+            Unable to decode this PSBT. Only proceed if you trust this dApp.
+          </p>
+        </div>
+
+        <!-- Broadcast warning -->
+        <div
+          v-if="!psbtDetails.broadcast"
+          class="rounded-xl border border-amber-900/50 bg-amber-950/20 p-3"
+        >
+          <p class="text-xs leading-relaxed text-amber-400">
+            This transaction will not be broadcast from your wallet. It may be broadcast later by a
+            third party.
+          </p>
         </div>
       </div>
 

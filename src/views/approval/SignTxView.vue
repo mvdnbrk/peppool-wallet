@@ -48,7 +48,6 @@ const txDetails = computed(() => {
       : [{ address: params.recipient, amount: params.amount }];
 
     return {
-      type: 'Transfer',
       recipients: recipients.map((r: any) => ({
         address: r.address,
         amountPep: r.amount / RIBBITS_PER_PEP
@@ -60,7 +59,6 @@ const txDetails = computed(() => {
 
   if (method.value === 'signPsbt') {
     return {
-      type: 'Sign PSBT',
       psbt: requestData.value.params.psbt,
       broadcast: requestData.value.params.broadcast === true
     };
@@ -267,7 +265,7 @@ async function handleReject() {
     <div v-else-if="txDetails" class="space-y-6">
       <div class="space-y-2 text-center">
         <h2 class="truncate text-sm font-medium text-slate-400">{{ origin }}</h2>
-        <p class="text-lg font-bold text-white">Requests {{ txDetails.type }}</p>
+        <p class="text-lg font-bold text-white">Review Transaction</p>
       </div>
 
       <div v-if="method === 'sendTransfer'" class="space-y-4">

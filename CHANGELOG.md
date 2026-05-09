@@ -4,6 +4,9 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ## [Unreleased](https://github.com/mvdnbrk/peppool-wallet/compare/v0.3.0...main)
 
+### Added
+- `signPsbt` accepts an optional `broadcast` flag; when `true` the wallet finalizes and broadcasts the signed PSBT and returns `{ psbt, txid }`. Approval popup decodes the PSBT to show inputs, outputs, and net effect ([#44](https://github.com/mvdnbrk/peppool-wallet/pull/44))
+
 ### Changed
 - Provider discovery now follows an EIP-6963-style `pep_providers:request` / `pep_providers:announce` pattern so dApps that load after the wallet is injected can still discover the provider; replaces the single-shot `pep_providers#peppool` event
 

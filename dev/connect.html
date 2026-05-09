@@ -289,9 +289,37 @@
         <div id="send-status" class="status" style="margin-top: 0.5rem;">—</div>
     </div>
 
+    <!-- Sign PSBT -->
+    <div class="card">
+        <h2>6. Sign PSBT</h2>
+        <p class="status" style="margin-bottom: 0.5rem;">
+            Builds a simple 1-in / 1-out PSBT spending a confirmed UTXO from the connected address,
+            or paste a base64 PSBT below.
+        </p>
+        <div class="field">
+            <label>Recipient Address</label>
+            <input id="psbt-recipient" type="text" placeholder="Paddr...">
+        </div>
+        <div class="field">
+            <label>Amount (ribbits)</label>
+            <input id="psbt-amount" type="number" placeholder="100000000" value="100000000">
+        </div>
+        <div class="field">
+            <label>Or paste base64 PSBT (optional — overrides builder)</label>
+            <input id="psbt-raw" type="text" placeholder="cHNidP8BAH...">
+        </div>
+        <div class="row">
+            <label style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0;">
+                <input id="psbt-broadcast" type="checkbox"> broadcast
+            </label>
+            <button id="btn-sign-psbt" disabled>Sign PSBT</button>
+        </div>
+        <div id="psbt-status" class="status" style="margin-top: 0.5rem;">—</div>
+    </div>
+
     <!-- Disconnect -->
     <div class="card">
-        <h2>6. Disconnect</h2>
+        <h2>7. Disconnect</h2>
         <div class="row">
             <button id="btn-disconnect" class="danger" disabled>Disconnect</button>
             <span id="disconnect-status" class="status">—</span>
@@ -308,6 +336,14 @@
         </div>
     </div>
 
+    <script type="module">
+        // Load bitcoinjs-lib + buffer for the PSBT builder. Exposed on window
+        // for the non-module script below.
+        import * as bitcoin from 'https://esm.sh/bitcoinjs-lib@6.1.5';
+        import { Buffer } from 'https://esm.sh/buffer@6.0.3';
+        window._bitcoin = bitcoin;
+        window._buffer = Buffer;
+    </script>
     <script>
         let provider = null;
 
@@ -346,8 +382,12 @@
             document.getElementById('btn-sign').disabled = false;
             document.getElementById('btn-send').disabled = false;
             document.getElementById('btn-add-recipient').disabled = false;
+            document.getElementById('btn-sign-psbt').disabled = false;
             document.getElementById('btn-disconnect').disabled = false;
         }
+
+        // Track connected address for PSBT builder
+        let connectedAddress = null;
 
         function showProviderInfo(p) {
             const info = document.getElementById('provider-info');
@@ -395,6 +435,7 @@
             try {
                 const result = await provider.request('wallet_connect');
                 const addr = Array.isArray(result) ? result[0] : result;
+                connectedAddress = addr;
                 setStatus('connect-status', addr, 'ok');
                 log('wallet_connect', 'ok', addr);
             } catch (err) {
@@ -409,6 +450,7 @@
             try {
                 const accounts = await provider.request('getAccounts');
                 const text = Array.isArray(accounts) ? accounts.join(', ') : JSON.stringify(accounts);
+                if (Array.isArray(accounts) && accounts[0]) connectedAddress = accounts[0];
                 setStatus('accounts-status', text, 'ok');
                 log('getAccounts', 'ok', text);
             } catch (err) {
@@ -476,6 +518,84 @@
             } catch (err) {
                 setStatus('send-status', err.message, 'err');
                 log('sendTransfer', 'err', err.message);
+            }
+        });
+
+        // --- signPsbt ---
+        const PEPECOIN_NETWORK = {
+            messagePrefix: '\x19Pepecoin Signed Message:\n',
+            bech32: 'pep',
+            bip32: { public: 0x0488b21e, private: 0x0488ade4 },
+            pubKeyHash: 0x38,
+            scriptHash: 0x16,
+            wif: 0x9e
+        };
+        const API_BASE = 'https://peppool.space/api';
+        const FEE_RIBBITS = 50000; // generous flat fee for the dev builder
+
+        async function buildSamplePsbt(recipient, amount) {
+            const { Psbt, Transaction, address: bAddress } = window._bitcoin;
+            const Buffer = window._buffer;
+
+            const utxosResp = await fetch(`${API_BASE}/address/${connectedAddress}/utxo`);
+            if (!utxosResp.ok) throw new Error('Failed to fetch UTXOs');
+            const utxos = await utxosResp.json();
+            const confirmed = utxos.filter(u => u.status?.confirmed);
+            const need = amount + FEE_RIBBITS;
+            const utxo = confirmed.find(u => u.value >= need);
+            if (!utxo) throw new Error(`No single confirmed UTXO with value >= ${need} ribbits`);
+
+            const hexResp = await fetch(`${API_BASE}/tx/${utxo.txid}/hex`);
+            if (!hexResp.ok) throw new Error('Failed to fetch tx hex');
+            const rawHex = (await hexResp.text()).trim();
+
+            const psbt = new Psbt({ network: PEPECOIN_NETWORK });
+            psbt.setVersion(1);
+            psbt.addInput({
+                hash: utxo.txid,
+                index: utxo.vout,
+                nonWitnessUtxo: Buffer.from(rawHex, 'hex')
+            });
+            psbt.addOutput({
+                address: recipient,
+                value: amount
+            });
+            const change = utxo.value - amount - FEE_RIBBITS;
+            if (change > 0) {
+                psbt.addOutput({ address: connectedAddress, value: change });
+            }
+            return psbt.toBase64();
+        }
+
+        document.getElementById('btn-sign-psbt').addEventListener('click', async () => {
+            const recipient = document.getElementById('psbt-recipient').value.trim();
+            const amount = parseInt(document.getElementById('psbt-amount').value, 10);
+            const raw = document.getElementById('psbt-raw').value.trim();
+            const broadcast = document.getElementById('psbt-broadcast').checked;
+
+            try {
+                let base64Psbt;
+                if (raw) {
+                    base64Psbt = raw;
+                } else {
+                    if (!connectedAddress) throw new Error('Connect the wallet first');
+                    if (!recipient) throw new Error('Enter a recipient address');
+                    if (!amount || amount <= 0) throw new Error('Enter a valid amount');
+                    if (!window._bitcoin) throw new Error('bitcoinjs-lib still loading — try again in a moment');
+                    setStatus('psbt-status', 'Building PSBT…', '');
+                    base64Psbt = await buildSamplePsbt(recipient, amount);
+                }
+
+                setStatus('psbt-status', `Requesting signature${broadcast ? ' + broadcast' : ''}…`, '');
+                const result = await provider.request('signPsbt', { psbt: base64Psbt, broadcast });
+                const text = result.txid
+                    ? `txid: ${result.txid}\npsbt: ${result.psbt}`
+                    : `psbt: ${result.psbt}`;
+                setStatus('psbt-status', text, 'ok');
+                log('signPsbt', 'ok', result.txid ? `broadcast ${result.txid}` : 'signed (not broadcast)');
+            } catch (err) {
+                setStatus('psbt-status', err.message, 'err');
+                log('signPsbt', 'err', err.message);
             }
         });
 

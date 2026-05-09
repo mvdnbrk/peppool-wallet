@@ -9,6 +9,8 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 ### Changed
 - Provider discovery now follows an EIP-6963-style `pep_providers:request` / `pep_providers:announce` pattern so dApps that load after the wallet is injected can still discover the provider; replaces the single-shot `pep_providers#peppool` event
+- Split the dual-purpose `SignTxView` approval popup into focused `SendTransferApproval` and `SignPsbtApproval` views, with shared chrome extracted to a `useApprovalRequest` composable ([#50](https://github.com/mvdnbrk/peppool-wallet/pull/50))
+- Remove the unreachable password prompt from approval views; the router guard already enforces unlock before any `/approve/*` route mounts ([#51](https://github.com/mvdnbrk/peppool-wallet/pull/51))
 
 ### Fixed
 - Restore `npm run dev` by scoping `manualChunks` to the production build so CRXJS's service-worker Rollup pass no longer fails with `UNRESOLVED_ENTRY` ([#46](https://github.com/mvdnbrk/peppool-wallet/pull/46))

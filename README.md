@@ -86,6 +86,24 @@ If you want to use the pre-built extension:
 
 If you are a developer looking to integrate Peppool Wallet into your dApp, please refer to our [dApp Integration Guide](DAPP_INTEGRATION.md).
 
+### Testing dApp integration locally
+
+The repo ships with a reference page at `dev/connect.html` that exercises every method of the `pep_providers` standard (connect, sign message, send transfer, sign PSBT, …).
+
+The page must be served from a real `http://` origin so the extension's content script will inject into it (file URLs are skipped).
+
+```bash
+# 1. Build the extension and load dist/ via chrome://extensions → Load unpacked
+npm run build
+
+# 2. Serve dev/connect.html from a separate static server (leaves dist/ alone)
+npx serve dev
+```
+
+Open the URL printed by `serve` (e.g. http://localhost:3000) and append `/connect.html`.
+
+> Use a separate static server rather than `npm run dev` for this — `npm run dev` overwrites `dist/` with a Vite dev shim, and the in-page provider script does not currently load under that mode.
+
 ## Support the project
 
 If you find this project useful and want to support its development:

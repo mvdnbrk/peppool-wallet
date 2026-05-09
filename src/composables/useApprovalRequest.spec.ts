@@ -154,43 +154,8 @@ describe('useApprovalRequest', () => {
   });
 
   describe('runWithMnemonic', () => {
-    it('prompts for password when wallet is locked and password field is empty', async () => {
+    it('invokes withMnemonic and runs the action — wallet is already unlocked by the route guard', async () => {
       const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(false);
-      const action = vi.fn();
-
-      const host = mountHost();
-      await flushPromises();
-
-      await host.api.runWithMnemonic(action);
-
-      expect(host.api.error.value).toBe('Please enter your password');
-      expect(action).not.toHaveBeenCalled();
-      expect(host.api.isProcessing.value).toBe(false);
-    });
-
-    it('shows "Invalid password" when unlock fails, and does not run the action', async () => {
-      const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(false);
-      const unlockSpy = vi.spyOn(store, 'unlock').mockResolvedValue(false);
-      const action = vi.fn();
-
-      const host = mountHost();
-      await flushPromises();
-      host.api.password.value = 'wrong';
-
-      await host.api.runWithMnemonic(action);
-
-      expect(unlockSpy).toHaveBeenCalledWith('wrong');
-      expect(host.api.error.value).toBe('Invalid password');
-      expect(host.api.isProcessing.value).toBe(false);
-      expect(action).not.toHaveBeenCalled();
-    });
-
-    it('unlocks then invokes withMnemonic with the action when password is correct', async () => {
-      const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(false);
-      vi.spyOn(store, 'unlock').mockResolvedValue(true);
       const withMnemonicSpy = vi
         .spyOn(store, 'withMnemonic')
         .mockImplementation((fn: any) => fn('test mnemonic'));
@@ -198,7 +163,6 @@ describe('useApprovalRequest', () => {
 
       const host = mountHost();
       await flushPromises();
-      host.api.password.value = 'correct';
 
       await host.api.runWithMnemonic(action);
 
@@ -206,25 +170,8 @@ describe('useApprovalRequest', () => {
       expect(action).toHaveBeenCalledWith('test mnemonic');
     });
 
-    it('skips password gating when mnemonic is already loaded', async () => {
-      const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
-      const unlockSpy = vi.spyOn(store, 'unlock');
-      vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) => fn('mnemonic'));
-      const action = vi.fn().mockResolvedValue(undefined);
-
-      const host = mountHost();
-      await flushPromises();
-
-      await host.api.runWithMnemonic(action);
-
-      expect(unlockSpy).not.toHaveBeenCalled();
-      expect(action).toHaveBeenCalledWith('mnemonic');
-    });
-
     it('captures errors thrown inside the action into error and resets isProcessing', async () => {
       const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
       vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) => fn('mnemonic'));
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -242,7 +189,6 @@ describe('useApprovalRequest', () => {
 
     it('falls back to "Action failed" when thrown error has no message', async () => {
       const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
       vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) => fn('mnemonic'));
       vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -271,7 +217,6 @@ describe('useApprovalRequest', () => {
 
     it('clears any previous error message at the start of a new run', async () => {
       const store = useWalletStore();
-      vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
       vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) => fn('mnemonic'));
 
       const host = mountHost();

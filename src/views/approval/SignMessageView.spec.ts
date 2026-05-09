@@ -79,21 +79,6 @@ describe('SignMessageView', () => {
     expect(wrapper.text()).toContain('Hello Pepecoin');
   });
 
-  it('should request password if mnemonic is not cached', async () => {
-    const store = useWalletStore();
-    store.isUnlocked = true;
-    // ensure no mnemonic loaded
-    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(false);
-
-    const wrapper = mount(SignMessageView, {
-      global: globalConfig
-    });
-
-    await flushPromises();
-
-    expect(wrapper.find('input[type="password"]').exists()).toBe(true);
-  });
-
   it('should sign and send response on approve', async () => {
     const store = useWalletStore();
     store.isUnlocked = true;

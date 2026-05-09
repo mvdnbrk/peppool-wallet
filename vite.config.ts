@@ -8,7 +8,7 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 import manifest from './manifest.json'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     base: './',
     resolve: {
         alias: {
@@ -64,12 +64,17 @@ export default defineConfig({
             },
             output: {
                 entryFileNames: 'assets/[name]-[hash].js',
-                manualChunks: {
-                    'vendor-vue': ['vue', 'vue-router', 'pinia'],
-                    'vendor-crypto': ['bitcoinjs-lib', 'bip39', 'bip32', 'tiny-secp256k1'],
-                    'vendor-zxcvbn': ['@zxcvbn-ts/core', '@zxcvbn-ts/language-common', '@zxcvbn-ts/language-en'],
-                },
+                // manualChunks only applies to the production build. Including
+                // it during `vite` (dev) trips CRXJS's service-worker Rollup
+                // pass with UNRESOLVED_ENTRY for the listed packages.
+                ...(command === 'build' && {
+                    manualChunks: {
+                        'vendor-vue': ['vue', 'vue-router', 'pinia'],
+                        'vendor-crypto': ['bitcoinjs-lib', 'bip39', 'bip32', 'tiny-secp256k1'],
+                        'vendor-zxcvbn': ['@zxcvbn-ts/core', '@zxcvbn-ts/language-common', '@zxcvbn-ts/language-en'],
+                    },
+                }),
             },
         },
     },
-})
+}))

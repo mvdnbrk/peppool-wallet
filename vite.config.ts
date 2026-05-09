@@ -33,7 +33,21 @@ export default defineConfig(({ command }) => ({
         }
     },
     plugins: [
-        crx({ manifest }),
+        // In dev (`vite`), allow scripts/HMR from the Vite dev server. The
+        // production build keeps the strict CSP from manifest.json.
+        crx({
+            manifest:
+                command === 'serve'
+                    ? {
+                          ...manifest,
+                          content_security_policy: {
+                              ...manifest.content_security_policy,
+                              extension_pages:
+                                  "script-src 'self' 'wasm-unsafe-eval' http://localhost:5173; object-src 'self'; connect-src 'self' https://peppool.space http://localhost:5173 ws://localhost:5173"
+                          }
+                      }
+                    : manifest
+        }),
         vue({
             template: {
                 compilerOptions: {

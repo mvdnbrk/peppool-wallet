@@ -117,11 +117,14 @@ console.log('Transaction Broadcasted:', txid);
 ```
 
 ### `signPsbt` (Advanced)
-Sign a Partially Signed Pepecoin Transaction (PSBT). The dApp provides a base64-encoded PSBT, and the wallet signs only the inputs that match the user's public key.
+Sign a Partially Signed Bitcoin Transaction (PSBT — BIP-174; the same format applies to Pepecoin). The dApp provides a base64-encoded PSBT and an explicit `signInputs` map listing which input indices to sign with which address. The wallet only signs the indices listed under the active account address.
 
 ```javascript
 const { psbt } = await provider.request('signPsbt', {
-  psbt: 'base64_encoded_psbt_string...'
+  psbt: 'base64_encoded_psbt_string...',
+  signInputs: {
+    'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU': [0, 1]
+  }
 });
 
 // psbt: base64-encoded PSBT with signatures added
@@ -132,7 +135,12 @@ const { psbt } = await provider.request('signPsbt', {
 | Property | Type | Description |
 |---|---|---|
 | `psbt` | `string` | The base64-encoded PSBT to sign. |
+| `signInputs` | `Record<string, number[]>` | Map of address → input indices to sign with that address. The wallet signs only the indices listed under the active account. |
 | `broadcast` | `boolean` (optional) | If `true`, the wallet finalizes the PSBT after signing and broadcasts the resulting transaction. Defaults to `false`. |
+
+**Sighash types**
+
+By default each input is signed with `SIGHASH_ALL`. To request `SIGHASH_SINGLE | ANYONECANPAY` (used for inscription listings and other half-signed offers), set the `sighashType` field on the relevant PSBT input *before* base64-encoding — the wallet honors what the PSBT itself declares. Supported flags: `SIGHASH_ALL` (`0x01`) and `SIGHASH_SINGLE | ANYONECANPAY` (`0x83`). Other flags are rejected. PSBTs containing any non-default sighash cannot be broadcast by the wallet (`broadcast: true` is rejected); the dApp must finalize and broadcast the completed transaction itself.
 
 **Result (`SignPsbtResult`)**
 
@@ -148,6 +156,9 @@ Set `broadcast: true` to have the wallet finalize and broadcast the PSBT once th
 ```javascript
 const { psbt, txid } = await provider.request('signPsbt', {
   psbt: 'base64_encoded_psbt_string...',
+  signInputs: {
+    'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU': [0]
+  },
   broadcast: true
 });
 

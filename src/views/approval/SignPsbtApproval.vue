@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 import { deriveSigner, parseDerivationPath } from '@/utils/crypto';
 import { broadcastTx } from '@/utils/api';
-import { RIBBITS_PER_PEP } from '@/utils/constants';
+import { formatPep } from '@/utils/price';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
@@ -17,7 +17,7 @@ interface SignPsbtParams {
 
 interface PsbtIO {
   address: string | null;
-  amountPep: number | null;
+  amountRibbits: number | null;
   mine: boolean;
 }
 
@@ -38,7 +38,7 @@ const psbtDetails = computed(() => {
 function decodePsbtSummary(
   base64: string,
   myAddress: string | null
-): { inputs: PsbtIO[]; outputs: PsbtIO[]; netChangePep: number | null; decodeError: boolean } {
+): { inputs: PsbtIO[]; outputs: PsbtIO[]; netChangeRibbits: number | null; decodeError: boolean } {
   try {
     const psbt = bitcoin.Psbt.fromBase64(base64, { network: PEPECOIN });
 
@@ -60,7 +60,7 @@ function decodePsbtSummary(
       }
       return {
         address,
-        amountPep: value === null ? null : value / RIBBITS_PER_PEP,
+        amountRibbits: value,
         mine: !!myAddress && address === myAddress
       };
     });
@@ -74,28 +74,23 @@ function decodePsbtSummary(
       }
       return {
         address,
-        amountPep: Number(o.value) / RIBBITS_PER_PEP,
+        amountRibbits: Number(o.value),
         mine: !!myAddress && address === myAddress
       };
     });
 
-    const allInputAmountsKnown = inputs.every((i) => i.amountPep !== null);
-    let netChangePep: number | null = null;
+    const allInputAmountsKnown = inputs.every((i) => i.amountRibbits !== null);
+    let netChangeRibbits: number | null = null;
     if (allInputAmountsKnown) {
-      const myIn = inputs.filter((i) => i.mine).reduce((s, i) => s + (i.amountPep ?? 0), 0);
-      const myOut = outputs.filter((o) => o.mine).reduce((s, o) => s + (o.amountPep ?? 0), 0);
-      netChangePep = myOut - myIn;
+      const myIn = inputs.filter((i) => i.mine).reduce((s, i) => s + (i.amountRibbits ?? 0), 0);
+      const myOut = outputs.filter((o) => o.mine).reduce((s, o) => s + (o.amountRibbits ?? 0), 0);
+      netChangeRibbits = myOut - myIn;
     }
 
-    return { inputs, outputs, netChangePep, decodeError: false };
+    return { inputs, outputs, netChangeRibbits, decodeError: false };
   } catch {
-    return { inputs: [], outputs: [], netChangePep: null, decodeError: true };
+    return { inputs: [], outputs: [], netChangeRibbits: null, decodeError: true };
   }
-}
-
-function formatPep(amount: number | null): string {
-  if (amount === null) return '—';
-  return `${amount.toLocaleString('en-US', { maximumFractionDigits: 8 })} PEP`;
 }
 
 async function handleApprove() {
@@ -151,14 +146,14 @@ function handleReject() {
 
       <div class="space-y-3">
         <div
-          v-if="psbtDetails.netChangePep !== null"
+          v-if="psbtDetails.netChangeRibbits !== null"
           class="rounded-xl border border-slate-800 bg-slate-900 p-4"
         >
           <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">
-            {{ psbtDetails.netChangePep < 0 ? 'You will send' : 'You will receive' }}
+            {{ psbtDetails.netChangeRibbits < 0 ? 'You will send' : 'You will receive' }}
           </span>
           <p class="text-pepe-green mt-1 text-lg font-bold">
-            {{ formatPep(Math.abs(psbtDetails.netChangePep)) }}
+            {{ formatPep(Math.abs(psbtDetails.netChangeRibbits)) }}
           </p>
         </div>
 
@@ -183,7 +178,7 @@ function handleReject() {
               >
             </div>
             <span class="shrink-0 text-xs font-bold text-slate-200">{{
-              formatPep(io.amountPep)
+              io.amountRibbits === null ? '—' : formatPep(io.amountRibbits)
             }}</span>
           </div>
         </div>
@@ -209,7 +204,7 @@ function handleReject() {
               >
             </div>
             <span class="shrink-0 text-xs font-bold text-slate-200">{{
-              formatPep(io.amountPep)
+              io.amountRibbits === null ? '—' : formatPep(io.amountRibbits)
             }}</span>
           </div>
         </div>

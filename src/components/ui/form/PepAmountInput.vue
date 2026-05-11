@@ -33,6 +33,7 @@ const { settings: settingsStore } = useApp();
 
 const inputAmount = ref('');
 let isInternalSync = false;
+let isExternalWrite = false;
 
 function decimalPattern() {
   const maxDecimals = props.isFiatMode ? 2 : 8;
@@ -76,51 +77,67 @@ watch(
   ([newRibbits, fiatMode]) => {
     if (isInternalSync) return;
 
-    if (newRibbits === 0) {
-      inputAmount.value = '';
-      return;
-    }
-
-    if (fiatMode) {
-      inputAmount.value = formatFiat(ribbitsToPep(newRibbits) * props.price);
-    } else {
-      inputAmount.value = pepString.value;
-    }
+    const next =
+      newRibbits === 0
+        ? ''
+        : fiatMode
+          ? formatFiat(ribbitsToPep(newRibbits) * props.price)
+          : pepString.value;
+    if (next === inputAmount.value) return;
+    isExternalWrite = true;
+    inputAmount.value = next;
+    // The sync internal watcher (set up below) clears the flag on fire, but
+    // on the immediate mount-tick it isn't subscribed yet. Reset defensively.
+    isExternalWrite = false;
   },
   { immediate: true }
 );
 
-// Sync INTERNAL text input to EXTERNAL ribbits
-watch(inputAmount, (newVal, oldVal) => {
-  // Normalize comma to dot (covers paste — beforeinput rewrites typed commas).
-  if (newVal.includes(',')) {
-    inputAmount.value = newVal.replace(/,/g, '.');
-    return;
-  }
+// Sync INTERNAL text input to EXTERNAL ribbits.
+// flush: 'sync' so the isExternalWrite flag set by the external watcher is read
+// in the same tick — without it, multiple synchronous changes batch and the flag
+// leaks onto a subsequent user edit.
+watch(
+  inputAmount,
+  (newVal, oldVal) => {
+    // External writes (MAX, currency toggle, prop sync) trust the formatted value
+    // even if it exceeds the per-mode decimal cap (e.g. formatFiat may emit
+    // "0.0023" for tiny amounts). Validation only applies to user-driven edits.
+    const fromExternal = isExternalWrite;
+    isExternalWrite = false;
 
-  // Pasted text may still contain garbage; strip it back to the last valid value.
-  if (newVal !== '' && !decimalPattern().test(newVal)) {
-    inputAmount.value = oldVal;
-    return;
-  }
+    // Normalize comma to dot (covers paste — beforeinput rewrites typed commas).
+    if (!fromExternal && newVal.includes(',')) {
+      inputAmount.value = newVal.replace(/,/g, '.');
+      return;
+    }
 
-  isInternalSync = true;
-  const numeric = parseFloat(newVal);
+    // Pasted text may still contain garbage; strip it back to the last valid value.
+    if (!fromExternal && newVal !== '' && !decimalPattern().test(newVal)) {
+      inputAmount.value = oldVal;
+      return;
+    }
 
-  if (isNaN(numeric) || numeric <= 0) {
-    emit('update:ribbits', 0);
-  } else {
-    const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
-    emit('update:ribbits', pepToRibbits(pepVal));
-  }
+    isInternalSync = true;
+    const numeric = parseFloat(newVal);
 
-  // If user is typing, we are no longer in "MAX" state
-  if (newVal !== oldVal) {
-    emit('change-max', false);
-  }
+    if (isNaN(numeric) || numeric <= 0) {
+      emit('update:ribbits', 0);
+    } else {
+      const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
+      emit('update:ribbits', pepToRibbits(pepVal));
+    }
 
-  isInternalSync = false;
-});
+    // If user is typing, we are no longer in "MAX" state. External writes
+    // (including the MAX click itself) must not clear the MAX flag.
+    if (!fromExternal && newVal !== oldVal) {
+      emit('change-max', false);
+    }
+
+    isInternalSync = false;
+  },
+  { flush: 'sync' }
+);
 
 function toggleMode() {
   emit('update:isFiatMode', !props.isFiatMode);

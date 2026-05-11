@@ -133,6 +133,35 @@ describe('PepAmountInput UI Component', () => {
     expect(wrapper.vm.inputAmount).toBe('1.23');
   });
 
+  it('should not loop or strip the value when toggling to fiat with a tiny amount', async () => {
+    // formatFiat emits more than 2 decimals for tiny values (e.g. "0.0023").
+    // Validation must not reject external writes — doing so previously caused
+    // an infinite revert loop that froze the popup.
+    // 50_000 ribbits = 0.0005 PEP × $10 = $0.005 → formatFiat emits "0.005" (3 decimals).
+    const wrapper = mount(PepAmountInput, {
+      props: { ribbits: 50_000, price: 10, isFiatMode: false },
+      global: { stubs }
+    });
+
+    await wrapper.setProps({ isFiatMode: true });
+
+    // @ts-ignore
+    expect(wrapper.vm.inputAmount).toBe('0.0050');
+  });
+
+  it('should not clear MAX flag when ribbits are set externally', async () => {
+    // Clicking MAX writes ribbits via prop. The component must not echo back
+    // change-max:false, which would immediately undo the MAX state.
+    const wrapper = mount(PepAmountInput, {
+      props: { ribbits: 0, price: 10, isFiatMode: false },
+      global: { stubs }
+    });
+
+    await wrapper.setProps({ ribbits: 500_000_000 });
+
+    expect(wrapper.emitted('change-max')).toBeUndefined();
+  });
+
   it('should emit change-max: false when user types', async () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 100, price: 10, isFiatMode: false },

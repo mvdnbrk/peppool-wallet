@@ -162,6 +162,16 @@ function handleReject() {
 
       <div class="space-y-3">
         <div
+          v-if="!psbtDetails.broadcast"
+          class="rounded-xl border border-amber-900/50 bg-amber-950/20 p-3"
+        >
+          <p class="text-xs leading-relaxed text-amber-400">
+            This transaction will not be broadcast from your wallet. It may be broadcast later by a
+            third party.
+          </p>
+        </div>
+
+        <div
           v-if="psbtDetails.netChangeRibbits !== null"
           class="rounded-xl border border-slate-800 bg-slate-900 p-4"
         >
@@ -231,16 +241,6 @@ function handleReject() {
         >
           <p class="text-xs leading-relaxed text-slate-400">
             Unable to decode this PSBT. Only proceed if you trust this dApp.
-          </p>
-        </div>
-
-        <div
-          v-if="!psbtDetails.broadcast"
-          class="rounded-xl border border-amber-900/50 bg-amber-950/20 p-3"
-        >
-          <p class="text-xs leading-relaxed text-amber-400">
-            This transaction will not be broadcast from your wallet. It may be broadcast later by a
-            third party.
           </p>
         </div>
       </div>

@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   clearable: false,
   disabled: false
 });
-const emit = defineEmits(['update:modelValue', 'blur']);
+const emit = defineEmits(['update:modelValue', 'blur', 'beforeinput']);
 
 const formDisabled = inject<ComputedRef<boolean>>(
   'isFormDisabled',
@@ -62,6 +62,7 @@ function handleClear() {
         :autofocus="autofocus"
         :disabled="isDisabled"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        @beforeinput="$emit('beforeinput', $event)"
         @blur="$emit('blur', $event)"
         :placeholder="placeholder"
         class="text-offwhite block min-w-0 grow bg-transparent py-1.5 text-base placeholder:text-gray-500 focus:outline-none sm:text-sm"

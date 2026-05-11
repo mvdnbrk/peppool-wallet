@@ -34,6 +34,30 @@ const { settings: settingsStore } = useApp();
 const inputAmount = ref('');
 let isInternalSync = false;
 
+function decimalPattern() {
+  const maxDecimals = props.isFiatMode ? 2 : 8;
+  return new RegExp(`^\\d*(\\.\\d{0,${maxDecimals}})?$`);
+}
+
+// Block invalid characters at the source so they never enter the field
+// (e.g. typing "x" or "e" into "1" must not produce "1x" or "1e", which
+// parseFloat would silently truncate back to "1").
+function handleBeforeInput(e: Event) {
+  const ev = e as InputEvent;
+  // Allow deletions and other non-insertion edits.
+  if (!ev.data) return;
+
+  const target = ev.target as HTMLInputElement;
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? target.value.length;
+  const inserted = ev.data.replace(',', '.');
+  const next = target.value.slice(0, start) + inserted + target.value.slice(end);
+
+  if (next !== '' && !decimalPattern().test(next)) {
+    ev.preventDefault();
+  }
+}
+
 // Helpers
 const ribbitsToPep = (r: number) => r / RIBBITS_PER_PEP;
 const pepToRibbits = (p: number) => Math.round(p * RIBBITS_PER_PEP);
@@ -68,9 +92,15 @@ watch(
 
 // Sync INTERNAL text input to EXTERNAL ribbits
 watch(inputAmount, (newVal, oldVal) => {
-  // Normalize comma to dot
+  // Normalize comma to dot (covers paste — beforeinput rewrites typed commas).
   if (newVal.includes(',')) {
-    inputAmount.value = newVal.replace(',', '.');
+    inputAmount.value = newVal.replace(/,/g, '.');
+    return;
+  }
+
+  // Pasted text may still contain garbage; strip it back to the last valid value.
+  if (newVal !== '' && !decimalPattern().test(newVal)) {
+    inputAmount.value = oldVal;
     return;
   }
 
@@ -113,6 +143,7 @@ function toggleMode() {
       inputmode="decimal"
       :disabled="disabled"
       inputClass="font-bold"
+      @beforeinput="handleBeforeInput"
     >
       <template #prefix>
         <span class="font-bold text-slate-500">

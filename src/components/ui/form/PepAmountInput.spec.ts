@@ -85,6 +85,54 @@ describe('PepAmountInput UI Component', () => {
     expect(wrapper.emitted('update:ribbits')?.[0]).toEqual([500_000_000]);
   });
 
+  it('should reject invalid characters and revert to previous value', async () => {
+    // parseFloat("1x3e") returns 1, which previously caused the visible text
+    // and the underlying ribbits to silently diverge. The input must reject
+    // the keystroke instead of accepting a partial parse.
+    const wrapper = mount(PepAmountInput, {
+      props: { ribbits: 0, price: 10, isFiatMode: false },
+      global: { stubs }
+    });
+
+    const input = wrapper.find('input');
+    await input.setValue('1');
+    await input.setValue('1x3e');
+
+    // @ts-ignore
+    expect(wrapper.vm.inputAmount).toBe('1');
+    // The final ribbits value must reflect the visible "1", not a partial parse of "1x3e".
+    const emits = wrapper.emitted('update:ribbits') as number[][];
+    expect(emits.at(-1)).toEqual([100_000_000]);
+  });
+
+  it('should reject more than 8 decimals in PEP mode', async () => {
+    const wrapper = mount(PepAmountInput, {
+      props: { ribbits: 0, price: 10, isFiatMode: false },
+      global: { stubs }
+    });
+
+    const input = wrapper.find('input');
+    await input.setValue('1.12345678');
+    await input.setValue('1.123456789');
+
+    // @ts-ignore
+    expect(wrapper.vm.inputAmount).toBe('1.12345678');
+  });
+
+  it('should reject more than 2 decimals in fiat mode', async () => {
+    const wrapper = mount(PepAmountInput, {
+      props: { ribbits: 0, price: 10, isFiatMode: true },
+      global: { stubs }
+    });
+
+    const input = wrapper.find('input');
+    await input.setValue('1.23');
+    await input.setValue('1.234');
+
+    // @ts-ignore
+    expect(wrapper.vm.inputAmount).toBe('1.23');
+  });
+
   it('should emit change-max: false when user types', async () => {
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 100, price: 10, isFiatMode: false },

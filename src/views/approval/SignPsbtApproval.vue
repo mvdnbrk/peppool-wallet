@@ -9,9 +9,11 @@ import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
+import { ALLOWED_SIGHASHES, SIGHASH, getInputSighash, sighashLabel } from '@/utils/psbt';
 
 interface SignPsbtParams {
   psbt: string;
+  signInputs: Record<string, number[]>;
   broadcast?: boolean;
 }
 
@@ -95,25 +97,39 @@ function decodePsbtSummary(
 
 async function handleApprove() {
   await runWithMnemonic(async (mnemonic) => {
-    const { psbt: base64Psbt, broadcast } = requestData.value!.params;
+    const { psbt: base64Psbt, signInputs, broadcast } = requestData.value!.params;
     const psbt = bitcoin.Psbt.fromBase64(base64Psbt, { network: PEPECOIN });
+
+    const myAddress = walletStore.address;
+    if (!myAddress) throw new Error('No active account.');
+
+    const indices = signInputs[myAddress] ?? [];
+    if (indices.length === 0) {
+      throw new Error('This PSBT is not for the active account.');
+    }
+    for (const i of indices) {
+      if (i < 0 || i >= psbt.inputCount) {
+        throw new Error(`signInputs index ${i} is out of range.`);
+      }
+    }
+
+    const sighashes = indices.map((i) => getInputSighash(psbt, i));
+    for (const flag of sighashes) {
+      if (!ALLOWED_SIGHASHES.has(flag)) {
+        throw new Error(`Unsupported sighash: ${sighashLabel(flag)}`);
+      }
+    }
+    const hasNonDefault = sighashes.some((s) => s !== SIGHASH.ALL);
+    if (broadcast === true && hasNonDefault) {
+      throw new Error('Cannot broadcast a PSBT with non-default sighash.');
+    }
 
     const { accountIndex, addressIndex } = parseDerivationPath(walletStore.activeAccount!.path);
     const signer = deriveSigner(mnemonic, accountIndex, addressIndex);
 
-    let signedCount = 0;
-    for (let i = 0; i < psbt.inputCount; i++) {
-      try {
-        psbt.signInput(i, signer);
-        signedCount++;
-      } catch {
-        // Input does not belong to this signer — skip
-      }
-    }
-
-    if (signedCount === 0) {
-      throw new Error('No inputs in this PSBT belong to your wallet');
-    }
+    indices.forEach((inputIndex, k) => {
+      psbt.signInput(inputIndex, signer, [sighashes[k]!]);
+    });
 
     const result: { psbt: string; txid?: string } = { psbt: psbt.toBase64() };
 

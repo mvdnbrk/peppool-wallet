@@ -10,6 +10,7 @@
  */
 
 import { loadPermissions, savePermissions, hasPermission, revokeOrigin } from '@/utils/permissions';
+import { validateSignPsbtParams } from '@/utils/psbt';
 import { CHROME_STORAGE_KEYS } from '@/constants/storage';
 
 const ALARM_NAME_AUTOLOCK = 'peppool-inactivity-lock';
@@ -163,6 +164,15 @@ async function handleDappRequest(
       // Validate sendTransfer params before opening popup
       if (method === 'sendTransfer') {
         const validationError = validateTransferParams(request.params);
+        if (validationError) {
+          sendResponse({ error: validationError });
+          requestQueue.delete(requestId);
+          return;
+        }
+      }
+
+      if (method === 'signPsbt') {
+        const validationError = validateSignPsbtParams(request.params);
         if (validationError) {
           sendResponse({ error: validationError });
           requestQueue.delete(requestId);

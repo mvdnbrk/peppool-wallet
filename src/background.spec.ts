@@ -315,3 +315,64 @@ describe('background sendTransfer param validation', () => {
     await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
   });
 });
+
+describe('background signPsbt param validation', () => {
+  const storageData: Record<string, any> = {
+    peppool_permissions: {
+      'https://dapp.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+    },
+    peppool_accounts: JSON.stringify([
+      { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
+    ]),
+    peppool_active_account: '0'
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (chrome.storage.local.get as any).mockImplementation(async (keys: string | string[]) => {
+      const keyList = Array.isArray(keys) ? keys : [keys];
+      const result: Record<string, any> = {};
+      for (const k of keyList) {
+        if (k in storageData) result[k] = storageData[k];
+      }
+      return result;
+    });
+  });
+
+  it('rejects signPsbt without signInputs', async () => {
+    const sendResponse = sendDappMessage('signPsbt', 'https://dapp.com', { psbt: 'base64' });
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({ error: 'signInputs is required.' });
+    expect(windowsCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects signPsbt with invalid address key', async () => {
+    const sendResponse = sendDappMessage('signPsbt', 'https://dapp.com', {
+      psbt: 'base64',
+      signInputs: { bc1qxyz: [0] }
+    });
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'Invalid address in signInputs: bc1qxyz'
+    });
+  });
+
+  it('rejects signPsbt with negative input index', async () => {
+    const sendResponse = sendDappMessage('signPsbt', 'https://dapp.com', {
+      psbt: 'base64',
+      signInputs: { PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1: [-1] }
+    });
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: expect.stringContaining('invalid index')
+    });
+  });
+
+  it('opens approval popup for valid signPsbt request', async () => {
+    sendDappMessage('signPsbt', 'https://dapp.com', {
+      psbt: 'base64',
+      signInputs: { PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1: [0] }
+    });
+    await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
+  });
+});

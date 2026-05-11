@@ -307,6 +307,10 @@
         <div class="field">
             <label>Or paste base64 PSBT (optional — overrides builder)</label>
             <input id="psbt-raw" type="text" placeholder="cHNidP8BAH...">
+            <p class="status" style="margin-top: 0.25rem; font-size: 0.75rem;">
+                Note: signs input 0 with the connected address. For multi-input PSBTs edit the
+                <code>signInputs</code> map in the source.
+            </p>
         </div>
         <div class="row">
             <label style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0;">
@@ -590,7 +594,11 @@
                 }
 
                 setStatus('psbt-status', `Requesting signature${broadcast ? ' + broadcast' : ''}…`, '');
-                const result = await provider.request('signPsbt', { psbt: base64Psbt, broadcast });
+                const result = await provider.request('signPsbt', {
+                    psbt: base64Psbt,
+                    signInputs: { [connectedAddress]: [0] },
+                    broadcast
+                });
                 const text = result.txid
                     ? `txid: ${result.txid}\npsbt: ${result.psbt}`
                     : `psbt: ${result.psbt}`;

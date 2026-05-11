@@ -76,17 +76,18 @@ describe('SignPsbtApproval', () => {
     const store = useWalletStore();
     vi.spyOn(store, 'checkSession').mockResolvedValue(true);
 
-    makeRequest({ psbt: 'base64-psbt-data' });
+    mockPsbt.inputCount = 2;
+    mockPsbt.data.inputs = [{}, {}] as any;
+
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [0] } });
   });
 
   const globalConfig = {
     components: { PepButton, PepMainLayout, PepPageHeader, PepPasswordInput }
   };
 
-  it('only signs inputs that belong to the signer and does not broadcast by default', async () => {
-    mockSignInput.mockImplementation((index: number) => {
-      if (index === 1) throw new Error('Can not sign for this input');
-    });
+  it('signs only the inputs listed for the active account and does not broadcast by default', async () => {
+    mockSignInput.mockImplementation(() => {});
 
     const store = useWalletStore();
     store.isUnlocked = true;
@@ -103,6 +104,8 @@ describe('SignPsbtApproval', () => {
     await wrapper.find('#approve-transaction-button').trigger('click');
     await flushPromises();
 
+    expect(mockSignInput).toHaveBeenCalledTimes(1);
+    expect(mockSignInput).toHaveBeenCalledWith(0, expect.anything(), [0x01]);
     expect(global.chrome.runtime.sendMessage).toHaveBeenCalledWith({
       target: 'peppool-background-response',
       requestId: 'req123',
@@ -114,7 +117,11 @@ describe('SignPsbtApproval', () => {
   });
 
   it('finalizes and broadcasts when broadcast flag is true', async () => {
-    makeRequest({ psbt: 'base64-psbt-data', broadcast: true });
+    makeRequest({
+      psbt: 'base64-psbt-data',
+      signInputs: { Psender: [0, 1] },
+      broadcast: true
+    });
     mockSignInput.mockImplementation(() => {});
 
     const store = useWalletStore();
@@ -143,9 +150,106 @@ describe('SignPsbtApproval', () => {
     });
   });
 
-  it('rejects when no inputs belong to the signer', async () => {
-    mockSignInput.mockImplementation(() => {
-      throw new Error('Can not sign for this input');
+  it('rejects when signInputs has no entry for the active account', async () => {
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { Pother: [0] } });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) =>
+      fn('suffer dish east miss seat great brother hello motion mountain celery plunge')
+    );
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(mockSignInput).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('This PSBT is not for the active account');
+  });
+
+  it('rejects when a signInputs index is out of range', async () => {
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [5] } });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) =>
+      fn('suffer dish east miss seat great brother hello motion mountain celery plunge')
+    );
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(mockSignInput).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('out of range');
+  });
+
+  it('honors SIGHASH_SINGLE | ANYONECANPAY from PSBT input data', async () => {
+    mockPsbt.inputCount = 1;
+    mockPsbt.data.inputs = [{ sighashType: 0x83 }] as any;
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [0] } });
+    mockSignInput.mockImplementation(() => {});
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) =>
+      fn('suffer dish east miss seat great brother hello motion mountain celery plunge')
+    );
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(mockSignInput).toHaveBeenCalledWith(0, expect.anything(), [0x83]);
+    expect(mockFinalizeAllInputs).not.toHaveBeenCalled();
+  });
+
+  it('rejects unsupported sighash types', async () => {
+    mockPsbt.inputCount = 1;
+    mockPsbt.data.inputs = [{ sighashType: 0x02 }] as any;
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [0] } });
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) =>
+      fn('suffer dish east miss seat great brother hello motion mountain celery plunge')
+    );
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(mockSignInput).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('Unsupported sighash');
+  });
+
+  it('rejects broadcast when any signed input has non-default sighash', async () => {
+    mockPsbt.inputCount = 1;
+    mockPsbt.data.inputs = [{ sighashType: 0x83 }] as any;
+    makeRequest({
+      psbt: 'base64-psbt-data',
+      signInputs: { Psender: [0] },
+      broadcast: true
     });
 
     const store = useWalletStore();
@@ -163,7 +267,9 @@ describe('SignPsbtApproval', () => {
     await wrapper.find('#approve-transaction-button').trigger('click');
     await flushPromises();
 
-    expect(wrapper.text()).toContain('No inputs in this PSBT belong to your wallet');
+    expect(mockSignInput).not.toHaveBeenCalled();
+    expect(mockFinalizeAllInputs).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('Cannot broadcast');
   });
 
   it('sends rejection on cancel', async () => {

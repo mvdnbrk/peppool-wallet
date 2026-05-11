@@ -31,37 +31,17 @@ const emit = defineEmits<{
 
 const { settings: settingsStore } = useApp();
 
-const inputAmount = ref('');
-let isInternalSync = false;
-let isExternalWrite = false;
+// SINGLE SOURCE OF TRUTH: props.ribbits.
+//
+// `displayText` is the canonical text rendering of ribbits in the current mode.
+// `editBuffer` is non-null only while the user is mid-edit. It overrides the
+// displayed value so transient/imprecise input ("1.", "0.50000000") survives
+// across the user→ribbits→display round-trip without the cursor jumping.
+//
+// External writes (MAX click, currency toggle, parent prop change) replace the
+// displayed value via `displayText` and never round-trip through parsing.
 
-function decimalPattern() {
-  const maxDecimals = props.isFiatMode ? 2 : 8;
-  return new RegExp(`^\\d*(\\.\\d{0,${maxDecimals}})?$`);
-}
-
-// Block invalid characters at the source so they never enter the field
-// (e.g. typing "x" or "e" into "1" must not produce "1x" or "1e", which
-// parseFloat would silently truncate back to "1").
-function handleBeforeInput(e: Event) {
-  const ev = e as InputEvent;
-  // Allow deletions and other non-insertion edits.
-  if (!ev.data) return;
-
-  const target = ev.target as HTMLInputElement;
-  const start = target.selectionStart ?? target.value.length;
-  const end = target.selectionEnd ?? target.value.length;
-  const inserted = ev.data.replace(',', '.');
-  const next = target.value.slice(0, start) + inserted + target.value.slice(end);
-
-  if (next !== '' && !decimalPattern().test(next)) {
-    ev.preventDefault();
-  }
-}
-
-// Helpers
-const ribbitsToPep = (r: number) => r / RIBBITS_PER_PEP;
-const pepToRibbits = (p: number) => Math.round(p * RIBBITS_PER_PEP);
+const editBuffer = ref<string | null>(null);
 
 const pepString = computed(() => {
   if (props.ribbits === 0) return '';
@@ -71,72 +51,85 @@ const pepString = computed(() => {
   return decimalPart ? `${integerPart || '0'}.${decimalPart}` : integerPart || '0';
 });
 
-// Sync EXTERNAL ribbits to INTERNAL text input
-watch(
-  [() => props.ribbits, () => props.isFiatMode],
-  ([newRibbits, fiatMode]) => {
-    if (isInternalSync) return;
+const displayText = computed(() => {
+  if (props.ribbits === 0) return '';
+  if (props.isFiatMode) {
+    return formatFiat((props.ribbits / RIBBITS_PER_PEP) * props.price);
+  }
+  return pepString.value;
+});
 
-    const next =
-      newRibbits === 0
-        ? ''
-        : fiatMode
-          ? formatFiat(ribbitsToPep(newRibbits) * props.price)
-          : pepString.value;
-    if (next === inputAmount.value) return;
-    isExternalWrite = true;
-    inputAmount.value = next;
-    // The sync internal watcher (set up below) clears the flag on fire, but
-    // on the immediate mount-tick it isn't subscribed yet. Reset defensively.
-    isExternalWrite = false;
-  },
-  { immediate: true }
+const inputValue = computed(() => editBuffer.value ?? displayText.value);
+
+function decimalPattern() {
+  const maxDecimals = props.isFiatMode ? 2 : 8;
+  return new RegExp(`^\\d*(\\.\\d{0,${maxDecimals}})?$`);
+}
+
+function parseToRibbits(text: string): number {
+  const numeric = parseFloat(text);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+  const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
+  return Math.round(pepVal * RIBBITS_PER_PEP);
+}
+
+// Block invalid characters at the source so they never enter the field
+// (e.g. "x" or "e" — parseFloat would silently truncate "1x" back to 1).
+function handleBeforeInput(e: Event) {
+  const ev = e as InputEvent;
+  if (!ev.data) return; // deletions, IME composition end, etc.
+
+  const target = ev.target as HTMLInputElement;
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? target.value.length;
+  const inserted = ev.data.replace(/,/g, '.');
+  const next = target.value.slice(0, start) + inserted + target.value.slice(end);
+
+  if (next !== '' && !decimalPattern().test(next)) {
+    ev.preventDefault();
+  }
+}
+
+function handleInput(text: string) {
+  // Programmatic / paste fallback: beforeinput catches typed garbage, but
+  // pasted strings (and tests using setValue) bypass it.
+  const normalized = text.replace(/,/g, '.');
+  if (normalized !== '' && !decimalPattern().test(normalized)) {
+    // Reject by snapping back to whatever the user had before this edit.
+    editBuffer.value = editBuffer.value ?? displayText.value;
+    return;
+  }
+
+  editBuffer.value = normalized;
+  emit('update:ribbits', parseToRibbits(normalized));
+  emit('change-max', false);
+}
+
+function handleBlur() {
+  // Drop the buffer so the canonical display takes over (re-formats e.g.
+  // "1.50" → "1.5", drops trailing dots).
+  editBuffer.value = null;
+}
+
+// External writes invalidate any in-flight edit buffer:
+//   - currency toggle: text representation changes meaning entirely
+//   - prop ribbits change that didn't originate from our last keystroke (MAX,
+//     parent reset). When the parent simply echoes our emit, the buffer's
+//     parsed ribbits matches props.ribbits and we keep it (cursor preserved).
+watch(
+  () => props.isFiatMode,
+  () => {
+    editBuffer.value = null;
+  }
 );
 
-// Sync INTERNAL text input to EXTERNAL ribbits.
-// flush: 'sync' so the isExternalWrite flag set by the external watcher is read
-// in the same tick — without it, multiple synchronous changes batch and the flag
-// leaks onto a subsequent user edit.
 watch(
-  inputAmount,
-  (newVal, oldVal) => {
-    // External writes (MAX, currency toggle, prop sync) trust the formatted value
-    // even if it exceeds the per-mode decimal cap (e.g. formatFiat may emit
-    // "0.0023" for tiny amounts). Validation only applies to user-driven edits.
-    const fromExternal = isExternalWrite;
-    isExternalWrite = false;
-
-    // Normalize comma to dot (covers paste — beforeinput rewrites typed commas).
-    if (!fromExternal && newVal.includes(',')) {
-      inputAmount.value = newVal.replace(/,/g, '.');
-      return;
-    }
-
-    // Pasted text may still contain garbage; strip it back to the last valid value.
-    if (!fromExternal && newVal !== '' && !decimalPattern().test(newVal)) {
-      inputAmount.value = oldVal;
-      return;
-    }
-
-    isInternalSync = true;
-    const numeric = parseFloat(newVal);
-
-    if (isNaN(numeric) || numeric <= 0) {
-      emit('update:ribbits', 0);
-    } else {
-      const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
-      emit('update:ribbits', pepToRibbits(pepVal));
-    }
-
-    // If user is typing, we are no longer in "MAX" state. External writes
-    // (including the MAX click itself) must not clear the MAX flag.
-    if (!fromExternal && newVal !== oldVal) {
-      emit('change-max', false);
-    }
-
-    isInternalSync = false;
-  },
-  { flush: 'sync' }
+  () => props.ribbits,
+  (newRibbits) => {
+    if (editBuffer.value === null) return;
+    if (parseToRibbits(editBuffer.value) === newRibbits) return;
+    editBuffer.value = null;
+  }
 );
 
 function toggleMode() {
@@ -155,12 +148,14 @@ function toggleMode() {
 
     <PepInput
       :id="id"
-      v-model="inputAmount"
+      :modelValue="inputValue"
       placeholder="0.00"
       inputmode="decimal"
       :disabled="disabled"
       inputClass="font-bold"
+      @update:modelValue="handleInput"
       @beforeinput="handleBeforeInput"
+      @blur="handleBlur"
     >
       <template #prefix>
         <span class="font-bold text-slate-500">

@@ -97,18 +97,17 @@ describe('PepAmountInput UI Component', () => {
     expect(emits.at(-1)).toEqual([112_345_678]);
   });
 
-  it('rejects more than 2 decimals in fiat mode', async () => {
+  it('allows sub-cent precision in fiat mode (real holdings can be < $0.01)', async () => {
+    // formatFiat itself emits more than 2 decimals for tiny values, and users
+    // hold sub-cent balances at low PEP prices — so the input must accept
+    // up to 8 decimals in fiat mode, same as PEP mode.
     const wrapper = mount(PepAmountInput, {
       props: { ribbits: 0, price: 10, isFiatMode: true },
       global: { stubs }
     });
 
-    await wrapper.find('input').setValue('1.23');
-    await wrapper.find('input').setValue('1.234');
-
-    const emits = wrapper.emitted('update:ribbits') as number[][];
-    // 1.23 / $10 = 0.123 PEP = 12_300_000 ribbits.
-    expect(emits.at(-1)).toEqual([12_300_000]);
+    await wrapper.find('input').setValue('0.0049'); // $0.0049 / $10 = 0.00049 PEP
+    expect(wrapper.emitted('update:ribbits')?.at(-1)).toEqual([49_000]);
   });
 
   it('does not freeze when toggling to fiat with a tiny amount that exceeds the fiat decimal cap', async () => {

@@ -61,10 +61,10 @@ const displayText = computed(() => {
 
 const inputValue = computed(() => editBuffer.value ?? displayText.value);
 
-function decimalPattern() {
-  const maxDecimals = props.isFiatMode ? 2 : 8;
-  return new RegExp(`^\\d*(\\.\\d{0,${maxDecimals}})?$`);
-}
+// 8 decimals matches PEP's smallest unit (ribbit). Fiat uses the same cap
+// because sub-cent holdings are real (e.g. $0.0049 at low PEP price), and
+// formatFiat itself emits more than 2 decimals for tiny values.
+const DECIMAL_PATTERN = /^\d*(\.\d{0,8})?$/;
 
 function parseToRibbits(text: string): number {
   const numeric = parseFloat(text);
@@ -85,7 +85,7 @@ function handleBeforeInput(e: Event) {
   const inserted = ev.data.replace(/,/g, '.');
   const next = target.value.slice(0, start) + inserted + target.value.slice(end);
 
-  if (next !== '' && !decimalPattern().test(next)) {
+  if (next !== '' && !DECIMAL_PATTERN.test(next)) {
     ev.preventDefault();
   }
 }
@@ -94,7 +94,7 @@ function handleInput(text: string) {
   // Programmatic / paste fallback: beforeinput catches typed garbage, but
   // pasted strings (and tests using setValue) bypass it.
   const normalized = text.replace(/,/g, '.');
-  if (normalized !== '' && !decimalPattern().test(normalized)) {
+  if (normalized !== '' && !DECIMAL_PATTERN.test(normalized)) {
     // Reject by snapping back to whatever the user had before this edit.
     editBuffer.value = editBuffer.value ?? displayText.value;
     return;

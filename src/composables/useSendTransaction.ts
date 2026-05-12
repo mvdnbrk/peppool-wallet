@@ -51,11 +51,6 @@ export function useSendTransaction() {
   async function loadFees() {
     isLoadingFees.value = true;
     try {
-      // Load UTXOs alongside fees so the displayed fee reflects the user's
-      // actual coin selection. Without this, the model's estimatedFeeRibbits
-      // computes maxRibbits = 0 (empty utxos) and incorrectly flags every
-      // non-zero amount as a max send, showing the 1-output fee instead of
-      // the 2-output fee.
       const [fees, utxos, inscriptionSet] = await Promise.all([
         fetchRecommendedFees(),
         fetchUtxos(walletStore.address!),

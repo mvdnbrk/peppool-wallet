@@ -81,11 +81,6 @@ describe('useSendTransaction Composable', () => {
   });
 
   it('shows the 2-output fee for a non-max amount once UTXOs are loaded', async () => {
-    // Regression: with empty utxos, SendTransaction.maxRibbits returns 0,
-    // which causes estimatedFeeRibbits to treat any non-zero amount as a max
-    // send and report the 1-output fee (cheaper by one output's worth of
-    // bytes) instead of the real 2-output fee. Loading UTXOs at mount fixes
-    // this so the form shows the higher, accurate fee for a normal send.
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
     vi.mocked(api.fetchUtxos).mockResolvedValue([
       { txid: 'u1', vout: 0, value: 3_781_000_000, status: { confirmed: true } }

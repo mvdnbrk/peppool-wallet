@@ -63,8 +63,11 @@ describe('useSendTransaction Composable', () => {
     } as any);
   });
 
-  it('should load fees without fetching UTXOs', async () => {
+  it('loads fees and UTXOs together so the displayed fee uses real coin selection', async () => {
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'u1', vout: 0, value: 500_000_000, status: { confirmed: true } }
+    ] as any);
 
     const { tx, loadFees, isLoadingFees } = useSendTransaction();
 
@@ -73,7 +76,27 @@ describe('useSendTransaction Composable', () => {
     expect(isLoadingFees.value).toBe(false);
 
     expect(tx.value.fees?.fastestFee).toBe(1000);
-    expect(api.fetchUtxos).not.toHaveBeenCalled();
+    expect(api.fetchUtxos).toHaveBeenCalledWith('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+    expect(tx.value.utxos).toHaveLength(1);
+  });
+
+  it('shows the 2-output fee for a non-max amount once UTXOs are loaded', async () => {
+    // Regression: with empty utxos, SendTransaction.maxRibbits returns 0,
+    // which causes estimatedFeeRibbits to treat any non-zero amount as a max
+    // send and report the 1-output fee (cheaper by one output's worth of
+    // bytes) instead of the real 2-output fee. Loading UTXOs at mount fixes
+    // this so the form shows the higher, accurate fee for a normal send.
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'u1', vout: 0, value: 3_781_000_000, status: { confirmed: true } }
+    ] as any);
+
+    const { tx, displayFee, loadFees } = useSendTransaction();
+    await loadFees();
+
+    // 10 PEP: well under max, should be a 1-input 2-output tx.
+    tx.value.amountRibbits = 10 * RIBBITS_PER_PEP;
+    expect(displayFee.value).toBe('0.00226 PEP');
   });
 
   it('should check insufficient funds against spendable balance', async () => {

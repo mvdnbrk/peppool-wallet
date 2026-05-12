@@ -31,12 +31,17 @@ const emit = defineEmits<{
 
 const { settings: settingsStore } = useApp();
 
-const inputAmount = ref('');
-let isInternalSync = false;
+// SINGLE SOURCE OF TRUTH: props.ribbits.
+//
+// `displayText` is the canonical text rendering of ribbits in the current mode.
+// `editBuffer` is non-null only while the user is mid-edit. It overrides the
+// displayed value so transient/imprecise input ("1.", "0.50000000") survives
+// across the user→ribbits→display round-trip without the cursor jumping.
+//
+// External writes (MAX click, currency toggle, parent prop change) replace the
+// displayed value via `displayText` and never round-trip through parsing.
 
-// Helpers
-const ribbitsToPep = (r: number) => r / RIBBITS_PER_PEP;
-const pepToRibbits = (p: number) => Math.round(p * RIBBITS_PER_PEP);
+const editBuffer = ref<string | null>(null);
 
 const pepString = computed(() => {
   if (props.ribbits === 0) return '';
@@ -46,51 +51,86 @@ const pepString = computed(() => {
   return decimalPart ? `${integerPart || '0'}.${decimalPart}` : integerPart || '0';
 });
 
-// Sync EXTERNAL ribbits to INTERNAL text input
-watch(
-  [() => props.ribbits, () => props.isFiatMode],
-  ([newRibbits, fiatMode]) => {
-    if (isInternalSync) return;
+const displayText = computed(() => {
+  if (props.ribbits === 0) return '';
+  if (props.isFiatMode) {
+    return formatFiat((props.ribbits / RIBBITS_PER_PEP) * props.price);
+  }
+  return pepString.value;
+});
 
-    if (newRibbits === 0) {
-      inputAmount.value = '';
-      return;
-    }
+const inputValue = computed(() => editBuffer.value ?? displayText.value);
 
-    if (fiatMode) {
-      inputAmount.value = formatFiat(ribbitsToPep(newRibbits) * props.price);
-    } else {
-      inputAmount.value = pepString.value;
-    }
-  },
-  { immediate: true }
-);
+// 8 decimals matches PEP's smallest unit (ribbit). Fiat uses the same cap
+// because sub-cent holdings are real (e.g. $0.0049 at low PEP price), and
+// formatFiat itself emits more than 2 decimals for tiny values.
+const DECIMAL_PATTERN = /^\d*(\.\d{0,8})?$/;
 
-// Sync INTERNAL text input to EXTERNAL ribbits
-watch(inputAmount, (newVal, oldVal) => {
-  // Normalize comma to dot
-  if (newVal.includes(',')) {
-    inputAmount.value = newVal.replace(',', '.');
+function parseToRibbits(text: string): number {
+  const numeric = parseFloat(text);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+  const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
+  return Math.round(pepVal * RIBBITS_PER_PEP);
+}
+
+// Block invalid characters at the source so they never enter the field
+// (e.g. "x" or "e" — parseFloat would silently truncate "1x" back to 1).
+function handleBeforeInput(e: Event) {
+  const ev = e as InputEvent;
+  if (!ev.data) return; // deletions, IME composition end, etc.
+
+  const target = ev.target as HTMLInputElement;
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? target.value.length;
+  const inserted = ev.data.replace(/,/g, '.');
+  const next = target.value.slice(0, start) + inserted + target.value.slice(end);
+
+  if (next !== '' && !DECIMAL_PATTERN.test(next)) {
+    ev.preventDefault();
+  }
+}
+
+function handleInput(text: string) {
+  // Programmatic / paste fallback: beforeinput catches typed garbage, but
+  // pasted strings (and tests using setValue) bypass it.
+  const normalized = text.replace(/,/g, '.');
+  if (normalized !== '' && !DECIMAL_PATTERN.test(normalized)) {
+    // Reject by snapping back to whatever the user had before this edit.
+    editBuffer.value = editBuffer.value ?? displayText.value;
     return;
   }
 
-  isInternalSync = true;
-  const numeric = parseFloat(newVal);
+  editBuffer.value = normalized;
+  emit('update:ribbits', parseToRibbits(normalized));
+  emit('change-max', false);
+}
 
-  if (isNaN(numeric) || numeric <= 0) {
-    emit('update:ribbits', 0);
-  } else {
-    const pepVal = props.isFiatMode && props.price > 0 ? numeric / props.price : numeric;
-    emit('update:ribbits', pepToRibbits(pepVal));
+function handleBlur() {
+  // Drop the buffer so the canonical display takes over (re-formats e.g.
+  // "1.50" → "1.5", drops trailing dots).
+  editBuffer.value = null;
+}
+
+// External writes invalidate any in-flight edit buffer:
+//   - currency toggle: text representation changes meaning entirely
+//   - prop ribbits change that didn't originate from our last keystroke (MAX,
+//     parent reset). When the parent simply echoes our emit, the buffer's
+//     parsed ribbits matches props.ribbits and we keep it (cursor preserved).
+watch(
+  () => props.isFiatMode,
+  () => {
+    editBuffer.value = null;
   }
+);
 
-  // If user is typing, we are no longer in "MAX" state
-  if (newVal !== oldVal) {
-    emit('change-max', false);
+watch(
+  () => props.ribbits,
+  (newRibbits) => {
+    if (editBuffer.value === null) return;
+    if (parseToRibbits(editBuffer.value) === newRibbits) return;
+    editBuffer.value = null;
   }
-
-  isInternalSync = false;
-});
+);
 
 function toggleMode() {
   emit('update:isFiatMode', !props.isFiatMode);
@@ -108,11 +148,14 @@ function toggleMode() {
 
     <PepInput
       :id="id"
-      v-model="inputAmount"
+      :modelValue="inputValue"
       placeholder="0.00"
       inputmode="decimal"
       :disabled="disabled"
       inputClass="font-bold"
+      @update:modelValue="handleInput"
+      @beforeinput="handleBeforeInput"
+      @blur="handleBlur"
     >
       <template #prefix>
         <span class="font-bold text-slate-500">

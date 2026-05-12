@@ -178,8 +178,8 @@ function handleReject() {
           </div>
         </div>
 
-        <div v-if="displayFee" class="rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
-          <PepNetworkFee :fee="displayFee" layout="inline" />
+        <div class="rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
+          <PepNetworkFee :fee="displayFee" layout="inline" :loading="!displayFee" />
         </div>
       </div>
 
@@ -202,7 +202,11 @@ function handleReject() {
           :disabled="isProcessing"
           >Cancel</PepButton
         >
-        <PepButton id="approve-transaction-button" @click="handleApprove" :loading="isProcessing"
+        <PepButton
+          id="approve-transaction-button"
+          @click="handleApprove"
+          :loading="isProcessing"
+          :disabled="!displayFee"
           >Approve</PepButton
         >
       </div>

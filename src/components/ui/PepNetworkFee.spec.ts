@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PepNetworkFee from './PepNetworkFee.vue';
+import PepSpinner from './PepSpinner.vue';
+
+const globalConfig = { components: { PepSpinner } };
 
 describe('PepNetworkFee', () => {
   it('renders the label and fee value', () => {
-    const wrapper = mount(PepNetworkFee, { props: { fee: '0.00226 PEP' } });
+    const wrapper = mount(PepNetworkFee, { props: { fee: '0.00226 PEP' }, global: globalConfig });
 
     expect(wrapper.text()).toContain('Network Fee');
     expect(wrapper.text()).toContain('0.00226 PEP');
@@ -19,10 +22,22 @@ describe('PepNetworkFee', () => {
 
   it('uses an inline layout when requested', () => {
     const wrapper = mount(PepNetworkFee, {
-      props: { fee: '0.001 PEP', layout: 'inline' }
+      props: { fee: '0.001 PEP', layout: 'inline' },
+      global: globalConfig
     });
 
     expect(wrapper.find('.justify-between').exists()).toBe(true);
     expect(wrapper.find('.flex-col').exists()).toBe(false);
+  });
+
+  it('shows a spinner instead of the fee while loading', () => {
+    const wrapper = mount(PepNetworkFee, {
+      props: { fee: '', loading: true },
+      global: globalConfig
+    });
+
+    expect(wrapper.findComponent(PepSpinner).exists()).toBe(true);
+    expect(wrapper.text()).toContain('Network Fee');
+    expect(wrapper.text()).not.toContain('PEP');
   });
 });

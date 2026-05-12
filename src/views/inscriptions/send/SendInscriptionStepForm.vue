@@ -48,14 +48,7 @@ onMounted(() => {
         @blur="$emit('address-blur')"
       />
 
-      <div class="px-1">
-        <div class="flex flex-col">
-          <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase"
-            >Estimated Fee</span
-          >
-          <span class="text-xs font-bold text-slate-300">{{ displayFee }}</span>
-        </div>
-      </div>
+      <PepNetworkFee :fee="displayFee" />
 
       <div class="mt-2 flex h-6 items-center justify-center">
         <p

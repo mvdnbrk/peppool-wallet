@@ -302,15 +302,13 @@ describe('SendView', () => {
     expect(wrapper.vm.form.errors.general).toBe('Invalid step 1');
   });
 
-  it('setMax should set isMax and update amount', () => {
+  it('setMax fills the amount field with the max sendable value', () => {
     mockSendTransaction.maxRibbits.value = 5000;
     const wrapper = mount(SendView, { global });
 
     // @ts-ignore
     wrapper.vm.setMax();
 
-    // @ts-ignore
-    expect(wrapper.vm.form.isMax).toBe(true);
     // @ts-ignore
     expect(wrapper.vm.form.amountRibbits).toBe(5000);
   });

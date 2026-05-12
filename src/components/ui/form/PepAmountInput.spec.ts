@@ -123,26 +123,6 @@ describe('PepAmountInput UI Component', () => {
     expect(displayedValue(wrapper)).toBe('0.0050');
   });
 
-  it('does not clear MAX flag when ribbits are set externally', async () => {
-    const wrapper = mount(PepAmountInput, {
-      props: { ribbits: 0, price: 10, isFiatMode: false },
-      global: { stubs }
-    });
-
-    await wrapper.setProps({ ribbits: 500_000_000 });
-    expect(wrapper.emitted('change-max')).toBeUndefined();
-  });
-
-  it('emits change-max:false when user types', async () => {
-    const wrapper = mount(PepAmountInput, {
-      props: { ribbits: 100, price: 10, isFiatMode: false },
-      global: { stubs }
-    });
-
-    await wrapper.find('input').setValue('101');
-    expect(wrapper.emitted('change-max')?.[0]).toEqual([false]);
-  });
-
   it('preserves exact ribbits when MAX is set in fiat mode (no parse round-trip)', async () => {
     // Regression: in fiat mode, MAX would write the exact ribbits, the
     // component would format them as e.g. "$1.23", parse that back, divide by

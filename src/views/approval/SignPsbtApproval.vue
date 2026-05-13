@@ -7,6 +7,7 @@ import { formatPep } from '@/utils/price';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
+import PepInlineAddress from '@/components/ui/PepInlineAddress.vue';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
 import { ALLOWED_SIGHASHES, SIGHASH, getInputSighash, sighashLabel } from '@/utils/psbt';
@@ -191,18 +192,9 @@ function handleReject() {
           <div
             v-for="(io, i) in psbtDetails.inputs"
             :key="`in-${i}`"
-            class="flex items-start justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+            class="flex items-center justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
           >
-            <div class="min-w-0 space-y-0.5">
-              <p class="font-mono text-xs break-all text-slate-300">
-                {{ io.address ?? 'Non-standard script' }}
-              </p>
-              <span
-                v-if="io.mine"
-                class="text-pepe-green inline-block text-[10px] font-bold tracking-wider uppercase"
-                >Your wallet</span
-              >
-            </div>
+            <PepInlineAddress :address="io.address" />
             <span class="shrink-0 text-xs font-bold text-slate-200">{{
               io.amountRibbits === null ? '—' : formatPep(io.amountRibbits)
             }}</span>
@@ -217,18 +209,9 @@ function handleReject() {
           <div
             v-for="(io, i) in psbtDetails.outputs"
             :key="`out-${i}`"
-            class="flex items-start justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+            class="flex items-center justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
           >
-            <div class="min-w-0 space-y-0.5">
-              <p class="font-mono text-xs break-all text-slate-300">
-                {{ io.address ?? 'Non-standard script' }}
-              </p>
-              <span
-                v-if="io.mine"
-                class="text-pepe-green inline-block text-[10px] font-bold tracking-wider uppercase"
-                >Your wallet</span
-              >
-            </div>
+            <PepInlineAddress :address="io.address" />
             <span class="shrink-0 text-xs font-bold text-slate-200">{{
               io.amountRibbits === null ? '—' : formatPep(io.amountRibbits)
             }}</span>

@@ -22,6 +22,7 @@ import { formatPep } from '@/utils/price';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
+import PepInlineAddress from '@/components/ui/PepInlineAddress.vue';
 
 interface Recipient {
   address: string;
@@ -172,9 +173,9 @@ function handleReject() {
           </div>
           <div class="space-y-1">
             <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">To</span>
-            <p class="font-mono text-xs leading-relaxed break-all text-slate-300">
-              {{ r.address }}
-            </p>
+            <div class="pt-0.5">
+              <PepInlineAddress :address="r.address" />
+            </div>
           </div>
         </div>
 

@@ -12,6 +12,8 @@ All notable changes to `peppool-wallet` are documented in this file.
 ### Changed
 
 - Rename "Estimated Fee" to "Network Fee" on the send and inscription-send forms and surface the same fee row on the dApp `sendTransfer` approval, so the user sees the fee before signing ([#54](https://github.com/mvdnbrk/peppool-wallet/pull/54))
+- Render addresses in the `signPsbt` and `sendTransfer` approval views via a shared `PepInlineAddress` component that truncates the address and auto-labels the active account as "My Address" ([#57](https://github.com/mvdnbrk/peppool-wallet/pull/57))
+- Split the `signPsbt` approval hero into a paired "You will transfer" / "You will receive" view with inscription thumbnail + number when the input is a known inscription UTXO, and surface a generic "Inscription" placeholder on the receive side when a foreign `SIGHASH_SINGLE | ANYONECANPAY` input signals a buy-listing ([#60](https://github.com/mvdnbrk/peppool-wallet/pull/60))
 - Provider discovery now follows an EIP-6963-style `pep_providers:request` / `pep_providers:announce` pattern so dApps that load after the wallet is injected can still discover the provider; replaces the single-shot `pep_providers#peppool` event
 - Split the dual-purpose `SignTxView` approval popup into focused `SendTransferApproval` and `SignPsbtApproval` views, with shared chrome extracted to a `useApprovalRequest` composable ([#50](https://github.com/mvdnbrk/peppool-wallet/pull/50))
 - Remove the unreachable password prompt from approval views; the router guard already enforces unlock before any `/approve/*` route mounts ([#51](https://github.com/mvdnbrk/peppool-wallet/pull/51))

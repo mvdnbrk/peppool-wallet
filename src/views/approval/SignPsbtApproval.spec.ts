@@ -17,7 +17,12 @@ Object.defineProperty(window, 'location', {
 window.close = vi.fn();
 
 vi.mock('@/utils/api', () => ({
-  broadcastTx: vi.fn().mockResolvedValue('mock-txid')
+  broadcastTx: vi.fn().mockResolvedValue('mock-txid'),
+  fetchTipHeight: vi.fn().mockResolvedValue(0),
+  fetchAddressInfo: vi.fn().mockResolvedValue({ balance: 0 }),
+  fetchAddressInscriptions: vi.fn().mockResolvedValue({ inscriptions: [], outputs: [], total: 0 }),
+  fetchInscription: vi.fn(),
+  fetchInscriptionOutputs: vi.fn().mockResolvedValue([])
 }));
 
 vi.mock('@/utils/crypto', () => ({
@@ -270,6 +275,107 @@ describe('SignPsbtApproval', () => {
     expect(mockSignInput).not.toHaveBeenCalled();
     expect(mockFinalizeAllInputs).not.toHaveBeenCalled();
     expect(wrapper.text()).toContain('Cannot broadcast');
+  });
+
+  it('renders inscription transfer and PEP receive for a listing PSBT', async () => {
+    const inscriptionTxid = 'a'.repeat(64);
+    const inscriptionVout = 0;
+    const myAddress = 'Pseller';
+    const myAddressKey = `${inscriptionTxid}:${inscriptionVout}`;
+
+    mockPsbt.inputCount = 1;
+    mockPsbt.txInputs = [
+      // Buffer.from(hash).reverse().toString('hex') must yield inscriptionTxid,
+      // so the hash buffer is the byte-reversed txid.
+      { hash: Buffer.from(inscriptionTxid, 'hex').reverse(), index: inscriptionVout }
+    ] as any;
+    mockPsbt.data.inputs = [{ nonWitnessUtxo: Buffer.from('deadbeef', 'hex') }] as any;
+    mockPsbt.txOutputs = [{ script: Buffer.from('00', 'hex'), value: 100_000_100_000_000 }] as any;
+
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.Transaction.fromBuffer as any).mockReturnValue({
+      outs: [{ script: Buffer.from('seller', 'utf8'), value: 100_000 }]
+    });
+    (bitcoin.address.fromOutputScript as any).mockReturnValue(myAddress);
+
+    // Seed inscription store cache before mount.
+    const { LOCAL_STORAGE_KEYS } = await import('@/constants/storage');
+    localStorage.setItem(
+      LOCAL_STORAGE_KEYS.INSCRIPTIONS,
+      JSON.stringify({
+        [myAddress]: {
+          inscriptions: {
+            ins1: {
+              id: 'ins1',
+              number: 42,
+              contentType: 'image/png',
+              contentLength: 100,
+              height: 1,
+              value: 100_000,
+              parents: [],
+              properties: null,
+              satpoint: `${myAddressKey}:0`,
+              timestamp: 0
+            }
+          },
+          outputs: [myAddressKey],
+          lastSyncedHeight: 1
+        }
+      })
+    );
+    const { useInscriptionStore } = await import('@/stores/inscriptions');
+    useInscriptionStore().load(myAddress);
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: myAddress, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'refreshBalance').mockResolvedValue(undefined as any);
+
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { [myAddress]: [0] } });
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('You will transfer');
+    expect(wrapper.text()).toContain('Inscription 42');
+    expect(wrapper.text()).toContain('You will receive');
+    // Net receive = 100_000_100_000_000 - 100_000 = 100_000_000_000_000 ribbits = 1,000,000 PEP
+    // (Test values are illustrative; the formatPep value is what matters for presence.)
+  });
+
+  it('shows only a transfer card for a pure-PEP send (change to self should not show as receive)', async () => {
+    const myAddress = 'Psender';
+
+    mockPsbt.inputCount = 1;
+    mockPsbt.txInputs = [{ hash: Buffer.alloc(32), index: 0 }] as any;
+    mockPsbt.data.inputs = [{ nonWitnessUtxo: Buffer.from('deadbeef', 'hex') }] as any;
+    mockPsbt.txOutputs = [
+      { script: Buffer.from('to-recipient', 'utf8'), value: 50_000_000 },
+      { script: Buffer.from('change', 'utf8'), value: 49_000_000 }
+    ] as any;
+
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.Transaction.fromBuffer as any).mockReturnValue({
+      outs: [{ script: Buffer.from('mine', 'utf8'), value: 100_000_000 }]
+    });
+    (bitcoin.address.fromOutputScript as any)
+      .mockReturnValueOnce(myAddress) // input prev-out (mine)
+      .mockReturnValueOnce('Precipient') // output 0
+      .mockReturnValueOnce(myAddress); // output 1 (change)
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: myAddress, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { [myAddress]: [0] } });
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('You will transfer');
+    expect(wrapper.text()).not.toContain('You will receive');
   });
 
   it('sends rejection on cancel', async () => {

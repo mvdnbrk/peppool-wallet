@@ -10,6 +10,9 @@ export const APP_VERSION = pkg.version;
 export const RECOMMENDED_FEE_RATE = 1000;
 export const MIN_SEND_PEP = 0.01;
 
+// Size of one P2PKH output in bytes: 8 (value) + 1 (script length) + 25 (script).
+export const P2PKH_OUTPUT_BYTES = 34;
+
 // Pepecoin (Dogecoin-derived) soft dust rule: outputs below 1 PEP add a flat
 // surcharge to the effective minimum fee miners enforce. Inscription postage
 // outputs are always sub-dust, which is why inscription transfers stall at

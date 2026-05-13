@@ -1,8 +1,6 @@
 import { estimateTxSize, type UTXO } from '@/utils/crypto';
 import type { RecommendedFees } from '@/models/Fees';
-import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
-
-const OUTPUT_BYTES = 34;
+import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE, P2PKH_OUTPUT_BYTES } from '@/utils/constants';
 
 export class SendTransaction {
   public utxos: UTXO[] = [];
@@ -54,7 +52,7 @@ export class SendTransaction {
     const fee2 = Math.ceil(estimateTxSize(selectedUtxos.length, 2) * feeRate);
     const change = totalValue - this.amountRibbits - fee2;
 
-    if (change > OUTPUT_BYTES * feeRate) {
+    if (change > P2PKH_OUTPUT_BYTES * feeRate) {
       return fee2;
     }
 

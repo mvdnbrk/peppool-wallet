@@ -15,12 +15,11 @@ import {
   isValidAddress,
   deriveSigner,
   parseDerivationPath,
-  estimateTxSize,
   type UTXO
 } from '@/utils/crypto';
 import { decrypt as decryptMnemonic } from '@/utils/encryption';
 import { SendTransaction } from '@/models/SendTransaction';
-import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
+import { RIBBITS_PER_PEP, MIN_SEND_PEP } from '@/utils/constants';
 
 export function useSendTransaction() {
   const { wallet: walletStore, account } = useApp();
@@ -39,14 +38,7 @@ export function useSendTransaction() {
 
   const displayFee = computed(() => price.formatPep(tx.value.estimatedFeeRibbits));
 
-  const maxRibbits = computed(() => {
-    const txSize = estimateTxSize(1, 2);
-    const feeRate = tx.value.fees
-      ? Math.max(RECOMMENDED_FEE_RATE, tx.value.fees.fastestFee)
-      : RECOMMENDED_FEE_RATE;
-    const feeRibbits = Math.ceil(txSize * feeRate);
-    return Math.max(0, account.spendableBalanceRibbits - feeRibbits);
-  });
+  const maxRibbits = computed(() => tx.value.maxRibbits);
 
   async function loadFees() {
     isLoadingFees.value = true;

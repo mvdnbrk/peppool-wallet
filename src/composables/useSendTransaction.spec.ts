@@ -80,6 +80,19 @@ describe('useSendTransaction Composable', () => {
     expect(tx.value.utxos).toHaveLength(1);
   });
 
+  it('drops the fee to the 1-output amount when amount equals maxRibbits', async () => {
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'u1', vout: 0, value: 3_781_000_000, status: { confirmed: true } }
+    ] as any);
+
+    const { tx, displayFee, maxRibbits, loadFees } = useSendTransaction();
+    await loadFees();
+
+    tx.value.amountRibbits = maxRibbits.value;
+    expect(displayFee.value).toBe('0.00192 PEP');
+  });
+
   it('shows the 2-output fee for a non-max amount once UTXOs are loaded', async () => {
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
     vi.mocked(api.fetchUtxos).mockResolvedValue([

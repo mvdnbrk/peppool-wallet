@@ -581,11 +581,11 @@
             const broadcast = document.getElementById('psbt-broadcast').checked;
 
             try {
+                if (!connectedAddress) throw new Error('Connect the wallet first');
                 let base64Psbt;
                 if (raw) {
                     base64Psbt = raw;
                 } else {
-                    if (!connectedAddress) throw new Error('Connect the wallet first');
                     if (!recipient) throw new Error('Enter a recipient address');
                     if (!amount || amount <= 0) throw new Error('Enter a valid amount');
                     if (!window._bitcoin) throw new Error('bitcoinjs-lib still loading — try again in a moment');

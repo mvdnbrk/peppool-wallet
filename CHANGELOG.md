@@ -7,11 +7,11 @@ All notable changes to `peppool-wallet` are documented in this file.
 ### Added
 
 - `signPsbt` accepts an optional `broadcast` flag; when `true` the wallet finalizes and broadcasts the signed PSBT and returns `{ psbt, txid }`. Approval popup decodes the PSBT to show inputs, outputs, and net effect ([#44](https://github.com/mvdnbrk/peppool-wallet/pull/44))
+- `signPsbt` now takes a required `signInputs` map (`{ address: number[] }`) selecting which inputs the wallet signs, and honors each input's `sighashType` (allowing `SIGHASH_ALL` and `SIGHASH_SINGLE | ANYONECANPAY`); broadcast is blocked when any signed input uses a non-default sighash ([#52](https://github.com/mvdnbrk/peppool-wallet/pull/52))
 
 ### Changed
 
 - Rename "Estimated Fee" to "Network Fee" on the send and inscription-send forms and surface the same fee row on the dApp `sendTransfer` approval, so the user sees the fee before signing ([#54](https://github.com/mvdnbrk/peppool-wallet/pull/54))
-- `signPsbt` now requires a `signInputs` map (`{ address: number[] }`) selecting which inputs the wallet signs, and honors each input's `sighashType` (allowing `SIGHASH_ALL` and `SIGHASH_SINGLE | ANYONECANPAY`); broadcast is blocked when any signed input uses a non-default sighash ([#52](https://github.com/mvdnbrk/peppool-wallet/pull/52))
 - Provider discovery now follows an EIP-6963-style `pep_providers:request` / `pep_providers:announce` pattern so dApps that load after the wallet is injected can still discover the provider; replaces the single-shot `pep_providers#peppool` event
 - Split the dual-purpose `SignTxView` approval popup into focused `SendTransferApproval` and `SignPsbtApproval` views, with shared chrome extracted to a `useApprovalRequest` composable ([#50](https://github.com/mvdnbrk/peppool-wallet/pull/50))
 - Remove the unreachable password prompt from approval views; the router guard already enforces unlock before any `/approve/*` route mounts ([#51](https://github.com/mvdnbrk/peppool-wallet/pull/51))

@@ -68,14 +68,7 @@ onMounted(() => {
           </template>
         </PepAmountInput>
 
-        <div class="px-1">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase"
-              >Estimated Fee</span
-            >
-            <span class="text-xs font-bold text-slate-300">{{ displayFee }}</span>
-          </div>
-        </div>
+        <PepNetworkFee :fee="displayFee" />
       </div>
 
       <div class="mt-2 flex h-6 items-center justify-center">

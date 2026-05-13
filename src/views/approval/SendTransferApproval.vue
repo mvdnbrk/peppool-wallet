@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 import {
   deriveSigner,
@@ -18,6 +18,7 @@ import {
 import { useInscriptionStore } from '@/stores/inscriptions';
 import { RIBBITS_PER_PEP } from '@/utils/constants';
 import { SendTransaction } from '@/models/SendTransaction';
+import { formatPep } from '@/utils/price';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
@@ -69,29 +70,47 @@ const transferDetails = computed(() => {
   };
 });
 
+const prepared = ref<{ sendTx: SendTransaction; selectedUtxos: UTXO[] } | null>(null);
+const displayFee = ref('');
+let preparePromise: Promise<void> | null = null;
+
+async function prepare() {
+  if (!requestData.value || invalidRequest.value) return;
+
+  const recipients = normalizeRecipients(requestData.value.params);
+  const recipient = recipients[0]!;
+  const address = walletStore.address!;
+
+  const [fees, rawUtxos] = await Promise.all([fetchRecommendedFees(), fetchUtxos(address)]);
+  const inscriptionSet = await inscriptionStore.getOutputsSet(address);
+
+  const sendTx = new SendTransaction(address);
+  sendTx.utxos = rawUtxos.filter(
+    (u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet)
+  );
+  sendTx.fees = fees;
+  sendTx.amountRibbits = recipient.amount;
+  sendTx.recipient = recipient.address;
+
+  const { selectedUtxos } = sendTx.selectUtxos();
+  prepared.value = { sendTx, selectedUtxos };
+  displayFee.value = formatPep(sendTx.estimatedFeeRibbits);
+}
+
+watch(requestData, (v) => {
+  if (v && !invalidRequest.value) preparePromise = prepare();
+});
+
 async function handleApprove() {
   await runWithMnemonic(async (mnemonic) => {
-    const recipients = normalizeRecipients(requestData.value!.params);
-    const recipient = recipients[0]!;
-    const address = walletStore.address!;
+    if (preparePromise) await preparePromise;
+    if (!prepared.value) throw new Error('Transaction not ready');
 
-    const [fees, rawUtxos] = await Promise.all([fetchRecommendedFees(), fetchUtxos(address)]);
-
-    const inscriptionSet = await inscriptionStore.getOutputsSet(address);
-
-    const sendTx = new SendTransaction(address);
-    sendTx.utxos = rawUtxos.filter(
-      (u) => u.status.confirmed && !isInscriptionUtxo(u, inscriptionSet)
-    );
-    sendTx.fees = fees;
-    sendTx.amountRibbits = recipient.amount;
-    sendTx.recipient = recipient.address;
-
+    const { sendTx, selectedUtxos } = prepared.value;
     if (!sendTx.isValid) {
       throw new Error('Insufficient confirmed balance');
     }
 
-    const { selectedUtxos } = sendTx.selectUtxos();
     const finalFee = sendTx.estimatedFeeRibbits;
 
     const utxosWithHex: UTXO[] = [];
@@ -105,8 +124,8 @@ async function handleApprove() {
 
     const txHex = await createSignedTx(
       signer,
-      recipient.address,
-      recipient.amount,
+      sendTx.recipient,
+      sendTx.amountRibbits,
       utxosWithHex,
       finalFee
     );
@@ -158,6 +177,10 @@ function handleReject() {
             </p>
           </div>
         </div>
+
+        <div class="rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
+          <PepNetworkFee :fee="displayFee" layout="inline" :loading="!displayFee" />
+        </div>
       </div>
 
       <div v-if="error" class="px-1 text-sm text-red-400">
@@ -179,7 +202,11 @@ function handleReject() {
           :disabled="isProcessing"
           >Cancel</PepButton
         >
-        <PepButton id="approve-transaction-button" @click="handleApprove" :loading="isProcessing"
+        <PepButton
+          id="approve-transaction-button"
+          @click="handleApprove"
+          :loading="isProcessing"
+          :disabled="!displayFee"
           >Approve</PepButton
         >
       </div>

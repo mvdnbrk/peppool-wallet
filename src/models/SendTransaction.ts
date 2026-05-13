@@ -1,6 +1,6 @@
 import { estimateTxSize, type UTXO } from '@/utils/crypto';
 import type { RecommendedFees } from '@/models/Fees';
-import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
+import { RIBBITS_PER_PEP, RECOMMENDED_FEE_RATE, P2PKH_OUTPUT_BYTES } from '@/utils/constants';
 
 export class SendTransaction {
   public utxos: UTXO[] = [];
@@ -13,16 +13,12 @@ export class SendTransaction {
     this.userAddress = userAddress;
   }
 
-  /**
-   * Returns the amount in PEP as a string, formatted with 100% precision.
-   * e.g. 100000000 -> "1", 1 -> "0.00000001"
-   */
   get amountPep(): string {
     if (this.amountRibbits === 0) return '0';
 
     const s = this.amountRibbits.toString().padStart(9, '0');
-    const integerPart = s.slice(0, -8).replace(/^0+(?=\d)/, ''); // Remove leading zeros but keep at least one digit
-    const decimalPart = s.slice(-8).replace(/0+$/, ''); // Remove trailing zeros
+    const integerPart = s.slice(0, -8).replace(/^0+(?=\d)/, '');
+    const decimalPart = s.slice(-8).replace(/0+$/, '');
 
     return decimalPart ? `${integerPart || '0'}.${decimalPart}` : integerPart;
   }
@@ -40,39 +36,38 @@ export class SendTransaction {
     return this.balanceRibbits / RIBBITS_PER_PEP;
   }
 
-  get estimatedFeeRibbits(): number {
-    const isMax = this.amountRibbits > 0 && this.amountRibbits >= this.maxRibbits;
-    const { selectedUtxos } = this.selectUtxos(isMax);
-    const outputCount = isMax ? 1 : 2;
-    const size = estimateTxSize(selectedUtxos.length || 1, outputCount);
-
-    // Fallback if API is down
-    if (!this.fees) return Math.ceil(size * RECOMMENDED_FEE_RATE);
-
-    /**
-     * Logic:
-     * Use API fastestFee but force a floor of RECOMMENDED_FEE_RATE (1000)
-     * to ensure we always meet the network recommendation.
-     */
-    const feeRate = Math.max(RECOMMENDED_FEE_RATE, this.fees.fastestFee);
-    return Math.ceil(size * feeRate);
+  private get feeRate(): number {
+    if (!this.fees) return RECOMMENDED_FEE_RATE;
+    return Math.max(RECOMMENDED_FEE_RATE, this.fees.fastestFee);
   }
 
-  public selectUtxos(isMax = false) {
-    if (isMax) {
-      return {
-        selectedUtxos: [...this.utxos],
-        totalValue: this.balanceRibbits
-      };
+  get estimatedFeeRibbits(): number {
+    const feeRate = this.feeRate;
+    const { selectedUtxos, totalValue } = this.selectUtxos();
+
+    if (selectedUtxos.length === 0) {
+      return Math.ceil(estimateTxSize(1, 2) * feeRate);
     }
 
+    const fee2 = Math.ceil(estimateTxSize(selectedUtxos.length, 2) * feeRate);
+    const change = totalValue - this.amountRibbits - fee2;
+
+    if (change > P2PKH_OUTPUT_BYTES * feeRate) {
+      return fee2;
+    }
+
+    // No worthwhile change output. The leftover (totalValue - amount) is the
+    // fee — but never report below the 1-output size-based floor, otherwise
+    // isValid would falsely accept a transaction that miners would reject.
+    const fee1 = Math.ceil(estimateTxSize(selectedUtxos.length, 1) * feeRate);
+    return Math.max(fee1, totalValue - this.amountRibbits);
+  }
+
+  public selectUtxos() {
     const amountRibbits = this.amountRibbits;
+    const feeRate = this.feeRate;
     const selectedUtxos: UTXO[] = [];
     let totalValue = 0;
-
-    const feeRate = this.fees
-      ? Math.max(RECOMMENDED_FEE_RATE, this.fees.fastestFee)
-      : RECOMMENDED_FEE_RATE;
 
     for (const utxo of this.utxos) {
       selectedUtxos.push(utxo);
@@ -86,12 +81,7 @@ export class SendTransaction {
 
   get maxRibbits(): number {
     const utxoCount = this.utxos.length || 1;
-    const txSize = estimateTxSize(utxoCount, 1); // 1 output, no change
-    const feeRate = this.fees
-      ? Math.max(RECOMMENDED_FEE_RATE, this.fees.fastestFee)
-      : RECOMMENDED_FEE_RATE;
-    const feeRibbits = Math.ceil(txSize * feeRate);
-
+    const feeRibbits = Math.ceil(estimateTxSize(utxoCount, 1) * this.feeRate);
     return Math.max(0, this.balanceRibbits - feeRibbits);
   }
 

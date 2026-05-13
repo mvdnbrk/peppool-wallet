@@ -63,8 +63,11 @@ describe('useSendTransaction Composable', () => {
     } as any);
   });
 
-  it('should load fees without fetching UTXOs', async () => {
+  it('loads fees and UTXOs together so the displayed fee uses real coin selection', async () => {
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'u1', vout: 0, value: 500_000_000, status: { confirmed: true } }
+    ] as any);
 
     const { tx, loadFees, isLoadingFees } = useSendTransaction();
 
@@ -73,17 +76,45 @@ describe('useSendTransaction Composable', () => {
     expect(isLoadingFees.value).toBe(false);
 
     expect(tx.value.fees?.fastestFee).toBe(1000);
-    expect(api.fetchUtxos).not.toHaveBeenCalled();
+    expect(api.fetchUtxos).toHaveBeenCalledWith('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
+    expect(tx.value.utxos).toHaveLength(1);
+  });
+
+  it('drops the fee to the 1-output amount when amount equals maxRibbits', async () => {
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'u1', vout: 0, value: 3_781_000_000, status: { confirmed: true } }
+    ] as any);
+
+    const { tx, displayFee, maxRibbits, loadFees } = useSendTransaction();
+    await loadFees();
+
+    tx.value.amountRibbits = maxRibbits.value;
+    expect(displayFee.value).toBe('0.00192 PEP');
+  });
+
+  it('shows the 2-output fee for a non-max amount once UTXOs are loaded', async () => {
+    vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([
+      { txid: 'u1', vout: 0, value: 3_781_000_000, status: { confirmed: true } }
+    ] as any);
+
+    const { tx, displayFee, loadFees } = useSendTransaction();
+    await loadFees();
+
+    tx.value.amountRibbits = 10 * RIBBITS_PER_PEP;
+    expect(displayFee.value).toBe('0.00226 PEP');
   });
 
   it('should check insufficient funds against spendable balance', async () => {
     mockAccount.spendableBalanceRibbits = 100_000;
     vi.mocked(api.fetchRecommendedFees).mockResolvedValue({ fastestFee: 1000 } as any);
+    vi.mocked(api.fetchUtxos).mockResolvedValue([]);
 
-    const { isInsufficientFunds, tx, isLoadingFees, loadFees } = useSendTransaction();
+    const { isInsufficientFunds, tx, loadFees } = useSendTransaction();
     await loadFees();
 
-    tx.value.amountRibbits = 200_000; // More than balance
+    tx.value.amountRibbits = 200_000;
     expect(isInsufficientFunds.value).toBe(true);
   });
 
@@ -105,7 +136,7 @@ describe('useSendTransaction Composable', () => {
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 100_000_000;
 
-    await send('password', false);
+    await send('password');
 
     // UTXOs should have been fetched and filtered
     expect(api.fetchUtxos).toHaveBeenCalledWith('PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU');
@@ -127,7 +158,7 @@ describe('useSendTransaction Composable', () => {
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 100_000_000;
 
-    const result = await send('password', false);
+    const result = await send('password');
     expect(result).toBe('new-txid');
     expect(tx.value.utxos).toHaveLength(1);
   });
@@ -171,7 +202,7 @@ describe('useSendTransaction Composable', () => {
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 500_000_000;
 
-    const result = await send('password', false);
+    const result = await send('password');
 
     expect(result).toBe('new-txid');
     expect(api.broadcastTx).toHaveBeenCalledWith('signed-hex');
@@ -201,13 +232,13 @@ describe('useSendTransaction Composable', () => {
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 500_000_000;
 
-    await expect(send('password', false)).rejects.toThrow('Network error');
+    await expect(send('password')).rejects.toThrow('Network error');
   });
 
   it('should throw error if password is missing and mnemonic not loaded', async () => {
     mockWallet.isMnemonicLoaded = false;
     const { send } = useSendTransaction();
-    await expect(send('', false)).rejects.toThrow('Password required');
+    await expect(send('')).rejects.toThrow('Password required');
   });
 
   it('should estimate max amount from wallet balance', async () => {
@@ -240,7 +271,7 @@ describe('useSendTransaction Composable', () => {
     tx.value.recipient = 'recipient';
     tx.value.amountRibbits = 500_000_000;
 
-    await send('password', false);
+    await send('password');
 
     expect(crypto.deriveSigner).toHaveBeenCalledWith('test mnemonic', 5, 3);
   });

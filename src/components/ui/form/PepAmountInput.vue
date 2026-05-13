@@ -26,7 +26,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:ribbits': [val: number];
   'update:isFiatMode': [val: boolean];
-  'change-max': [isMax: boolean];
 }>();
 
 const { settings: settingsStore } = useApp();
@@ -102,7 +101,6 @@ function handleInput(text: string) {
 
   editBuffer.value = normalized;
   emit('update:ribbits', parseToRibbits(normalized));
-  emit('change-max', false);
 }
 
 function handleBlur() {

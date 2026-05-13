@@ -32,7 +32,6 @@ const form = useForm({
   amountRibbits: 0,
   isFiatMode: false,
   password: '',
-  isMax: false,
   step: 1,
   txid: ''
 });
@@ -45,7 +44,6 @@ const draft = useSessionDraft({
     recipient: form.recipient,
     amountRibbits: form.amountRibbits,
     isFiatMode: form.isFiatMode,
-    isMax: form.isMax,
     step: form.step,
     txid: form.txid
   })
@@ -100,7 +98,6 @@ watch(
 );
 
 function setMax() {
-  form.isMax = true;
   form.amountRibbits = maxRibbits.value;
 }
 
@@ -141,7 +138,7 @@ async function handleSend() {
   const startTime = Date.now();
 
   try {
-    await send(form.password, form.isMax);
+    await send(form.password);
 
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
@@ -150,7 +147,6 @@ async function handleSend() {
     form.recipient = '';
     form.amountRibbits = 0;
     form.password = '';
-    form.isMax = false;
     form.step = 3;
   } catch (e: any) {
     form.setError('general', e.message || 'Failed to send');

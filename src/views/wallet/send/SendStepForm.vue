@@ -53,7 +53,6 @@ onMounted(() => {
           v-model:isFiatMode="form.isFiatMode"
           :price="currentPrice"
           :disabled="form.isProcessing"
-          @change-max="form.isMax = $event"
         >
           <template #extra>
             <button

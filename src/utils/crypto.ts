@@ -4,6 +4,7 @@ import { BIP32Factory } from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import message from 'bitcoinjs-message';
 import { PEPECOIN } from './networks';
+import { P2PKH_OUTPUT_BYTES } from './constants';
 
 const bip32 = BIP32Factory(ecc);
 
@@ -78,7 +79,7 @@ export function isValidAddress(address: string): boolean {
  * Estimates the virtual size of a P2PKH transaction
  */
 export function estimateTxSize(inputCount: number, outputCount: number): number {
-  return inputCount * 148 + outputCount * 34 + 10;
+  return inputCount * 148 + outputCount * P2PKH_OUTPUT_BYTES + 10;
 }
 
 export interface UTXO {

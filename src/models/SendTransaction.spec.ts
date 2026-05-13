@@ -147,18 +147,19 @@ describe('SendTransaction', () => {
   });
 
   describe('UTXO selection', () => {
-    it('should select all UTXOs when isMax is true', () => {
+    it('selects all UTXOs when the amount drains the wallet', () => {
       const tx = createTx([RIBBITS_PER_PEP, RIBBITS_PER_PEP * 2, RIBBITS_PER_PEP * 3]);
-      const { selectedUtxos, totalValue } = tx.selectUtxos(true);
+      tx.amountPep = tx.calculateMaxPep();
+      const { selectedUtxos, totalValue } = tx.selectUtxos();
       expect(selectedUtxos.length).toBe(3);
       expect(totalValue).toBe(RIBBITS_PER_PEP * 6);
     });
 
     it('should select minimal UTXOs to cover amount + fees', () => {
       const tx = createTx([RIBBITS_PER_PEP * 5, RIBBITS_PER_PEP * 3, RIBBITS_PER_PEP * 1]);
-      tx.amountPep = 0.5; // Small amount, first UTXO should suffice
+      tx.amountPep = 0.5;
 
-      const { selectedUtxos } = tx.selectUtxos(false);
+      const { selectedUtxos } = tx.selectUtxos();
       expect(selectedUtxos.length).toBe(1);
     });
 
@@ -166,24 +167,23 @@ describe('SendTransaction', () => {
       const tx = createTx([RIBBITS_PER_PEP, RIBBITS_PER_PEP, RIBBITS_PER_PEP]);
       tx.amountPep = 2.5;
 
-      const { selectedUtxos } = tx.selectUtxos(false);
+      const { selectedUtxos } = tx.selectUtxos();
       expect(selectedUtxos.length).toBe(3);
     });
 
     it('should estimate fee buffer per selected UTXOs, not total UTXOs', () => {
-      // 20 UTXOs of 1 PEP each, sending 0.5 PEP — should only need 1 UTXO
       const utxos = Array.from({ length: 20 }, () => RIBBITS_PER_PEP);
       const tx = createTx(utxos);
       tx.amountPep = 0.5;
 
-      const { selectedUtxos } = tx.selectUtxos(false);
+      const { selectedUtxos } = tx.selectUtxos();
       expect(selectedUtxos.length).toBe(1);
     });
 
     it('should return empty array when there are no UTXOs', () => {
       const tx = createTx([]);
       tx.amountPep = 1;
-      const { selectedUtxos, totalValue } = tx.selectUtxos(true);
+      const { selectedUtxos, totalValue } = tx.selectUtxos();
       expect(selectedUtxos.length).toBe(0);
       expect(totalValue).toBe(0);
     });
@@ -227,19 +227,23 @@ describe('SendTransaction', () => {
   });
 
   describe('integer safety', () => {
-    it('isMax detection should work with integer comparison, not float epsilon', () => {
+    it('drops the change output when sending the full max amount', () => {
       const tx = createTx([RIBBITS_PER_PEP * 2]);
       tx.recipient = 'PmockRecipientAddress1234567890123';
 
-      const maxPep = tx.calculateMaxPep();
-      tx.amountPep = maxPep;
+      tx.amountPep = tx.calculateMaxPep();
 
-      // The amountRibbits should >= maxRibbits (isMax = true)
-      expect(tx.amountRibbits).toBeGreaterThanOrEqual(tx.maxRibbits);
-
-      // Fee with isMax should be for 1 output
       const maxFee = Math.ceil(estimateTxSize(1, 1) * RECOMMENDED_FEE_RATE);
       expect(tx.estimatedFeeRibbits).toBe(maxFee);
+    });
+
+    it('keeps the 2-output fee for a partial send on a single-UTXO wallet', () => {
+      const tx = createTx([RIBBITS_PER_PEP * 10]);
+      tx.recipient = 'PmockRecipientAddress1234567890123';
+      tx.amountPep = 1;
+
+      const expectedFee = Math.ceil(estimateTxSize(1, 2) * RECOMMENDED_FEE_RATE);
+      expect(tx.estimatedFeeRibbits).toBe(expectedFee);
     });
 
     it('should not have floating point errors affect isValid at boundary', () => {

@@ -91,7 +91,7 @@ async function handleApprove() {
       throw new Error('Insufficient confirmed balance');
     }
 
-    const { selectedUtxos } = sendTx.selectUtxos(false);
+    const { selectedUtxos } = sendTx.selectUtxos();
     const finalFee = sendTx.estimatedFeeRibbits;
 
     const utxosWithHex: UTXO[] = [];

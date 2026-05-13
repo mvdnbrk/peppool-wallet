@@ -15,12 +15,11 @@ import {
   isValidAddress,
   deriveSigner,
   parseDerivationPath,
-  estimateTxSize,
   type UTXO
 } from '@/utils/crypto';
 import { decrypt as decryptMnemonic } from '@/utils/encryption';
 import { SendTransaction } from '@/models/SendTransaction';
-import { RIBBITS_PER_PEP, MIN_SEND_PEP, RECOMMENDED_FEE_RATE } from '@/utils/constants';
+import { RIBBITS_PER_PEP, MIN_SEND_PEP } from '@/utils/constants';
 
 export function useSendTransaction() {
   const { wallet: walletStore, account } = useApp();
@@ -39,19 +38,18 @@ export function useSendTransaction() {
 
   const displayFee = computed(() => price.formatPep(tx.value.estimatedFeeRibbits));
 
-  const maxRibbits = computed(() => {
-    const txSize = estimateTxSize(1, 2);
-    const feeRate = tx.value.fees
-      ? Math.max(RECOMMENDED_FEE_RATE, tx.value.fees.fastestFee)
-      : RECOMMENDED_FEE_RATE;
-    const feeRibbits = Math.ceil(txSize * feeRate);
-    return Math.max(0, account.spendableBalanceRibbits - feeRibbits);
-  });
+  const maxRibbits = computed(() => tx.value.maxRibbits);
 
   async function loadFees() {
     isLoadingFees.value = true;
     try {
-      tx.value.fees = await fetchRecommendedFees();
+      const [fees, utxos, inscriptionSet] = await Promise.all([
+        fetchRecommendedFees(),
+        fetchUtxos(walletStore.address!),
+        inscriptionStore.getOutputsSet(walletStore.address!)
+      ]);
+      tx.value.fees = fees;
+      tx.value.utxos = filterSpendableUtxos(utxos, inscriptionSet);
     } catch (e) {
       console.error('Failed to load fees', e);
       throw e;
@@ -92,7 +90,7 @@ export function useSendTransaction() {
 
   let isSending = false;
 
-  async function send(password: string, isMax: boolean) {
+  async function send(password: string) {
     if (isSending) throw new Error('Transaction already in progress');
     isSending = true;
 
@@ -105,18 +103,15 @@ export function useSendTransaction() {
         mnemonic = await decryptMnemonic(walletStore.encryptedMnemonic!, password);
       }
 
-      // Fetch fresh UTXOs at send time to ensure accurate coin selection
+      // Refresh UTXOs at send time to catch anything that confirmed since the
+      // form was opened.
       const [utxos, inscriptionSet] = await Promise.all([
         fetchUtxos(walletStore.address!),
         inscriptionStore.getOutputsSet(walletStore.address!)
       ]);
       tx.value.utxos = filterSpendableUtxos(utxos, inscriptionSet);
 
-      if (isMax) {
-        tx.value.amountRibbits = tx.value.maxRibbits;
-      }
-
-      const { selectedUtxos } = tx.value.selectUtxos(isMax);
+      const { selectedUtxos } = tx.value.selectUtxos();
       const usedUtxosWithHex: UTXO[] = [];
 
       for (const utxo of selectedUtxos) {

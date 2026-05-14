@@ -23,13 +23,19 @@ window.addEventListener('message', (event) => {
       origin: window.location.origin
     },
     (response) => {
-      // Send the response back to the inpage script
+      // MV3 service worker eviction can close the channel before a response — surface as error.
+      const lastError = chrome.runtime.lastError?.message;
+      const error =
+        response?.error ??
+        (response === undefined
+          ? (lastError ?? 'Wallet background disconnected — please retry')
+          : undefined);
       window.postMessage(
         {
           target: 'peppool-inpage',
           requestId,
           result: response?.result,
-          error: response?.error
+          error
         },
         window.location.origin
       );

@@ -24,6 +24,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 - Allow the Vite dev server in the extension CSP during `npm run dev` so the popup loads without `ERR_FAILED`; production CSP is unchanged ([#49](https://github.com/mvdnbrk/peppool-wallet/pull/49))
 - Refactor `PepAmountInput` around a single source of truth so invalid characters are blocked at the source, currency toggles on sub-cent amounts no longer freeze the popup, and MAX in fiat mode no longer triggers a false "insufficient funds" on review ([#53](https://github.com/mvdnbrk/peppool-wallet/pull/53))
 - Show an accurate network fee on the send form for any non-max amount; the model now decides whether to keep a change output from the actual math instead of inferring "max mode" from an empty UTXO set ([#56](https://github.com/mvdnbrk/peppool-wallet/pull/56))
+- Reject `signPsbt` requests whose inputs do not pay the active account; the background verifies each claimed input's prevout before opening the approval popup, with a defense-in-depth check at sign time ([#63](https://github.com/mvdnbrk/peppool-wallet/pull/63))
 
 ## [0.3.0](https://github.com/mvdnbrk/peppool-wallet/releases/tag/v0.3.0) - 2026-05-08
 

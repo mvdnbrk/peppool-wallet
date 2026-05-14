@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import vue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
@@ -25,6 +26,12 @@ export default tseslint.config(
   },
   {
     files: ['**/*.{ts,vue}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.webextensions
+      }
+    },
     rules: {
       'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
       '@typescript-eslint/no-unused-vars': [

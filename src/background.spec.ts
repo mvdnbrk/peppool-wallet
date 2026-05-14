@@ -10,7 +10,6 @@ function payment(hashByte: number) {
 const PAY_A = payment(0x11);
 const PAY_B = payment(0x22);
 const REAL_ADDR_A = PAY_A.address!;
-const REAL_ADDR_B = PAY_B.address!;
 
 function buildPsbt(prevPayment: { output?: Uint8Array }, outAddress: string): string {
   const prevTx = new bitcoin.Transaction();

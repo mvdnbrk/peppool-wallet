@@ -45,7 +45,7 @@ async function handleLoadMore() {
   isLoadingMore.value = true;
   try {
     await account.fetchMoreTransactions(walletStore.address!);
-  } catch (e) {
+  } catch {
     // Error handled in store
   } finally {
     isLoadingMore.value = false;

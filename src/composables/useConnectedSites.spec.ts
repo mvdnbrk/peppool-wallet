@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useConnectedSites } from './useConnectedSites';
-import { flushPromises } from '@vue/test-utils';
 
 describe('useConnectedSites Composable', () => {
   beforeEach(() => {

@@ -192,7 +192,7 @@ onMounted(async () => {
 
   try {
     await loadFees();
-  } catch (e) {
+  } catch {
     // Error handled in composable
   }
 });

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import ChangePasswordView from './ChangePasswordView.vue';
 import { useApp } from '@/composables/useApp';
-import { useChangePassword, ChangePasswordError } from '@/composables/useChangePassword';
+import { ChangePasswordError } from '@/composables/useChangePassword';
 import { replaceMock, pushMock } from '@/composables/__mocks__/useApp';
 import * as encryption from '@/utils/encryption';
 

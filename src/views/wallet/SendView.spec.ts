@@ -18,7 +18,6 @@ import PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 import PepInputGroup from '@/components/ui/form/PepInputGroup.vue';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
 import { useApp } from '@/composables/useApp';
-import { useSendTransaction } from '@/composables/useSendTransaction';
 
 // Mock useApp
 const pushMock = vi.fn();
@@ -70,11 +69,6 @@ vi.mock('@/utils/crypto', () => ({
   isValidAddress: vi.fn().mockReturnValue(true),
   truncateId: vi.fn().mockReturnValue({ start: 'abc', end: 'xyz', full: 'abc...xyz' })
 }));
-
-// Mock global components
-const stubs = {
-  PepIcon: { template: '<div></div>' }
-};
 
 describe('SendView', () => {
   let mockWallet: any;

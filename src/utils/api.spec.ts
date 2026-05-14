@@ -26,11 +26,9 @@ vi.mock('./auth', () => ({
 }));
 
 describe('API Utils', () => {
-  let errorSpy: any;
-
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
-    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

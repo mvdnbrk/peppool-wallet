@@ -1,11 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import SendStepSuccess from './SendStepSuccess.vue';
 
 // UI Components
 import PepSuccessState from '@/components/ui/PepSuccessState.vue';
 import PepCopyableId from '@/components/ui/PepCopyableId.vue';
-import PepButton from '@/components/ui/PepButton.vue';
 import PepInputGroup from '@/components/ui/form/PepInputGroup.vue';
 
 const stubs = {

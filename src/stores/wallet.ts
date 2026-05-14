@@ -176,7 +176,7 @@ export const useWalletStore = defineStore('wallet', () => {
       await lockout.reset();
       await refreshBalance(true);
       return true;
-    } catch (e) {
+    } catch {
       const { wipe } = await lockout.recordFailure();
       if (wipe) {
         await resetWallet();

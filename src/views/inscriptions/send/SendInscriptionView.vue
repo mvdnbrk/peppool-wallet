@@ -150,7 +150,7 @@ onMounted(async () => {
 
   try {
     await loadFees();
-  } catch (e) {
+  } catch {
     // surfaced via isInsufficientFunds / loading state
   }
 });

@@ -25,7 +25,7 @@ export function useShowMnemonic() {
 
       step.value = 2;
       return true;
-    } catch (e) {
+    } catch {
       error.value = 'Incorrect password';
       return false;
     }

@@ -9,7 +9,7 @@ const props = defineProps<{
   displayFee: string;
 }>();
 
-const emit = defineEmits(['address-blur', 'set-max', 'next']);
+defineEmits(['address-blur', 'set-max', 'next']);
 
 const recipientInput = ref<any>(null);
 

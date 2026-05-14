@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSendTransaction } from './useSendTransaction';
-import { flushPromises } from '@vue/test-utils';
 import { useApp } from '@/composables/useApp';
 import * as api from '@/utils/api';
 import * as crypto from '@/utils/crypto';

@@ -30,24 +30,22 @@ vi.mock('@/utils/crypto', () => ({
   parseDerivationPath: vi.fn().mockReturnValue({ accountIndex: 0, addressIndex: 0 })
 }));
 
-const { mockSignInput, mockFinalizeAllInputs, mockExtractTransaction, mockPsbt } = vi.hoisted(
-  () => {
-    const mockSignInput = vi.fn();
-    const mockFinalizeAllInputs = vi.fn();
-    const mockExtractTransaction = vi.fn().mockReturnValue({ toHex: () => 'finalized-tx-hex' });
-    const mockPsbt = {
-      inputCount: 2,
-      txInputs: [],
-      txOutputs: [],
-      data: { inputs: [] },
-      signInput: mockSignInput,
-      finalizeAllInputs: mockFinalizeAllInputs,
-      extractTransaction: mockExtractTransaction,
-      toBase64: vi.fn().mockReturnValue('signed-psbt-base64')
-    };
-    return { mockSignInput, mockFinalizeAllInputs, mockExtractTransaction, mockPsbt };
-  }
-);
+const { mockSignInput, mockFinalizeAllInputs, mockPsbt } = vi.hoisted(() => {
+  const mockSignInput = vi.fn();
+  const mockFinalizeAllInputs = vi.fn();
+  const mockExtractTransaction = vi.fn().mockReturnValue({ toHex: () => 'finalized-tx-hex' });
+  const mockPsbt = {
+    inputCount: 2,
+    txInputs: [],
+    txOutputs: [],
+    data: { inputs: [] },
+    signInput: mockSignInput,
+    finalizeAllInputs: mockFinalizeAllInputs,
+    extractTransaction: mockExtractTransaction,
+    toBase64: vi.fn().mockReturnValue('signed-psbt-base64')
+  };
+  return { mockSignInput, mockFinalizeAllInputs, mockExtractTransaction, mockPsbt };
+});
 
 vi.mock('bitcoinjs-lib', () => ({
   Psbt: { fromBase64: vi.fn().mockReturnValue(mockPsbt) },

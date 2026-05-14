@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { effectScope } from 'vue';
 import { useCreateWallet } from './useCreateWallet';
 import { useApp } from '@/composables/useApp';
-import * as crypto from '@/utils/crypto';
 
 // Mock dependencies
 vi.mock('@/composables/useApp');
@@ -53,7 +52,7 @@ describe('useCreateWallet Composable', () => {
   });
 
   it('should call importWallet when creating wallet', async () => {
-    const { mnemonic, confirmedSeed, prepareMnemonic, createWallet } = useCreateWallet();
+    const { confirmedSeed, prepareMnemonic, createWallet } = useCreateWallet();
     prepareMnemonic('Password123!', 'Password123!');
     confirmedSeed.value = true;
 

@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ShowMnemonicView from './ShowMnemonicView.vue';
 import { useApp } from '@/composables/useApp';
-import { useShowMnemonic } from '@/composables/useShowMnemonic';
 
 // UI Components
 import PepForm from '@/components/ui/form/PepForm.vue';

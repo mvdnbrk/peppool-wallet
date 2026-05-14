@@ -64,7 +64,7 @@ async function handleUnlock() {
 
     form.setError('general', 'Incorrect password');
     passwordInput.value?.focus();
-  } catch (e) {
+  } catch {
     const elapsed = Date.now() - startTime;
     if (elapsed < UX_DELAY_FAST) {
       await new Promise((r) => setTimeout(r, UX_DELAY_FAST - elapsed));

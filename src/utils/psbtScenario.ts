@@ -15,7 +15,7 @@ export interface PsbtIo {
 
 export type PsbtScenario =
   | { kind: 'listing'; inscription: Inscription; priceRibbits: number }
-  | { kind: 'buy'; priceRibbits: number }
+  | { kind: 'buy'; priceRibbits: number; feeRibbits: number | null }
   | { kind: 'send-pep'; recipient: string; amountRibbits: number; feeRibbits: number }
   | { kind: 'send-inscription'; recipient: string; inscription: Inscription }
   | { kind: 'self-send'; inscription: Inscription }
@@ -69,7 +69,14 @@ export function detectPsbtScenario(inputs: PsbtIo[], outputs: PsbtIo[]): PsbtSce
     mineOutputs.length >= 1
   ) {
     const priceRibbits = foreignOutputs.reduce((s, o) => s + (o.amountRibbits ?? 0), 0);
-    return { kind: 'buy', priceRibbits };
+    const allAmountsKnown = inputs.every((i) => i.amountRibbits !== null);
+    let feeRibbits: number | null = null;
+    if (allAmountsKnown) {
+      const totalIn = inputs.reduce((s, i) => s + (i.amountRibbits ?? 0), 0);
+      const totalOut = outputs.reduce((s, o) => s + (o.amountRibbits ?? 0), 0);
+      feeRibbits = totalIn - totalOut;
+    }
+    return { kind: 'buy', priceRibbits, feeRibbits };
   }
 
   // Beyond this point, any foreign ANYONECANPAY input means the PSBT is

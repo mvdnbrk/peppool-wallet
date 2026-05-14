@@ -75,7 +75,12 @@ describe('detectPsbtScenario', () => {
         output({ mine: false, address: 'Pseller', amountRibbits: 10_000_000_000 })
       ]
     );
-    expect(scenario).toEqual({ kind: 'buy', priceRibbits: 10_000_000_000 });
+    // fee = inputs (foreign 100_000 + mine 20_000_000_000) − outputs (100_000 + 10_000_000_000)
+    expect(scenario).toEqual({
+      kind: 'buy',
+      priceRibbits: 10_000_000_000,
+      feeRibbits: 10_000_000_000
+    });
   });
 
   it('falls back to unknown when a foreign 0x83 input exists but no mine output', () => {

@@ -97,7 +97,9 @@ describe('detectPsbtScenario', () => {
     expect(scenario).toEqual({
       kind: 'send-pep',
       recipient: 'Precipient',
-      amountRibbits: 50_000_000
+      amountRibbits: 50_000_000,
+      // fee = inputs (100_000_000) − outputs (50_000_000 + 49_000_000) = 1_000_000
+      feeRibbits: 1_000_000
     });
   });
 

@@ -16,7 +16,7 @@ export interface PsbtIo {
 export type PsbtScenario =
   | { kind: 'listing'; inscription: Inscription; priceRibbits: number }
   | { kind: 'buy'; priceRibbits: number }
-  | { kind: 'send-pep'; recipient: string; amountRibbits: number }
+  | { kind: 'send-pep'; recipient: string; amountRibbits: number; feeRibbits: number }
   | { kind: 'send-inscription'; recipient: string; inscription: Inscription }
   | { kind: 'self-send'; inscription: Inscription }
   | { kind: 'unknown' };
@@ -116,12 +116,16 @@ export function detectPsbtScenario(inputs: PsbtIo[], outputs: PsbtIo[]): PsbtSce
     noInscriptionsAnywhere &&
     foreignOutputs.length === 1 &&
     foreignOutputs[0]!.address &&
-    foreignOutputs[0]!.amountRibbits !== null
+    foreignOutputs[0]!.amountRibbits !== null &&
+    inputs.every((i) => i.amountRibbits !== null)
   ) {
+    const totalIn = inputs.reduce((s, i) => s + (i.amountRibbits ?? 0), 0);
+    const totalOut = outputs.reduce((s, o) => s + (o.amountRibbits ?? 0), 0);
     return {
       kind: 'send-pep',
       recipient: foreignOutputs[0]!.address!,
-      amountRibbits: foreignOutputs[0]!.amountRibbits!
+      amountRibbits: foreignOutputs[0]!.amountRibbits!,
+      feeRibbits: totalIn - totalOut
     };
   }
 

@@ -8,9 +8,15 @@ import { formatPep } from '@/utils/price';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepInscription from '@/components/ui/PepInscription.vue';
 import PepInputsOutputsDetail from '@/components/ui/PepInputsOutputsDetail.vue';
+import ListingHero from './heroes/ListingHero.vue';
+import BuyHero from './heroes/BuyHero.vue';
+import SendPepHero from './heroes/SendPepHero.vue';
+import SendInscriptionHero from './heroes/SendInscriptionHero.vue';
+import SelfSendHero from './heroes/SelfSendHero.vue';
+import UnknownHero from './heroes/UnknownHero.vue';
 import type { Inscription } from '@/models/Inscription';
+import { detectPsbtScenario } from '@/utils/psbtScenario';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
 import {
@@ -74,6 +80,11 @@ const psbtDetails = computed(() => {
     broadcast: requestData.value.params.broadcast === true,
     ...decodePsbtSummary(requestData.value.params.psbt, walletStore.address)
   };
+});
+
+const scenario = computed(() => {
+  if (!psbtDetails.value || psbtDetails.value.decodeError) return null;
+  return detectPsbtScenario(psbtDetails.value.inputs, psbtDetails.value.outputs);
 });
 
 const hero = computed(() => {
@@ -294,55 +305,15 @@ function handleReject() {
           </p>
         </div>
 
-        <div v-if="hero?.transfer" class="rounded-xl border border-slate-800 bg-slate-900 p-4">
-          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">
-            You will transfer
-          </span>
-          <div v-if="hero.transfer.kind === 'inscription'" class="mt-2 flex items-center gap-3">
-            <div class="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-700">
-              <PepInscription
-                v-if="hero.transfer.inscription"
-                :id="hero.transfer.inscription.id"
-                :content-type="hero.transfer.inscription.contentType"
-              />
-            </div>
-            <span class="text-offwhite text-base font-bold">
-              {{
-                hero.transfer.inscription
-                  ? `Inscription ${hero.transfer.inscription.number}`
-                  : 'Inscription'
-              }}
-            </span>
-          </div>
-          <p v-else class="mt-1 text-lg font-bold">
-            {{ formatPep(hero.transfer.amountRibbits) }}
-          </p>
-        </div>
-
-        <div v-if="hero?.receive" class="rounded-xl border border-slate-800 bg-slate-900 p-4">
-          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">
-            You will receive
-          </span>
-          <div v-if="hero.receive.kind === 'inscription'" class="mt-2 flex items-center gap-3">
-            <div class="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-700">
-              <PepInscription
-                v-if="hero.receive.inscription"
-                :id="hero.receive.inscription.id"
-                :content-type="hero.receive.inscription.contentType"
-              />
-            </div>
-            <span class="text-offwhite text-base font-bold">
-              {{
-                hero.receive.inscription
-                  ? `Inscription ${hero.receive.inscription.number}`
-                  : 'Inscription'
-              }}
-            </span>
-          </div>
-          <p v-else class="mt-1 text-lg font-bold">
-            {{ formatPep(hero.receive.amountRibbits) }}
-          </p>
-        </div>
+        <ListingHero v-if="scenario?.kind === 'listing'" :scenario="scenario" />
+        <BuyHero v-else-if="scenario?.kind === 'buy'" :scenario="scenario" />
+        <SendPepHero v-else-if="scenario?.kind === 'send-pep'" :scenario="scenario" />
+        <SendInscriptionHero
+          v-else-if="scenario?.kind === 'send-inscription'"
+          :scenario="scenario"
+        />
+        <SelfSendHero v-else-if="scenario?.kind === 'self-send'" :scenario="scenario" />
+        <UnknownHero v-else-if="hero" :transfer="hero.transfer" :receive="hero.receive" />
 
         <PepInputsOutputsDetail
           v-if="psbtDetails.inputs.length"
@@ -357,7 +328,11 @@ function handleReject() {
         />
 
         <div
-          v-if="psbtDetails.netChangeRibbits !== null && !psbtDetails.decodeError"
+          v-if="
+            psbtDetails.netChangeRibbits !== null &&
+            !psbtDetails.decodeError &&
+            (!scenario || scenario.kind === 'unknown')
+          "
           class="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900 px-4 py-3"
         >
           <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">Net change</span>

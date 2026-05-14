@@ -292,7 +292,7 @@ describe('SignPsbtApproval', () => {
     expect(wrapper.text()).toContain('Cannot broadcast');
   });
 
-  it('renders inscription transfer and PEP receive for a listing PSBT', async () => {
+  it('renders the self-send hero when an inscription input lands on a mine output', async () => {
     const inscriptionTxid = 'a'.repeat(64);
     const inscriptionVout = 0;
     const myAddress = 'Pseller';
@@ -352,14 +352,13 @@ describe('SignPsbtApproval', () => {
     const wrapper = mount(SignPsbtApproval, { global: globalConfig });
     await flushPromises();
 
-    expect(wrapper.text()).toContain('You will transfer');
+    expect(wrapper.text()).toContain('You will move');
     expect(wrapper.text()).toContain('Inscription 42');
-    expect(wrapper.text()).toContain('You will receive');
-    // Net receive = 100_000_100_000_000 - 100_000 = 100_000_000_000_000 ribbits = 1,000,000 PEP
-    // (Test values are illustrative; the formatPep value is what matters for presence.)
+    // Net change footer is hidden for known scenarios (the hero already says it).
+    expect(wrapper.text()).not.toContain('Net change');
   });
 
-  it('shows only a transfer card for a pure-PEP send (change to self should not show as receive)', async () => {
+  it('renders the send-pep hero for a pure-PEP transfer (single recipient + optional change)', async () => {
     const myAddress = 'Psender';
 
     mockPsbt.inputCount = 1;
@@ -389,8 +388,12 @@ describe('SignPsbtApproval', () => {
     const wrapper = mount(SignPsbtApproval, { global: globalConfig });
     await flushPromises();
 
-    expect(wrapper.text()).toContain('You will transfer');
+    expect(wrapper.text()).toContain('You will send');
+    expect(wrapper.text()).toContain('Precipient');
+    // No receive card — change to self should not surface as a receipt.
     expect(wrapper.text()).not.toContain('You will receive');
+    // Net change footer hidden when a scenario hero renders.
+    expect(wrapper.text()).not.toContain('Net change');
   });
 
   it('rejects when prevout decodes to a non-mine address', async () => {
@@ -416,17 +419,18 @@ describe('SignPsbtApproval', () => {
     expect(wrapper.text()).toContain('does not belong to the active account');
   });
 
-  it('renders collapsible raw inputs/outputs panels with an inscription badge and net change footer', async () => {
-    // A simple-PEP send: 1 mine input of 100_000_000 ribbits funds a 50_000_000 recipient
-    // output and a 49_000_000 change output (1_000_000 fee). Net change = -51_000_000.
+  it('renders collapsible raw inputs/outputs panels with a net change footer for unknown-shape PSBTs', async () => {
+    // Multi-recipient PEP send: 1 mine input → 2 distinct non-mine outputs.
+    // This shape does not match any scenario, so the raw view + net change
+    // footer are the primary surface.
     const myAddress = 'Psender';
 
     mockPsbt.inputCount = 1;
     mockPsbt.txInputs = [{ hash: Buffer.alloc(32), index: 0 }] as any;
     mockPsbt.data.inputs = [{ nonWitnessUtxo: Buffer.from('deadbeef', 'hex') }] as any;
     mockPsbt.txOutputs = [
-      { script: Buffer.from('to-recipient', 'utf8'), value: 50_000_000 },
-      { script: Buffer.from('change', 'utf8'), value: 49_000_000 }
+      { script: Buffer.from('to-a', 'utf8'), value: 50_000_000 },
+      { script: Buffer.from('to-b', 'utf8'), value: 49_000_000 }
     ] as any;
 
     const bitcoin = await import('bitcoinjs-lib');
@@ -435,8 +439,8 @@ describe('SignPsbtApproval', () => {
     });
     (bitcoin.address.fromOutputScript as any)
       .mockReturnValueOnce(myAddress)
-      .mockReturnValueOnce('Precipient')
-      .mockReturnValueOnce(myAddress);
+      .mockReturnValueOnce('PrecipientA')
+      .mockReturnValueOnce('PrecipientB');
 
     const store = useWalletStore();
     store.isUnlocked = true;

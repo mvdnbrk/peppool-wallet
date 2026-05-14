@@ -2,7 +2,18 @@ import { reactive, watch } from 'vue';
 import { MIN_PASSWORD_LENGTH } from './constants';
 import { getPasswordStrength } from './password';
 
-export function useForm<T extends object>(initialData: T) {
+export interface FormHelpers {
+  errors: Record<string, string>;
+  isProcessing: boolean;
+  hasError(field?: string): boolean;
+  clearError(field?: string): void;
+  setError(field: string, message: string): void;
+  reset(): void;
+}
+
+export type Form<T extends object> = T & FormHelpers;
+
+export function useForm<T extends object>(initialData: T): Form<T> {
   const form = reactive({
     ...initialData,
     errors: {} as Record<string, string>,
@@ -35,7 +46,7 @@ export function useForm<T extends object>(initialData: T) {
 
   for (const key in initialData) {
     watch(
-      () => (form as any)[key],
+      () => (form as Record<string, unknown>)[key],
       () => {
         form.clearError(key);
         form.clearError('general');
@@ -43,7 +54,7 @@ export function useForm<T extends object>(initialData: T) {
     );
   }
 
-  return form;
+  return form as Form<T>;
 }
 
 /**

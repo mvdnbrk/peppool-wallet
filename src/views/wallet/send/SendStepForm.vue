@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import type { SendForm } from './types';
+import type PepInput from '@/components/ui/form/PepInput.vue';
 
 const props = defineProps<{
-  form: any;
+  form: SendForm;
   isInsufficientFunds: boolean;
   currentPrice: number;
   displayBalance: string;
@@ -11,7 +13,7 @@ const props = defineProps<{
 
 defineEmits(['address-blur', 'set-max', 'next']);
 
-const recipientInput = ref<any>(null);
+const recipientInput = ref<InstanceType<typeof PepInput> | null>(null);
 
 onMounted(() => {
   if (!props.form.recipient) {

@@ -20,8 +20,8 @@ async function loadDetails() {
   try {
     const transaction = await account.fetchTransaction(txid, walletStore.address || '');
     txFetched.value = transaction;
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load transaction';
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to load transaction';
   } finally {
     isLoading.value = false;
   }

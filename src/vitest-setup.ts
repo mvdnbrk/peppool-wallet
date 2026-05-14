@@ -3,7 +3,7 @@ import { webcrypto } from 'node:crypto';
 
 // Polyfill crypto for bip39/zxcvbn and other utils
 if (typeof global !== 'undefined' && !global.crypto) {
-  (global as any).crypto = webcrypto;
+  (global as unknown as Record<string, unknown>).crypto = webcrypto;
 }
 
 // Mock global chrome
@@ -35,7 +35,7 @@ const chromeMock = {
 };
 
 if (typeof global !== 'undefined') {
-  (global as any).chrome = chromeMock;
+  (global as unknown as Record<string, unknown>).chrome = chromeMock;
 }
 
 // Mock UX delays to 0 for all tests to speed up execution

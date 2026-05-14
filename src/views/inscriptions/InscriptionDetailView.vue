@@ -47,8 +47,8 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     fetched.value = await fetchInscription(id);
-  } catch (e: any) {
-    error.value = e?.message || 'Failed to load inscription';
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to load inscription';
   } finally {
     isLoading.value = false;
   }

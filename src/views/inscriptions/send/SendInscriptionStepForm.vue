@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Inscription } from '@/models/Inscription';
+import type { SendInscriptionForm } from './types';
+import type PepInput from '@/components/ui/form/PepInput.vue';
 
 const props = defineProps<{
-  form: any;
+  form: SendInscriptionForm;
   inscription: Inscription;
   isInsufficientFunds: boolean;
   displayFee: string;
@@ -11,7 +13,7 @@ const props = defineProps<{
 
 defineEmits(['address-blur', 'next']);
 
-const recipientInput = ref<any>(null);
+const recipientInput = ref<InstanceType<typeof PepInput> | null>(null);
 
 onMounted(() => {
   if (!props.form.recipient) {

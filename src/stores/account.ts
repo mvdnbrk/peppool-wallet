@@ -8,7 +8,7 @@ import {
   fetchUtxos,
   isInscriptionUtxo
 } from '@/utils/api';
-import { Transaction } from '@/models/Transaction';
+import { Transaction, type RawTransaction } from '@/models/Transaction';
 import { TXS_PER_PAGE } from '@/utils/constants';
 import { useInscriptionStore } from './inscriptions';
 import { LOCAL_STORAGE_KEYS } from '@/constants/storage';
@@ -61,9 +61,9 @@ export const useAccountStore = defineStore('account', () => {
         pendingBalanceRibbits.value = cached.pending;
       }
 
-      const txCache = getCache<unknown[]>(LOCAL_STORAGE_KEYS.TRANSACTIONS);
+      const txCache = getCache<RawTransaction[]>(LOCAL_STORAGE_KEYS.TRANSACTIONS);
       if (txCache[address]) {
-        transactions.value = txCache[address].map((raw: any) => new Transaction(raw, address));
+        transactions.value = txCache[address].map((raw) => new Transaction(raw, address));
       }
     } catch {
       /* ignore corrupt cache */

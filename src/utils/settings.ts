@@ -61,7 +61,7 @@ export async function saveSettings(partial: Partial<Settings>): Promise<void> {
 
 export async function saveWalletState(state: Partial<WalletState>): Promise<void> {
   Object.assign(walletState, state);
-  const update: Record<string, any> = {};
+  const update: Record<string, unknown> = {};
   if (state.accounts !== undefined) {
     update[CHROME_STORAGE_KEYS.ACCOUNTS] = JSON.stringify(walletState.accounts);
   }

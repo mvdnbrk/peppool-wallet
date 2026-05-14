@@ -79,7 +79,7 @@ handleApprovalRouting();
 
 // Expose internals for automated screenshots (DEV only — tree-shaken from production builds)
 if (import.meta.env.DEV) {
-  (window as any).__peppool_dev__ = { app, router, pinia };
+  window.__peppool_dev__ = { app, router, pinia };
 }
 app.config.globalProperties.$constants = constants;
 app.config.globalProperties.$RIBBITS_PER_PEP = constants.RIBBITS_PER_PEP;

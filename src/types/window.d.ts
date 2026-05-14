@@ -18,6 +18,7 @@ declare global {
     pep_providers?: PepProvider[];
     PepecoinProvider?: PepProvider;
     __peppoolRequestListener?: boolean;
+    __peppool_dev__?: unknown;
   }
 }
 

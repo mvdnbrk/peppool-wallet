@@ -38,8 +38,8 @@ async function handleCreate() {
   try {
     await createWallet(form.password);
     router.push('/dashboard');
-  } catch (e: any) {
-    form.setError('general', e.message || 'Failed to create wallet');
+  } catch (e) {
+    form.setError('general', e instanceof Error ? e.message : 'Failed to create wallet');
   } finally {
     form.isProcessing = false;
   }

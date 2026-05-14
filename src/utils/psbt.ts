@@ -49,18 +49,20 @@ const PEP_ADDRESS_RE = /^P[1-9A-HJ-NP-Za-km-z]{25,33}$/;
  * popup. Deeper checks (PSBT decoding, index range, sighash allowlist) happen
  * in the approval view which already parses the PSBT.
  */
-export function validatePsbtParams(params: any): string | null {
+export function validatePsbtParams(params: unknown): string | null {
   if (!params || typeof params !== 'object') return 'Missing PSBT parameters.';
 
-  if (typeof params.psbt !== 'string' || params.psbt.length === 0) {
+  const p = params as Record<string, unknown>;
+
+  if (typeof p.psbt !== 'string' || p.psbt.length === 0) {
     return 'Missing or invalid psbt.';
   }
 
-  if (params.signInputs == null || typeof params.signInputs !== 'object') {
+  if (p.signInputs == null || typeof p.signInputs !== 'object') {
     return 'signInputs is required.';
   }
 
-  const entries = Object.entries(params.signInputs as Record<string, unknown>);
+  const entries = Object.entries(p.signInputs as Record<string, unknown>);
   if (entries.length === 0) return 'signInputs must include at least one address.';
 
   for (const [address, indices] of entries) {
@@ -82,7 +84,7 @@ export function validatePsbtParams(params: any): string | null {
     }
   }
 
-  if (params.broadcast != null && typeof params.broadcast !== 'boolean') {
+  if (p.broadcast != null && typeof p.broadcast !== 'boolean') {
     return 'broadcast must be a boolean.';
   }
 

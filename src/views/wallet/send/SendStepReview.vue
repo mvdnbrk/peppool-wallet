@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
+import type { SendForm, SendTransactionView } from './types';
 
 defineProps<{
-  form: any;
-  tx: any;
+  form: SendForm;
+  tx: SendTransactionView;
   displayFee: string;
 }>();
 

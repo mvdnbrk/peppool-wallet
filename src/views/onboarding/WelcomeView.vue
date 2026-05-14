@@ -5,11 +5,12 @@ import { consumePendingRedirect } from '@/router';
 import { ref, computed, watch } from 'vue';
 import { useForm } from '@/utils/form';
 import { UX_DELAY_FAST } from '@/utils/constants';
+import type PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 
 const { router, wallet: walletStore } = useApp();
 const { isLockedOut: localIsLockedOut, lockoutError } = useLockout();
 
-const passwordInput = ref<any>(null);
+const passwordInput = ref<InstanceType<typeof PepPasswordInput> | null>(null);
 
 const form = useForm({
   password: ''

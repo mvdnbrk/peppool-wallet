@@ -93,8 +93,8 @@ async function handleReview() {
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
     form.step = 2;
-  } catch (e: any) {
-    form.setError('general', e.message || 'Validation failed');
+  } catch (e) {
+    form.setError('general', e instanceof Error ? e.message : 'Validation failed');
   } finally {
     form.isProcessing = false;
   }
@@ -115,8 +115,8 @@ async function handleSend() {
     form.recipient = '';
     form.password = '';
     form.step = 3;
-  } catch (e: any) {
-    form.setError('general', e.message || 'Failed to send');
+  } catch (e) {
+    form.setError('general', e instanceof Error ? e.message : 'Failed to send');
   } finally {
     form.isProcessing = false;
   }
@@ -141,8 +141,8 @@ onMounted(async () => {
     isLoadingInscription.value = true;
     try {
       fetched.value = await fetchInscription(id);
-    } catch (e: any) {
-      inscriptionError.value = e?.message || 'Failed to load inscription';
+    } catch (e) {
+      inscriptionError.value = e instanceof Error ? e.message : 'Failed to load inscription';
     } finally {
       isLoadingInscription.value = false;
     }

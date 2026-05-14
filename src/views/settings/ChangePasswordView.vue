@@ -2,7 +2,7 @@
 import { computed, watch } from 'vue';
 import { useApp } from '@/composables/useApp';
 import { useLockout } from '@/composables/useLockout';
-import { useChangePassword } from '@/composables/useChangePassword';
+import { useChangePassword, ChangePasswordError } from '@/composables/useChangePassword';
 import { useForm, usePasswordBlur } from '@/utils/form';
 import { UX_DELAY_NORMAL } from '@/utils/constants';
 
@@ -53,13 +53,15 @@ async function handleChangePassword() {
   form.isProcessing = true;
   try {
     await performChange(form.oldPassword, form.password, form.confirmPassword);
-  } catch (e: any) {
-    if (e.field === 'oldPassword') {
-      if (!isLockedOut.value) form.setError(e.field, e.message);
-    } else if (e.field) {
-      form.setError(e.field, e.message);
+  } catch (e) {
+    if (e instanceof ChangePasswordError) {
+      if (e.field === 'oldPassword') {
+        if (!isLockedOut.value) form.setError(e.field, e.message);
+      } else {
+        form.setError(e.field, e.message);
+      }
     } else {
-      form.setError('general', e.message || 'An error occurred');
+      form.setError('general', e instanceof Error ? e.message : 'An error occurred');
     }
   } finally {
     form.isProcessing = false;

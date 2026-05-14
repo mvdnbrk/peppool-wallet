@@ -39,8 +39,8 @@ async function handleSave() {
       await walletStore.renameAccount(index, label.value.trim());
     }
     router.back();
-  } catch (e: any) {
-    error.value = e.message || 'Failed to save account';
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to save account';
   } finally {
     isSaving.value = false;
   }

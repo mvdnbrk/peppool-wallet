@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useApp } from '@/composables/useApp';
 import type { Inscription } from '@/models/Inscription';
+import type { SendInscriptionForm } from './types';
 
 defineProps<{
-  form: any;
+  form: SendInscriptionForm;
   inscription: Inscription;
   displayFee: string;
 }>();

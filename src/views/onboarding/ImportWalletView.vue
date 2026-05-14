@@ -58,8 +58,8 @@ async function handleImport() {
   try {
     await importAction(form.password, form.confirmPassword);
     router.push('/dashboard');
-  } catch (e: any) {
-    form.setError('general', e.message || 'Failed to import wallet');
+  } catch (e) {
+    form.setError('general', e instanceof Error ? e.message : 'Failed to import wallet');
   } finally {
     form.isProcessing = false;
   }

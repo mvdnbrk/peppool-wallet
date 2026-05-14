@@ -4,13 +4,14 @@ import { useApp } from '@/composables/useApp';
 import { useLockout } from '@/composables/useLockout';
 import { useShowMnemonic } from '@/composables/useShowMnemonic';
 import PepLoadingButton from '@/components/ui/PepLoadingButton.vue';
+import type PepPasswordInput from '@/components/ui/form/PepPasswordInput.vue';
 
 const { router } = useApp();
 
 const { isLockedOut, lockoutError } = useLockout();
 const { step, mnemonic, error, reveal } = useShowMnemonic();
 
-const passwordInput = ref<any>(null);
+const passwordInput = ref<InstanceType<typeof PepPasswordInput> | null>(null);
 const password = ref('');
 const isProcessing = ref(false);
 

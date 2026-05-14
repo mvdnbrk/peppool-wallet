@@ -101,8 +101,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     }
 
     return await response.json();
-  } catch (e: any) {
-    console.error('API request failed:', e.message);
+  } catch (e) {
+    console.error('API request failed:', e instanceof Error ? e.message : e);
     throw e;
   }
 }
@@ -214,7 +214,7 @@ export async function fetchTxHex(txid: string): Promise<string> {
       throw new Error('Failed to fetch transaction hex');
     }
     return response.text();
-  } catch (e: any) {
+  } catch (e) {
     clearTimeout(id);
     throw e;
   }
@@ -242,7 +242,7 @@ export async function broadcastTx(txHex: string): Promise<string> {
     }
 
     return await response.text();
-  } catch (e: any) {
+  } catch (e) {
     clearTimeout(id);
     throw e;
   }

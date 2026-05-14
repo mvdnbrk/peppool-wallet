@@ -125,8 +125,8 @@ async function handleReview() {
     const elapsed = Date.now() - startTime;
     if (elapsed < 500) await new Promise((r) => setTimeout(r, 500 - elapsed));
     form.step = 2;
-  } catch (e: any) {
-    form.setError('general', e.message || 'Validation failed');
+  } catch (e) {
+    form.setError('general', e instanceof Error ? e.message : 'Validation failed');
   } finally {
     form.isProcessing = false;
   }
@@ -148,8 +148,8 @@ async function handleSend() {
     form.amountRibbits = 0;
     form.password = '';
     form.step = 3;
-  } catch (e: any) {
-    form.setError('general', e.message || 'Failed to send');
+  } catch (e) {
+    form.setError('general', e instanceof Error ? e.message : 'Failed to send');
   } finally {
     form.isProcessing = false;
   }
@@ -175,7 +175,7 @@ onMounted(async () => {
   const data = await draft.load();
   if (data) {
     for (const [key, value] of Object.entries(data)) {
-      if (value !== undefined) (form as any)[key] = value;
+      if (value !== undefined) (form as unknown as Record<string, unknown>)[key] = value;
     }
     // Step 2 can't survive remount — password isn't persisted
     if (form.step === 2) form.step = 1;

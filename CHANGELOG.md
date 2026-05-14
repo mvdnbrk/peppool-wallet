@@ -8,6 +8,7 @@ All notable changes to `peppool-wallet` are documented in this file.
 
 - `signPsbt` accepts an optional `broadcast` flag; when `true` the wallet finalizes and broadcasts the signed PSBT and returns `{ psbt, txid }`. Approval popup decodes the PSBT to show inputs, outputs, and net effect ([#44](https://github.com/mvdnbrk/peppool-wallet/pull/44))
 - `signPsbt` now takes a required `signInputs` map (`{ address: number[] }`) selecting which inputs the wallet signs, and honors each input's `sighashType` (allowing `SIGHASH_ALL` and `SIGHASH_SINGLE | ANYONECANPAY`); broadcast is blocked when any signed input uses a non-default sighash ([#52](https://github.com/mvdnbrk/peppool-wallet/pull/52))
+- Add collapsible Inputs / Outputs detail panels and a net change footer to the `signPsbt` approval so any PSBT shape is reviewable; inscription-bearing inputs are labeled and output inscriptions are predicted via cumulative sat-offset tracking (skipped when any input uses `ANYONECANPAY`, since a counterparty's splices invalidate the offsets) ([#66](https://github.com/mvdnbrk/peppool-wallet/pull/66))
 
 ### Changed
 

@@ -134,10 +134,12 @@ describe('detectPsbtScenario', () => {
       [input({ inscription })],
       [output({ mine: false, address: 'Precipient', inscription, amountRibbits: 100_000 })]
     );
+    // fee = inputs (100_000) − outputs (100_000)
     expect(scenario).toEqual({
       kind: 'send-inscription',
       recipient: 'Precipient',
-      inscription
+      inscription,
+      feeRibbits: 0
     });
   });
 
@@ -147,7 +149,8 @@ describe('detectPsbtScenario', () => {
       [input({ inscription })],
       [output({ mine: true, address: 'Pmine', inscription, amountRibbits: 100_000 })]
     );
-    expect(scenario).toEqual({ kind: 'self-send', inscription });
+    // fee = inputs (100_000) − outputs (100_000)
+    expect(scenario).toEqual({ kind: 'self-send', inscription, feeRibbits: 0 });
   });
 
   it('returns unknown when a mine input uses a non-default sighash but no listing-shape matches', () => {

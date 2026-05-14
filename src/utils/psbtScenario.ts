@@ -17,8 +17,13 @@ export type PsbtScenario =
   | { kind: 'listing'; inscription: Inscription; priceRibbits: number }
   | { kind: 'buy'; priceRibbits: number; feeRibbits: number | null }
   | { kind: 'send-pep'; recipient: string; amountRibbits: number; feeRibbits: number }
-  | { kind: 'send-inscription'; recipient: string; inscription: Inscription }
-  | { kind: 'self-send'; inscription: Inscription }
+  | {
+      kind: 'send-inscription';
+      recipient: string;
+      inscription: Inscription;
+      feeRibbits: number;
+    }
+  | { kind: 'self-send'; inscription: Inscription; feeRibbits: number }
   | { kind: 'unknown' };
 
 const SIGHASH_DEFAULT = 0x01;
@@ -83,8 +88,14 @@ export function detectPsbtScenario(inputs: PsbtIo[], outputs: PsbtIo[]): PsbtSce
   // positionally undefined and we cannot reason about scenarios further.
   if (foreignHasAnyoneCanPay) return { kind: 'unknown' };
 
-  // Remaining scenarios require all signed inputs to use the default sighash.
+  // Remaining scenarios require all signed inputs to use the default sighash
+  // and known input amounts (fee is derived from sum(in) − sum(out)).
   if (!mineInputsAllDefault) return { kind: 'unknown' };
+  if (!inputs.every((i) => i.amountRibbits !== null)) return { kind: 'unknown' };
+
+  const totalIn = inputs.reduce((s, i) => s + (i.amountRibbits ?? 0), 0);
+  const totalOut = outputs.reduce((s, o) => s + (o.amountRibbits ?? 0), 0);
+  const feeRibbits = totalIn - totalOut;
 
   const mineInscriptionInputs = mineInputs.filter((i) => i.inscription);
   const allMine = foreignInputs.length === 0 && foreignOutputs.length === 0;
@@ -98,7 +109,11 @@ export function detectPsbtScenario(inputs: PsbtIo[], outputs: PsbtIo[]): PsbtSce
     outputs[0]!.inscription &&
     outputs[0]!.inscription.id === mineInscriptionInputs[0]!.inscription!.id
   ) {
-    return { kind: 'self-send', inscription: mineInscriptionInputs[0]!.inscription! };
+    return {
+      kind: 'self-send',
+      inscription: mineInscriptionInputs[0]!.inscription!,
+      feeRibbits
+    };
   }
 
   // Send inscription: an inscription riding on a mine input lands on a
@@ -109,7 +124,8 @@ export function detectPsbtScenario(inputs: PsbtIo[], outputs: PsbtIo[]): PsbtSce
       return {
         kind: 'send-inscription',
         recipient: target.address,
-        inscription: target.inscription
+        inscription: target.inscription,
+        feeRibbits
       };
     }
     return { kind: 'unknown' };
@@ -123,16 +139,13 @@ export function detectPsbtScenario(inputs: PsbtIo[], outputs: PsbtIo[]): PsbtSce
     noInscriptionsAnywhere &&
     foreignOutputs.length === 1 &&
     foreignOutputs[0]!.address &&
-    foreignOutputs[0]!.amountRibbits !== null &&
-    inputs.every((i) => i.amountRibbits !== null)
+    foreignOutputs[0]!.amountRibbits !== null
   ) {
-    const totalIn = inputs.reduce((s, i) => s + (i.amountRibbits ?? 0), 0);
-    const totalOut = outputs.reduce((s, o) => s + (o.amountRibbits ?? 0), 0);
     return {
       kind: 'send-pep',
       recipient: foreignOutputs[0]!.address!,
       amountRibbits: foreignOutputs[0]!.amountRibbits!,
-      feeRibbits: totalIn - totalOut
+      feeRibbits
     };
   }
 

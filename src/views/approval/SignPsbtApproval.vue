@@ -353,11 +353,11 @@ function handleReject() {
         <PepButton
           id="reject-transaction-button"
           variant="secondary"
-          @click="handleReject"
           :disabled="isProcessing"
+          @click="handleReject"
           >Cancel</PepButton
         >
-        <PepButton id="approve-transaction-button" @click="handleApprove" :loading="isProcessing"
+        <PepButton id="approve-transaction-button" :loading="isProcessing" @click="handleApprove"
           >Approve</PepButton
         >
       </div>

@@ -27,10 +27,10 @@ function selectExplorer(id: ExplorerId) {
       </p>
 
       <PepRadioList
-        :modelValue="settingsStore.settings.explorer"
+        :model-value="settingsStore.settings.explorer"
         :options="options"
         name="explorer"
-        @update:modelValue="selectExplorer"
+        @update:model-value="selectExplorer"
       />
     </div>
   </PepMainLayout>

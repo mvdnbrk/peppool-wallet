@@ -71,8 +71,8 @@ async function handleChangePassword() {
   <PepMainLayout>
     <template #header>
       <PepPageHeader
-        :title="isSuccess ? 'Success' : 'Change password'"
         :key="isSuccess ? 'success' : 'form'"
+        :title="isSuccess ? 'Success' : 'Change password'"
       />
     </template>
 
@@ -87,12 +87,12 @@ async function handleChangePassword() {
       v-else
       id="change-password-form"
       :loading="form.isProcessing"
-      @submit="handleChangePassword"
       class="flex flex-1 flex-col"
+      @submit="handleChangePassword"
     >
       <PepPasswordInput
-        v-model="form.oldPassword"
         id="old-password"
+        v-model="form.oldPassword"
         label="Current password"
         placeholder="Enter current password"
         :error="oldPasswordError"
@@ -101,11 +101,11 @@ async function handleChangePassword() {
 
       <PepPasswordFields
         v-model:password="form.password"
-        v-model:confirmPassword="form.confirmPassword"
+        v-model:confirm-password="form.confirmPassword"
         :errors="form.errors"
         :disabled="isLockedOut"
-        passwordLabel="New password"
-        confirmLabel="Confirm new password"
+        password-label="New password"
+        confirm-label="Confirm new password"
         @blur-password="onBlurPassword"
         @blur-confirm="onBlurConfirmPassword"
       />
@@ -114,16 +114,16 @@ async function handleChangePassword() {
     <template #actions>
       <PepLoadingButton
         v-if="!isSuccess"
-        @click="handleChangePassword"
         :loading="form.isProcessing"
-        :minLoadingMs="UX_DELAY_NORMAL"
+        :min-loading-ms="UX_DELAY_NORMAL"
         :disabled="!canSubmit"
         class="w-full"
+        @click="handleChangePassword"
       >
         {{ isLockedOut ? 'Locked' : form.isProcessing ? 'Updating...' : 'Update password' }}
       </PepLoadingButton>
 
-      <PepButton v-else @click="router.push('/dashboard')" variant="secondary" class="w-full">
+      <PepButton v-else variant="secondary" class="w-full" @click="router.push('/dashboard')">
         Close
       </PepButton>
     </template>

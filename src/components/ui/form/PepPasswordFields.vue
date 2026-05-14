@@ -51,8 +51,8 @@ const strength = computed(() => {
 <template>
   <div class="space-y-4">
     <PepInput
-      v-model="passwordValue"
       id="new-password"
+      v-model="passwordValue"
       type="password"
       :label="passwordLabel || 'New password'"
       :placeholder="`Min. ${MIN_PASSWORD_LENGTH} characters`"
@@ -62,8 +62,8 @@ const strength = computed(() => {
     />
 
     <PepInput
-      v-model="confirmPasswordValue"
       id="confirm-password"
+      v-model="confirmPasswordValue"
       type="password"
       :label="confirmLabel || 'Confirm password'"
       placeholder="Repeat password"

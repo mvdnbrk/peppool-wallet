@@ -58,8 +58,8 @@ async function handleLoadMore() {
     <!-- Account Indicator -->
     <div
       id="account-indicator"
-      @click="router.push('/settings/accounts')"
       class="mb-2 flex cursor-pointer items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-slate-800/50"
+      @click="router.push('/settings/accounts')"
     >
       <span class="text-xs font-bold text-white">{{ walletStore.activeAccount?.label }}</span>
       <PepIcon name="chevron-right" size="16" class="text-slate-500" />
@@ -68,8 +68,8 @@ async function handleLoadMore() {
     <!-- Inscriptions Indicator -->
     <div
       id="inscriptions-entry"
-      @click="router.push('/inscriptions')"
       class="mb-2 flex cursor-pointer items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-slate-800/50"
+      @click="router.push('/inscriptions')"
     >
       <span class="text-xs font-bold text-white">{{ inscriptionCount }} inscriptions</span>
       <PepIcon name="chevron-right" size="16" class="text-slate-500" />
@@ -94,7 +94,7 @@ async function handleLoadMore() {
     <!-- Actions -->
     <div class="mb-6 grid grid-cols-2 gap-4">
       <PepButton @click="router.push('/send')"> Send </PepButton>
-      <PepButton @click="router.push('/receive')" variant="secondary"> Receive </PepButton>
+      <PepButton variant="secondary" @click="router.push('/receive')"> Receive </PepButton>
     </div>
 
     <!-- Recent Activity -->
@@ -119,9 +119,9 @@ async function handleLoadMore() {
         <div v-if="account.canLoadMoreTransactions" class="mt-4 flex justify-center">
           <button
             type="button"
-            @click="handleLoadMore"
             :disabled="isLoadingMore"
             class="text-pep-green-light hover:text-pep-green cursor-pointer text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            @click="handleLoadMore"
           >
             {{ isLoadingMore ? 'Loading...' : 'Load more' }}
           </button>

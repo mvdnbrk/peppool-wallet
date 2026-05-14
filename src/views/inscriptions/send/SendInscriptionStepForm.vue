@@ -36,9 +36,9 @@ onMounted(() => {
       </div>
 
       <PepInput
+        id="recipient"
         ref="recipientInput"
         v-model="form.recipient"
-        id="recipient"
         label="Recipient Address"
         placeholder="Enter address"
         :error="form.errors.recipient"

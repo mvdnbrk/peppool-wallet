@@ -16,7 +16,7 @@ onMounted(async () => {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Connected Sites" backTo="/settings" />
+      <PepPageHeader title="Connected Sites" back-to="/settings" />
     </template>
 
     <div class="space-y-6">
@@ -42,9 +42,9 @@ onMounted(async () => {
           </p>
 
           <button
-            @click="revokeAccess(site)"
             class="flex-shrink-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-400/10 hover:text-red-400"
             title="Revoke access"
+            @click="revokeAccess(site)"
           >
             <PepIcon name="clear" size="18" />
           </button>

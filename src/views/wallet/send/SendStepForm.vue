@@ -24,9 +24,9 @@ onMounted(() => {
   <div class="flex flex-1 flex-col">
     <PepForm id="send-review-form" class="flex flex-1 flex-col" @submit="$emit('next')">
       <PepInput
+        id="recipient"
         ref="recipientInput"
         v-model="form.recipient"
-        id="recipient"
         label="Recipient Address"
         placeholder="Enter address"
         :error="form.errors.recipient"
@@ -50,7 +50,7 @@ onMounted(() => {
 
         <PepAmountInput
           v-model:ribbits="form.amountRibbits"
-          v-model:isFiatMode="form.isFiatMode"
+          v-model:is-fiat-mode="form.isFiatMode"
           :price="currentPrice"
           :disabled="form.isProcessing"
         >
@@ -58,10 +58,10 @@ onMounted(() => {
             <button
               id="send-max-button"
               type="button"
-              @click="$emit('set-max')"
               :disabled="form.isProcessing"
               class="text-pep-green-light hover:text-pep-green cursor-pointer text-xs font-bold tracking-wider uppercase disabled:cursor-not-allowed disabled:opacity-50"
               tabindex="-1"
+              @click="$emit('set-max')"
             >
               MAX
             </button>

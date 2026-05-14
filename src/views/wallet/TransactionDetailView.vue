@@ -39,7 +39,7 @@ function openExplorer() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Transaction" :onBack="() => router.push('/dashboard')" />
+      <PepPageHeader title="Transaction" :on-back="() => router.push('/dashboard')" />
     </template>
 
     <div class="flex min-h-0 flex-1 flex-col">
@@ -97,13 +97,13 @@ function openExplorer() {
             </div>
           </PepCard>
 
-          <PepCopyableId label="Transaction ID" :id="txModel.txid" />
+          <PepCopyableId :id="txModel.txid" label="Transaction ID" />
         </div>
       </div>
     </div>
 
     <template #actions>
-      <PepButton v-if="txModel" id="view-on-explorer" @click="openExplorer" class="w-full">
+      <PepButton v-if="txModel" id="view-on-explorer" class="w-full" @click="openExplorer">
         View on Explorer
       </PepButton>
     </template>

@@ -16,8 +16,8 @@ const { wallet: walletStore } = useApp();
     <PepForm
       id="send-transaction-form"
       :loading="form.isProcessing"
-      @submit="$emit('send')"
       class="flex flex-1 flex-col"
+      @submit="$emit('send')"
     >
       <div class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800 p-4 text-left">
         <div class="flex flex-col space-y-0.5">
@@ -44,8 +44,8 @@ const { wallet: walletStore } = useApp();
 
       <div v-if="!walletStore.isMnemonicLoaded" class="mt-0">
         <PepPasswordInput
-          v-model="form.password"
           id="confirm-password"
+          v-model="form.password"
           label="Enter Password to Confirm"
           placeholder="Enter your password"
           :error="form.errors.general"

@@ -161,7 +161,7 @@ onMounted(async () => {
     <template #header>
       <PepPageHeader
         :title="form.step === 3 ? 'Success' : 'Send Inscription'"
-        :onBack="
+        :on-back="
           form.step === 3
             ? handleClose
             : form.step === 2
@@ -196,8 +196,8 @@ onMounted(async () => {
       v-else-if="inscription && form.step === 1"
       :form="form"
       :inscription="inscription"
-      :isInsufficientFunds="isInsufficientFunds"
-      :displayFee="displayFee"
+      :is-insufficient-funds="isInsufficientFunds"
+      :display-fee="displayFee"
       @address-blur="handleAddressBlur"
       @next="handleReview"
     />
@@ -206,7 +206,7 @@ onMounted(async () => {
       v-else-if="inscription && form.step === 2"
       :form="form"
       :inscription="inscription"
-      :displayFee="displayFee"
+      :display-fee="displayFee"
       @send="handleSend"
     />
 
@@ -215,40 +215,40 @@ onMounted(async () => {
     <template #actions>
       <PepLoadingButton
         v-if="inscription && form.step === 1"
-        @click="handleReview"
         :loading="form.isProcessing"
-        :minLoadingMs="UX_DELAY_FAST"
+        :min-loading-ms="UX_DELAY_FAST"
         :disabled="!canReview"
         :variant="isInsufficientFunds ? 'danger' : 'primary'"
         class="w-full"
+        @click="handleReview"
       >
         {{ nextButtonLabel }}
       </PepLoadingButton>
 
       <div v-if="inscription && form.step === 2" class="space-y-3">
         <PepLoadingButton
-          @click="handleSend"
           :loading="form.isProcessing"
-          :minLoadingMs="UX_DELAY_SLOW"
+          :min-loading-ms="UX_DELAY_SLOW"
           :disabled="form.hasError()"
           class="w-full"
+          @click="handleSend"
         >
           Send
         </PepLoadingButton>
         <PepButton
           type="button"
-          @click="handleCancel"
           variant="secondary"
           :disabled="form.isProcessing"
           class="w-full"
+          @click="handleCancel"
         >
           Cancel
         </PepButton>
       </div>
 
       <div v-if="form.step === 3" class="w-full space-y-3">
-        <PepButton @click="openExplorer" class="w-full">View on Explorer</PepButton>
-        <PepButton @click="handleClose" variant="secondary" class="w-full">Close</PepButton>
+        <PepButton class="w-full" @click="openExplorer">View on Explorer</PepButton>
+        <PepButton variant="secondary" class="w-full" @click="handleClose">Close</PepButton>
       </div>
     </template>
   </PepMainLayout>

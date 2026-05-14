@@ -36,15 +36,15 @@ async function handleReset() {
 
       <div class="pt-2">
         <PepCheckbox
-          v-model="confirmedBackup"
           id="confirm-backup"
+          v-model="confirmedBackup"
           label="I have backed up my secret phrase."
         />
       </div>
     </div>
 
     <template #actions>
-      <PepButton @click="handleReset" :disabled="!confirmedBackup" variant="danger" class="w-full">
+      <PepButton :disabled="!confirmedBackup" variant="danger" class="w-full" @click="handleReset">
         Reset wallet
       </PepButton>
     </template>

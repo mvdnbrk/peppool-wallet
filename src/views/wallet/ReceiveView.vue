@@ -10,7 +10,7 @@ const { router, wallet: walletStore } = useApp();
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Receive PEP" :onBack="() => router.push('/dashboard')" />
+      <PepPageHeader title="Receive PEP" :on-back="() => router.push('/dashboard')" />
     </template>
 
     <section class="flex items-center justify-center">

@@ -28,9 +28,9 @@ const { router } = useApp();
       <div class="pt-6">
         <PepButton
           id="security-reset-wallet-button"
-          @click="router.push('/reset-wallet')"
           variant="secondary"
           class="w-full !text-red-400"
+          @click="router.push('/reset-wallet')"
         >
           Reset wallet
         </PepButton>

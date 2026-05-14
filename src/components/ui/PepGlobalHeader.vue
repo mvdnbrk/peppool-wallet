@@ -25,7 +25,7 @@ const { isVisible } = useGlobalHeader();
 
     <div class="relative z-10 border-b border-slate-800 px-4 py-1">
       <div class="flex items-center justify-between">
-        <div @click="router.push('/dashboard')" class="group flex cursor-pointer items-center">
+        <div class="group flex cursor-pointer items-center" @click="router.push('/dashboard')">
           <img
             :src="logoUrl"
             class="mr-2 h-8 w-8 transition-transform group-hover:scale-105"
@@ -37,10 +37,10 @@ const { isVisible } = useGlobalHeader();
         <button
           id="app-settings-button"
           type="button"
-          @click="router.push('/settings')"
           class="cursor-pointer p-1 text-slate-400 transition-colors hover:text-white"
           aria-label="Settings"
           tabindex="-1"
+          @click="router.push('/settings')"
         >
           <PepIcon name="settings" />
         </button>

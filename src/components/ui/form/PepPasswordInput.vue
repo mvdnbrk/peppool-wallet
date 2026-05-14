@@ -36,7 +36,7 @@ defineExpose({
 </script>
 
 <template>
-  <PepInputGroup :label="label" :id="id">
+  <PepInputGroup :id="id" :label="label">
     <div class="grid grid-cols-1">
       <input
         :id="id"
@@ -45,7 +45,6 @@ defineExpose({
         :value="modelValue"
         :autofocus="autofocus"
         :disabled="isDisabled"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         :placeholder="isDisabled ? '' : placeholder"
         class="text-offwhite focus:outline-pep-green col-start-1 row-start-1 block w-full rounded-md bg-white/5 py-1.5 pr-10 pl-3 text-base outline-1 -outline-offset-1 outline-white/10 transition-all placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
         :class="[
@@ -57,6 +56,7 @@ defineExpose({
         ]"
         :aria-invalid="!!error"
         :aria-describedby="`${id}-error`"
+        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       />
 
       <div class="pointer-events-none col-start-1 row-start-1 flex items-center justify-end pr-3">
@@ -66,11 +66,11 @@ defineExpose({
           v-else
           :id="`${id}-toggle`"
           type="button"
-          @click="showPassword = !showPassword"
           :disabled="isDisabled"
           :aria-label="showPassword ? 'Hide password' : 'Show password'"
           class="pointer-events-auto flex cursor-pointer items-center justify-center text-gray-500 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           tabindex="-1"
+          @click="showPassword = !showPassword"
         >
           <PepIcon :name="showPassword ? 'eye' : 'eye-slash'" size="16" />
         </button>

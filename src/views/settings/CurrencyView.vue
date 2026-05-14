@@ -25,10 +25,10 @@ function selectCurrency(code: 'USD' | 'EUR') {
       </p>
 
       <PepRadioList
-        :modelValue="settingsStore.settings.currency"
+        :model-value="settingsStore.settings.currency"
         :options="options"
         name="currency"
-        @update:modelValue="selectCurrency"
+        @update:model-value="selectCurrency"
       />
     </div>
   </PepMainLayout>

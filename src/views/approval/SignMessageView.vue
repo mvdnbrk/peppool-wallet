@@ -60,11 +60,11 @@ function handleReject() {
         <PepButton
           id="reject-signature-button"
           variant="secondary"
-          @click="handleReject"
           :disabled="isProcessing"
+          @click="handleReject"
           >Cancel</PepButton
         >
-        <PepButton id="approve-signature-button" @click="handleApprove" :loading="isProcessing"
+        <PepButton id="approve-signature-button" :loading="isProcessing" @click="handleApprove"
           >Sign</PepButton
         >
       </div>

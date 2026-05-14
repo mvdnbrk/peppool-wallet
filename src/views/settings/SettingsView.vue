@@ -12,7 +12,7 @@ function handleLock() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Settings" backTo="/dashboard" />
+      <PepPageHeader title="Settings" back-to="/dashboard" />
     </template>
 
     <div class="mt-0 flex-1 space-y-2">
@@ -50,7 +50,7 @@ function handleLock() {
       </PepList>
 
       <div class="pt-6">
-        <PepButton @click="handleLock" variant="secondary" class="w-full"> Lock Wallet </PepButton>
+        <PepButton variant="secondary" class="w-full" @click="handleLock"> Lock Wallet </PepButton>
       </div>
     </div>
   </PepMainLayout>

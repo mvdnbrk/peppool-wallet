@@ -92,9 +92,9 @@ async function handleUnlock() {
       <div v-if="walletStore.isCreated" class="w-full">
         <PepForm id="welcome-unlock-form" :loading="form.isProcessing" @submit="handleUnlock">
           <PepPasswordInput
+            id="password"
             ref="passwordInput"
             v-model="form.password"
-            id="password"
             label="Password"
             placeholder="Enter your password"
             :error="loginErrorMessage"
@@ -117,9 +117,9 @@ async function handleUnlock() {
 
           <button
             type="button"
-            @click="router.push('/forgot-password')"
             class="w-full cursor-pointer text-xs text-slate-500 underline transition-colors hover:text-white hover:no-underline"
             tabindex="-1"
+            @click="router.push('/forgot-password')"
           >
             Forgot your password?
           </button>
@@ -127,9 +127,9 @@ async function handleUnlock() {
       </div>
 
       <div v-else class="w-full space-y-4">
-        <PepButton @click="router.push('/create')" class="w-full"> Create new wallet </PepButton>
+        <PepButton class="w-full" @click="router.push('/create')"> Create new wallet </PepButton>
 
-        <PepButton @click="router.push('/import')" variant="secondary" class="w-full">
+        <PepButton variant="secondary" class="w-full" @click="router.push('/import')">
           Import secret phrase
         </PepButton>
       </div>

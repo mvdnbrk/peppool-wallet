@@ -64,9 +64,9 @@ async function handleReveal() {
 
       <div class="space-y-6">
         <PepPasswordInput
+          id="reveal-password"
           ref="passwordInput"
           v-model="password"
-          id="reveal-password"
           label="Password"
           placeholder="Enter your password"
           :error="errorMessage"
@@ -92,19 +92,19 @@ async function handleReveal() {
       <PepLoadingButton
         v-if="step === 1"
         id="reveal-button"
-        @click="handleReveal"
         :loading="isProcessing"
         :disabled="isLockedOut || !password || !!errorMessage || isProcessing"
         class="w-full"
+        @click="handleReveal"
       >
         {{ isLockedOut ? 'Locked' : 'Reveal Phrase' }}
       </PepLoadingButton>
 
       <PepButton
         v-if="step === 2"
-        @click="router.push('/dashboard')"
         variant="secondary"
         class="w-full"
+        @click="router.push('/dashboard')"
       >
         Close
       </PepButton>

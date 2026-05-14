@@ -27,7 +27,7 @@ function handleSubmit(e: Event) {
 </script>
 
 <template>
-  <form :id="id" @submit.prevent="handleSubmit" class="flex flex-1 flex-col gap-6">
+  <form :id="id" class="flex flex-1 flex-col gap-6" @submit.prevent="handleSubmit">
     <div class="flex-1 space-y-6">
       <slot />
     </div>

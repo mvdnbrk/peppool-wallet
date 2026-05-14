@@ -105,6 +105,10 @@
             color: #f87171;
         }
 
+        .status.warn {
+            color: #fbbf24;
+        }
+
         .badge {
             display: inline-block;
             padding: 0.125rem 0.5rem;
@@ -308,10 +312,21 @@
             <label>Or paste base64 PSBT (optional — overrides builder)</label>
             <input id="psbt-raw" type="text" placeholder="cHNidP8BAH...">
             <p class="status" style="margin-top: 0.25rem; font-size: 0.75rem;">
-                Note: signs input 0 with the connected address. For multi-input PSBTs edit the
-                <code>signInputs</code> map in the source.
+                <code>signInputs</code> is auto-derived from prevouts owned by the connected address.
             </p>
         </div>
+        <details style="margin-top: 0.5rem;">
+            <summary style="cursor: pointer; font-size: 0.85rem;">Advanced: override <code>signInputs</code> (guard testing)</summary>
+            <div class="field" style="margin-top: 0.5rem;">
+                <label>Raw <code>signInputs</code> JSON — sent verbatim, bypasses auto-derive</label>
+                <textarea id="psbt-signinputs-override" rows="4"
+                    style="width: 100%; font-family: monospace; font-size: 0.8rem;"
+                    placeholder='{ "Paddr...": [0] }'></textarea>
+                <p class="status" style="margin-top: 0.25rem; font-size: 0.75rem;">
+                    Use to exercise wallet guards: foreign indices, out-of-range indices, wrong owner address, malformed shapes.
+                </p>
+            </div>
+        </details>
         <div class="row">
             <label style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0;">
                 <input id="psbt-broadcast" type="checkbox"> broadcast
@@ -574,29 +589,78 @@
             return psbt.toBase64();
         }
 
+        function deriveSignInputs(base64Psbt) {
+            const { Psbt, address: bAddress } = window._bitcoin;
+            const psbt = Psbt.fromBase64(base64Psbt, { network: PEPECOIN_NETWORK });
+            const indexes = [];
+            psbt.data.inputs.forEach((input, i) => {
+                let script;
+                if (input.witnessUtxo) {
+                    script = input.witnessUtxo.script;
+                } else if (input.nonWitnessUtxo) {
+                    const prevTx = window._bitcoin.Transaction.fromBuffer(input.nonWitnessUtxo);
+                    const vout = psbt.txInputs[i].index;
+                    script = prevTx.outs[vout].script;
+                }
+                if (!script) return;
+                try {
+                    const addr = bAddress.fromOutputScript(script, PEPECOIN_NETWORK);
+                    if (addr === connectedAddress) indexes.push(i);
+                } catch (_) {
+                    /* unrecognised script — skip */
+                }
+            });
+            return indexes;
+        }
+
         document.getElementById('btn-sign-psbt').addEventListener('click', async () => {
             const recipient = document.getElementById('psbt-recipient').value.trim();
             const amount = parseInt(document.getElementById('psbt-amount').value, 10);
             const raw = document.getElementById('psbt-raw').value.trim();
+            const overrideRaw = document.getElementById('psbt-signinputs-override').value.trim();
             const broadcast = document.getElementById('psbt-broadcast').checked;
 
             try {
                 if (!connectedAddress) throw new Error('Connect the wallet first');
+                if (!window._bitcoin) throw new Error('bitcoinjs-lib still loading — try again in a moment');
                 let base64Psbt;
                 if (raw) {
                     base64Psbt = raw;
                 } else {
                     if (!recipient) throw new Error('Enter a recipient address');
                     if (!amount || amount <= 0) throw new Error('Enter a valid amount');
-                    if (!window._bitcoin) throw new Error('bitcoinjs-lib still loading — try again in a moment');
                     setStatus('psbt-status', 'Building PSBT…', '');
                     base64Psbt = await buildSamplePsbt(recipient, amount);
                 }
 
-                setStatus('psbt-status', `Requesting signature${broadcast ? ' + broadcast' : ''}…`, '');
+                let signInputs;
+                let warning = '';
+                if (overrideRaw) {
+                    try {
+                        signInputs = JSON.parse(overrideRaw);
+                    } catch (e) {
+                        throw new Error(`Override is not valid JSON: ${e.message}`);
+                    }
+                    log('signPsbt', 'warn', 'using override signInputs — bypassing auto-derive');
+                } else {
+                    const indexes = deriveSignInputs(base64Psbt);
+                    if (indexes.length === 0) {
+                        warning = `No inputs in this PSBT belong to ${connectedAddress} — sending naive [0] so the wallet guard is exercised.`;
+                        log('signPsbt', 'warn', 'no matching inputs — falling back to [0]');
+                        signInputs = { [connectedAddress]: [0] };
+                    } else {
+                        signInputs = { [connectedAddress]: indexes };
+                    }
+                }
+
+                if (warning) {
+                    setStatus('psbt-status', `${warning} Requesting signature…`, 'warn');
+                } else {
+                    setStatus('psbt-status', `Requesting signature${broadcast ? ' + broadcast' : ''}…`, '');
+                }
                 const result = await provider.request('signPsbt', {
                     psbt: base64Psbt,
-                    signInputs: { [connectedAddress]: [0] },
+                    signInputs,
                     broadcast
                 });
                 const text = result.txid

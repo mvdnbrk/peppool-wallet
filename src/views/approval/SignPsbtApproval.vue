@@ -13,7 +13,13 @@ import PepInscription from '@/components/ui/PepInscription.vue';
 import type { Inscription } from '@/models/Inscription';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
-import { ALLOWED_SIGHASHES, SIGHASH, getInputSighash, sighashLabel } from '@/utils/psbt';
+import {
+  ALLOWED_SIGHASHES,
+  SIGHASH,
+  getInputSighash,
+  sighashLabel,
+  verifyPsbtOwnership
+} from '@/utils/psbt';
 
 interface SignPsbtParams {
   psbt: string;
@@ -180,15 +186,10 @@ async function handleApprove() {
     const myAddress = walletStore.address;
     if (!myAddress) throw new Error('No active account.');
 
+    const ownershipError = verifyPsbtOwnership({ psbt: base64Psbt, signInputs }, myAddress);
+    if (ownershipError) throw new Error(ownershipError);
+
     const indices = signInputs[myAddress] ?? [];
-    if (indices.length === 0) {
-      throw new Error('This PSBT is not for the active account.');
-    }
-    for (const i of indices) {
-      if (i < 0 || i >= psbt.inputCount) {
-        throw new Error(`signInputs index ${i} is out of range.`);
-      }
-    }
 
     const sighashes = indices.map((i) => getInputSighash(psbt, i));
     for (const flag of sighashes) {

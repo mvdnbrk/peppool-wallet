@@ -358,7 +358,7 @@ function handleReject() {
           <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">Net change</span>
           <span
             class="text-sm font-bold"
-            :class="psbtDetails.netChangeRibbits < 0 ? 'text-red-400' : 'text-pepe-green'"
+            :class="psbtDetails.netChangeRibbits < 0 ? 'text-red-400' : ''"
           >
             {{ psbtDetails.netChangeRibbits > 0 ? '+' : ''
             }}{{ formatPep(psbtDetails.netChangeRibbits) }}

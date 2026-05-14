@@ -45,10 +45,7 @@ const title = computed(() => {
         :key="i"
         class="space-y-1 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
       >
-        <div
-          v-if="row.inscription"
-          class="text-[10px] font-bold tracking-widest uppercase"
-        >
+        <div v-if="row.inscription" class="text-[10px] font-bold tracking-widest uppercase">
           Inscription {{ row.inscription.number }}
         </div>
         <div class="flex items-center justify-between gap-3">

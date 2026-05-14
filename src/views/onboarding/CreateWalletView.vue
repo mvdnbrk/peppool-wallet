@@ -51,8 +51,8 @@ async function handleCreate() {
     <template #header>
       <PepPageHeader
         title="Create wallet"
-        :onBack="step === 2 ? backToPassword : undefined"
-        :backTo="step === 1 ? '/' : undefined"
+        :on-back="step === 2 ? backToPassword : undefined"
+        :back-to="step === 1 ? '/' : undefined"
       />
     </template>
 
@@ -60,8 +60,8 @@ async function handleCreate() {
     <div v-if="step === 1" class="flex flex-1 flex-col pt-0">
       <PepForm
         id="create-wallet-password-form"
-        @submit="handleNextToSeed"
         class="flex flex-1 flex-col"
+        @submit="handleNextToSeed"
       >
         <div class="space-y-2 text-sm text-slate-400">
           <p>Set a password to protect your wallet.</p>
@@ -70,7 +70,7 @@ async function handleCreate() {
 
         <PepPasswordFields
           v-model:password="form.password"
-          v-model:confirmPassword="form.confirmPassword"
+          v-model:confirm-password="form.confirmPassword"
           :errors="form.errors"
           @blur-password="onBlurPassword"
           @blur-confirm="onBlurConfirmPassword"
@@ -83,8 +83,8 @@ async function handleCreate() {
       <PepForm
         id="create-wallet-confirm-form"
         :loading="form.isProcessing"
-        @submit="handleCreate"
         class="flex flex-1 flex-col"
+        @submit="handleCreate"
       >
         <div class="space-y-2 pb-0 text-sm text-slate-400">
           <p class="text-offwhite font-bold">Write down your secret phrase</p>
@@ -97,8 +97,8 @@ async function handleCreate() {
 
         <div class="pt-0">
           <PepCheckbox
-            v-model="confirmedSeed"
             id="confirm-seed"
+            v-model="confirmedSeed"
             label="I have written down my secret phrase and stored it in a safe place."
             :disabled="form.isProcessing"
           />

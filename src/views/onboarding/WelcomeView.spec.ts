@@ -200,18 +200,18 @@ describe('WelcomeView Logic', () => {
     mockStore.isCreated = true;
     const wrapper = mount(WelcomeView, { global });
 
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.password = 'some-text';
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.setError('general', 'Previous error');
 
     // Trigger lockout
     isLockedOut.value = true;
     await nextTick();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.password).toBe('');
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.hasError()).toBe(false);
   });
 
@@ -226,7 +226,7 @@ describe('WelcomeView Logic', () => {
     mockStore.unlock.mockRejectedValue(new Error('Boom'));
 
     const wrapper = mount(WelcomeView, { global });
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.handleUnlock();
 
     expect(wrapper.text()).toContain('Incorrect password');

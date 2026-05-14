@@ -56,13 +56,13 @@ describe('ResetWalletView Feature', () => {
     const resetSpy = vi.spyOn(mockWallet, 'resetWallet');
 
     // 1. Initial state: button should be disabled
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.confirmedBackup).toBe(false);
 
     // 2. Check the checkbox
     const checkbox = wrapper.find('input[type="checkbox"]');
     await checkbox.setValue(true);
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.confirmedBackup).toBe(true);
 
     // 3. Trigger form submit

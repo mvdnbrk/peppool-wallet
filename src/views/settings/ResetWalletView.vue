@@ -21,7 +21,7 @@ async function handleReset() {
     <template #header>
       <PepPageHeader title="Reset wallet" />
     </template>
-    <PepForm id="reset-wallet-form" @submit="handleReset" class="flex flex-1 flex-col">
+    <PepForm id="reset-wallet-form" class="flex flex-1 flex-col" @submit="handleReset">
       <div class="space-y-4 text-sm text-slate-400">
         <p class="text-offwhite font-bold">
           This will completely wipe your wallet data from this browser.
@@ -38,8 +38,8 @@ async function handleReset() {
 
       <div class="pt-0">
         <PepCheckbox
-          v-model="confirmedBackup"
           id="confirm-backup"
+          v-model="confirmedBackup"
           label="I have backed up my secret phrase."
         />
       </div>
@@ -50,7 +50,7 @@ async function handleReset() {
         type="submit"
         form="reset-wallet-form"
         :loading="isProcessing"
-        :minLoadingMs="UX_DELAY_NORMAL"
+        :min-loading-ms="UX_DELAY_NORMAL"
         :disabled="!confirmedBackup"
         variant="danger"
         class="w-full"

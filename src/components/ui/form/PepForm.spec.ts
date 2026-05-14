@@ -5,11 +5,11 @@ import PepForm from './PepForm.vue';
 
 // A test child component that injects the form state
 const ChildComponent = defineComponent({
-  template: '<div>{{ isFormDisabled }}</div>',
   setup() {
     const isFormDisabled = inject('isFormDisabled');
     return { isFormDisabled };
-  }
+  },
+  template: '<div>{{ isFormDisabled }}</div>'
 });
 
 describe('PepForm UI Component', () => {

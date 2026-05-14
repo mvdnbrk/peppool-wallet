@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useImportWallet } from './useImportWallet';
 import { useApp } from '@/composables/useApp';
-import { flushPromises, mount } from '@vue/test-utils';
+import { flushPromises } from '@vue/test-utils';
 import { defineComponent, createApp } from 'vue';
 
 // Mock dependencies

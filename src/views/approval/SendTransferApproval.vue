@@ -191,7 +191,7 @@ function handleReject() {
 
     <template #actions>
       <div v-if="invalidRequest">
-        <PepButton id="reject-transaction-button" variant="secondary" @click="handleReject" block
+        <PepButton id="reject-transaction-button" variant="secondary" block @click="handleReject"
           >Close</PepButton
         >
       </div>
@@ -199,15 +199,15 @@ function handleReject() {
         <PepButton
           id="reject-transaction-button"
           variant="secondary"
-          @click="handleReject"
           :disabled="isProcessing"
+          @click="handleReject"
           >Cancel</PepButton
         >
         <PepButton
           id="approve-transaction-button"
-          @click="handleApprove"
           :loading="isProcessing"
           :disabled="!displayFee"
+          @click="handleApprove"
           >Approve</PepButton
         >
       </div>

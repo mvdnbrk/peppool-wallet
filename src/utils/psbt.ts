@@ -114,7 +114,7 @@ export function verifyPsbtOwnership(
       return `Input ${i} is missing nonWitnessUtxo; cannot verify ownership.`;
     }
     const txIn = psbt.txInputs[i]!;
-    let prevAddress: string | null = null;
+    let prevAddress: string;
     try {
       const prevTx = bitcoin.Transaction.fromBuffer(data.nonWitnessUtxo);
       const out = prevTx.outs[txIn.index];

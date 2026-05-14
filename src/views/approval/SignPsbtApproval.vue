@@ -126,7 +126,6 @@ function decodePsbtSummary(
       const data = psbt.data.inputs[i];
       let address: string | null = null;
       let value: number | null = null;
-      let inscription: Inscription | null = null;
       if (data?.nonWitnessUtxo) {
         const prevTx = bitcoin.Transaction.fromBuffer(data.nonWitnessUtxo);
         const out = prevTx.outs[txIn.index];
@@ -140,7 +139,7 @@ function decodePsbtSummary(
         }
       }
       const prevTxid = Buffer.from(txIn.hash).reverse().toString('hex');
-      inscription = findInscriptionByOutput(prevTxid, txIn.index);
+      const inscription = findInscriptionByOutput(prevTxid, txIn.index);
       return {
         address,
         amountRibbits: value,
@@ -353,11 +352,11 @@ function handleReject() {
         <PepButton
           id="reject-transaction-button"
           variant="secondary"
-          @click="handleReject"
           :disabled="isProcessing"
+          @click="handleReject"
           >Cancel</PepButton
         >
-        <PepButton id="approve-transaction-button" @click="handleApprove" :loading="isProcessing"
+        <PepButton id="approve-transaction-button" :loading="isProcessing" @click="handleApprove"
           >Approve</PepButton
         >
       </div>

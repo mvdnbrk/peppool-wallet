@@ -53,8 +53,8 @@ const { wallet: walletStore } = useApp();
 
       <div v-if="!walletStore.isMnemonicLoaded" class="mt-0">
         <PepPasswordInput
-          v-model="form.password"
           id="confirm-password"
+          v-model="form.password"
           label="Enter Password to Confirm"
           placeholder="Enter your password"
           :error="form.errors.general"

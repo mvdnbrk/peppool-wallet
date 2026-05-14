@@ -28,7 +28,7 @@ function open(id: string) {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Inscriptions" :onBack="() => router.push('/dashboard')" />
+      <PepPageHeader title="Inscriptions" :on-back="() => router.push('/dashboard')" />
     </template>
 
     <div class="flex min-h-0 flex-1 flex-col">
@@ -52,8 +52,8 @@ function open(id: string) {
             v-for="item in items"
             :key="item.id"
             type="button"
-            @click="open(item.id)"
             class="group overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50 text-left transition-colors hover:border-slate-600"
+            @click="open(item.id)"
           >
             <div class="aspect-square w-full overflow-hidden">
               <PepInscription :id="item.id" :content-type="item.contentType" :interactive="false" />

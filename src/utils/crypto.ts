@@ -70,7 +70,7 @@ export function isValidAddress(address: string): boolean {
   try {
     bitcoin.address.toOutputScript(address, PEPECOIN);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

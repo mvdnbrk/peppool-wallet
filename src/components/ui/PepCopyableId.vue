@@ -13,9 +13,9 @@ const truncated = computed(() => truncateId(props.id));
 <template>
   <PepInputGroup
     v-if="label"
-    :label="label"
     :id="id"
-    labelClass="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left"
+    :label="label"
+    label-class="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1 text-left"
   >
     <div class="flex items-center gap-2">
       <div

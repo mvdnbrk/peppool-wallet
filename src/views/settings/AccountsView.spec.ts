@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import AccountsView from './AccountsView.vue';
 import { useApp } from '@/composables/useApp';
 import PepButton from '@/components/ui/PepButton.vue';

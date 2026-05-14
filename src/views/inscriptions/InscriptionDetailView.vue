@@ -66,7 +66,7 @@ function goToSend() {
 <template>
   <PepMainLayout>
     <template #header>
-      <PepPageHeader title="Inscription" :onBack="() => router.push('/inscriptions')" />
+      <PepPageHeader title="Inscription" :on-back="() => router.push('/inscriptions')" />
     </template>
 
     <div class="flex min-h-0 flex-1 flex-col">
@@ -136,14 +136,14 @@ function goToSend() {
           </div>
         </PepCard>
 
-        <PepCopyableId label="Inscription ID" :id="inscription.id" />
+        <PepCopyableId :id="inscription.id" label="Inscription ID" />
       </div>
     </div>
 
     <template #actions>
       <div v-if="inscription" class="w-full space-y-3">
-        <PepButton id="send-inscription" @click="goToSend" class="w-full"> Send </PepButton>
-        <PepButton id="view-on-explorer" @click="openExplorer" variant="secondary" class="w-full">
+        <PepButton id="send-inscription" class="w-full" @click="goToSend"> Send </PepButton>
+        <PepButton id="view-on-explorer" variant="secondary" class="w-full" @click="openExplorer">
           View on Explorer
         </PepButton>
       </div>

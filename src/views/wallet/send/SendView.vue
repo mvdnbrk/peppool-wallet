@@ -192,7 +192,7 @@ onMounted(async () => {
 
   try {
     await loadFees();
-  } catch (e) {
+  } catch {
     // Error handled in composable
   }
 });
@@ -203,7 +203,7 @@ onMounted(async () => {
     <template #header>
       <PepPageHeader
         :title="form.step === 3 ? 'Success' : 'Send PEP'"
-        :onBack="
+        :on-back="
           form.step === 3
             ? handleClose
             : form.step === 2
@@ -222,10 +222,10 @@ onMounted(async () => {
     <SendStepForm
       v-if="form.step === 1"
       :form="form"
-      :isInsufficientFunds="isInsufficientFunds"
-      :currentPrice="currentPrice"
-      :displayBalance="displayBalance"
-      :displayFee="displayFee"
+      :is-insufficient-funds="isInsufficientFunds"
+      :current-price="currentPrice"
+      :display-balance="displayBalance"
+      :display-fee="displayFee"
       @address-blur="handleAddressBlur"
       @set-max="setMax"
       @next="handleReview"
@@ -235,7 +235,7 @@ onMounted(async () => {
       v-if="form.step === 2"
       :form="form"
       :tx="tx"
-      :displayFee="displayFee"
+      :display-fee="displayFee"
       @send="handleSend"
     />
 
@@ -245,12 +245,12 @@ onMounted(async () => {
       <!-- Step 1 Actions -->
       <PepLoadingButton
         v-if="form.step === 1"
-        @click="handleReview"
         :loading="form.isProcessing"
-        :minLoadingMs="UX_DELAY_FAST"
+        :min-loading-ms="UX_DELAY_FAST"
         :disabled="!canReview"
         :variant="isInsufficientFunds ? 'danger' : 'primary'"
         class="w-full"
+        @click="handleReview"
       >
         {{ nextButtonLabel }}
       </PepLoadingButton>
@@ -258,20 +258,20 @@ onMounted(async () => {
       <!-- Step 2 Actions -->
       <div v-if="form.step === 2" class="space-y-3">
         <PepLoadingButton
-          @click="handleSend"
           :loading="form.isProcessing"
-          :minLoadingMs="UX_DELAY_SLOW"
+          :min-loading-ms="UX_DELAY_SLOW"
           :disabled="form.hasError()"
           class="w-full"
+          @click="handleSend"
         >
           Send
         </PepLoadingButton>
         <PepButton
           type="button"
-          @click="handleCancel"
           variant="secondary"
           :disabled="form.isProcessing"
           class="w-full"
+          @click="handleCancel"
         >
           Cancel
         </PepButton>
@@ -279,8 +279,8 @@ onMounted(async () => {
 
       <!-- Step 3 Actions -->
       <div v-if="form.step === 3" class="w-full space-y-3">
-        <PepButton @click="openExplorer" class="w-full"> View on Explorer </PepButton>
-        <PepButton @click="handleClose" variant="secondary" class="w-full"> Close </PepButton>
+        <PepButton class="w-full" @click="openExplorer"> View on Explorer </PepButton>
+        <PepButton variant="secondary" class="w-full" @click="handleClose"> Close </PepButton>
       </div>
     </template>
   </PepMainLayout>

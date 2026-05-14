@@ -75,17 +75,17 @@ async function handleImport() {
     <PepForm
       id="import-wallet-form"
       :loading="form.isProcessing"
-      @submit="handleImport"
       class="flex flex-1 flex-col"
+      @submit="handleImport"
     >
       <PepInputGroup
-        label="Secret phrase (12 or 24 words)"
         id="mnemonic"
+        label="Secret phrase (12 or 24 words)"
         :error="invalidWords.length > 0 ? '' : form.errors.mnemonic"
       >
         <textarea
-          v-model="form.mnemonic"
           id="mnemonic"
+          v-model="form.mnemonic"
           rows="3"
           placeholder="word1 word2 ..."
           :disabled="form.isProcessing"
@@ -105,7 +105,7 @@ async function handleImport() {
 
       <PepPasswordFields
         v-model:password="form.password"
-        v-model:confirmPassword="form.confirmPassword"
+        v-model:confirm-password="form.confirmPassword"
         :errors="form.errors"
         @blur-password="onBlurPassword"
         @blur-confirm="onBlurConfirmPassword"

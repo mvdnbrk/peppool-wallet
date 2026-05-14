@@ -28,8 +28,8 @@ const isDisabled = computed(() => props.disabled || formDisabled.value);
           type="checkbox"
           :checked="modelValue"
           :disabled="isDisabled"
-          @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
           class="checked:border-pep-green checked:bg-pep-green focus-visible:outline-pep-green hover:border-pep-green-light col-start-1 row-start-1 cursor-pointer appearance-none rounded-md border border-white/40 bg-white/5 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+          @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
         />
         <div
           class="pointer-events-none col-start-1 row-start-1 flex size-4 items-center justify-center self-center justify-self-center"

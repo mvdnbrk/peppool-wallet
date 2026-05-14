@@ -28,10 +28,10 @@ async function selectDuration(val: number) {
       </p>
 
       <PepRadioList
-        :modelValue="settingsStore.settings.lockDuration"
+        :model-value="settingsStore.settings.lockDuration"
         :options="options"
         name="auto-lock"
-        @update:modelValue="selectDuration"
+        @update:model-value="selectDuration"
       />
     </div>
   </PepMainLayout>

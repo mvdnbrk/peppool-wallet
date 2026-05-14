@@ -41,7 +41,7 @@ function handleClear() {
 </script>
 
 <template>
-  <PepInputGroup :label="label" :id="id">
+  <PepInputGroup :id="id" :label="label">
     <div
       class="flex items-center rounded-md bg-white/5 outline-1 -outline-offset-1 transition-opacity duration-200 focus-within:outline-2 focus-within:-outline-offset-2"
       :class="[
@@ -61,9 +61,6 @@ function handleClear() {
         :value="modelValue"
         :autofocus="autofocus"
         :disabled="isDisabled"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        @beforeinput="$emit('beforeinput', $event)"
-        @blur="$emit('blur', $event)"
         :placeholder="placeholder"
         class="text-offwhite block min-w-0 grow bg-transparent py-1.5 text-base placeholder:text-gray-500 focus:outline-none sm:text-sm"
         :class="[
@@ -74,6 +71,9 @@ function handleClear() {
         ]"
         :aria-invalid="!!error"
         :aria-describedby="`${id}-error`"
+        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        @beforeinput="$emit('beforeinput', $event)"
+        @blur="$emit('blur', $event)"
       />
 
       <div
@@ -88,10 +88,10 @@ function handleClear() {
           :id="`${id}-clear`"
           type="button"
           :disabled="isDisabled"
-          @mousedown.prevent="handleClear"
           aria-label="Clear input"
           class="cursor-pointer text-slate-500 transition-colors hover:text-slate-300 disabled:cursor-not-allowed"
           tabindex="-1"
+          @mousedown.prevent="handleClear"
         >
           <PepIcon name="clear" size="16" />
         </button>

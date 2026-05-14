@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ImportWalletView from './ImportWalletView.vue';
 import { useApp } from '@/composables/useApp';
-import { useImportWallet } from '@/composables/useImportWallet';
 
 // UI Components
 import PepForm from '@/components/ui/form/PepForm.vue';

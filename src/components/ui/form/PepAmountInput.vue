@@ -10,7 +10,7 @@ import PepIcon from '@/components/ui/PepIcon.vue';
 interface Props {
   ribbits: number;
   price: number; // Price of 1 PEP in current fiat
-  isFiatMode: boolean;
+  isFiatMode?: boolean;
   disabled?: boolean;
   label?: string;
   id?: string;
@@ -146,12 +146,12 @@ function toggleMode() {
 
     <PepInput
       :id="id"
-      :modelValue="inputValue"
+      :model-value="inputValue"
       placeholder="0.00"
       inputmode="decimal"
       :disabled="disabled"
-      inputClass="font-bold"
-      @update:modelValue="handleInput"
+      input-class="font-bold"
+      @update:model-value="handleInput"
       @beforeinput="handleBeforeInput"
       @blur="handleBlur"
     >
@@ -165,12 +165,12 @@ function toggleMode() {
         <button
           :id="`${id}-currency-toggle`"
           type="button"
-          @click="toggleMode"
           :disabled="disabled"
           class="hover:text-pep-green-light mr-1 shrink-0 cursor-pointer rounded p-1 text-slate-500 transition-colors disabled:cursor-not-allowed"
           aria-label="Switch currency"
           title="Switch currency"
           tabindex="-1"
+          @click="toggleMode"
         >
           <PepIcon name="swap" size="16" />
         </button>

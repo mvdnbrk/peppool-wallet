@@ -1,4 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as bitcoin from 'bitcoinjs-lib';
+import { PEPECOIN } from '@/utils/networks';
+
+function payment(hashByte: number) {
+  const hash = new Uint8Array(20).fill(hashByte);
+  return bitcoin.payments.p2pkh({ hash, network: PEPECOIN as any });
+}
+
+const PAY_A = payment(0x11);
+const PAY_B = payment(0x22);
+const REAL_ADDR_A = PAY_A.address!;
+const REAL_ADDR_B = PAY_B.address!;
+
+function buildPsbt(prevPayment: { output?: Uint8Array }, outAddress: string): string {
+  const prevTx = new bitcoin.Transaction();
+  prevTx.version = 1;
+  prevTx.addInput(new Uint8Array(32), 0);
+  prevTx.addOutput(prevPayment.output!, 100_000n as any);
+
+  const psbt = new bitcoin.Psbt({ network: PEPECOIN as any });
+  psbt.setVersion(1);
+  psbt.addInput({
+    hash: prevTx.getId(),
+    index: 0,
+    nonWitnessUtxo: Uint8Array.from(prevTx.toBuffer()) as any
+  });
+  psbt.addOutput({ address: outAddress, value: 90_000n as any });
+  return psbt.toBase64();
+}
+
+function buildPsbtWithoutNonWitnessUtxo(
+  payTo: { output?: Uint8Array },
+  outAddress: string
+): string {
+  const psbt = new bitcoin.Psbt({ network: PEPECOIN as any });
+  psbt.setVersion(1);
+  psbt.addInput({
+    hash: '00'.repeat(32),
+    index: 0,
+    witnessUtxo: { script: payTo.output!, value: 100_000n as any }
+  });
+  psbt.addOutput({ address: outAddress, value: 90_000n as any });
+  return psbt.toBase64();
+}
 
 // Capture the onMessage listener when background.ts loads
 let messageListener: (...args: any[]) => any;
@@ -319,10 +363,10 @@ describe('background sendTransfer param validation', () => {
 describe('background signPsbt param validation', () => {
   const storageData: Record<string, any> = {
     peppool_permissions: {
-      'https://dapp.com': { accounts: ['Ptest123'], permissions: ['connect'] }
+      'https://dapp.com': { accounts: [REAL_ADDR_A], permissions: ['connect'] }
     },
     peppool_accounts: JSON.stringify([
-      { address: 'Ptest123', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
+      { address: REAL_ADDR_A, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }
     ]),
     peppool_active_account: '0'
   };
@@ -370,9 +414,45 @@ describe('background signPsbt param validation', () => {
 
   it('opens approval popup for valid signPsbt request', async () => {
     sendDappMessage('signPsbt', 'https://dapp.com', {
-      psbt: 'base64',
-      signInputs: { PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1: [0] }
+      psbt: buildPsbt(PAY_A, REAL_ADDR_A),
+      signInputs: { [REAL_ADDR_A]: [0] }
     });
     await vi.waitFor(() => expect(windowsCreateMock).toHaveBeenCalled());
+  });
+
+  it('rejects signPsbt whose prevout pays a foreign address', async () => {
+    const sendResponse = sendDappMessage('signPsbt', 'https://dapp.com', {
+      psbt: buildPsbt(PAY_B, REAL_ADDR_A),
+      signInputs: { [REAL_ADDR_A]: [0] }
+    });
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'Input 0 does not belong to the active account.'
+    });
+    expect(windowsCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects signPsbt whose input is missing nonWitnessUtxo', async () => {
+    const sendResponse = sendDappMessage('signPsbt', 'https://dapp.com', {
+      psbt: buildPsbtWithoutNonWitnessUtxo(PAY_A, REAL_ADDR_A),
+      signInputs: { [REAL_ADDR_A]: [0] }
+    });
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'Input 0 is missing nonWitnessUtxo; cannot verify ownership.'
+    });
+    expect(windowsCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects signPsbt with an out-of-range index after passing shape validation', async () => {
+    const sendResponse = sendDappMessage('signPsbt', 'https://dapp.com', {
+      psbt: buildPsbt(PAY_A, REAL_ADDR_A),
+      signInputs: { [REAL_ADDR_A]: [5] }
+    });
+    await vi.waitFor(() => expect(sendResponse).toHaveBeenCalled());
+    expect(sendResponse).toHaveBeenCalledWith({
+      error: 'signInputs index 5 is out of range.'
+    });
+    expect(windowsCreateMock).not.toHaveBeenCalled();
   });
 });

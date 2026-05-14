@@ -72,7 +72,7 @@ function makeRequest(params: Record<string, unknown>) {
 }
 
 describe('SignPsbtApproval', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     setActivePinia(createPinia());
     localStorage.clear();
     vi.clearAllMocks();
@@ -82,7 +82,21 @@ describe('SignPsbtApproval', () => {
     vi.spyOn(store, 'checkSession').mockResolvedValue(true);
 
     mockPsbt.inputCount = 2;
-    mockPsbt.data.inputs = [{}, {}] as any;
+    mockPsbt.data.inputs = [
+      { nonWitnessUtxo: Buffer.from('aa', 'hex') },
+      { nonWitnessUtxo: Buffer.from('aa', 'hex') }
+    ] as any;
+    mockPsbt.txInputs = [
+      { hash: Buffer.alloc(32), index: 0 },
+      { hash: Buffer.alloc(32), index: 0 }
+    ] as any;
+
+    // Default: every prevout decodes to the active account 'Psender'.
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.Transaction.fromBuffer as any).mockReturnValue({
+      outs: [{ script: Buffer.from('mine', 'utf8'), value: 100_000 }]
+    });
+    (bitcoin.address.fromOutputScript as any).mockReturnValue('Psender');
 
     makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [0] } });
   });
@@ -201,7 +215,8 @@ describe('SignPsbtApproval', () => {
 
   it('honors SIGHASH_SINGLE | ANYONECANPAY from PSBT input data', async () => {
     mockPsbt.inputCount = 1;
-    mockPsbt.data.inputs = [{ sighashType: 0x83 }] as any;
+    mockPsbt.data.inputs = [{ sighashType: 0x83, nonWitnessUtxo: Buffer.from('aa', 'hex') }] as any;
+    mockPsbt.txInputs = [{ hash: Buffer.alloc(32), index: 0 }] as any;
     makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [0] } });
     mockSignInput.mockImplementation(() => {});
 
@@ -226,7 +241,8 @@ describe('SignPsbtApproval', () => {
 
   it('rejects unsupported sighash types', async () => {
     mockPsbt.inputCount = 1;
-    mockPsbt.data.inputs = [{ sighashType: 0x02 }] as any;
+    mockPsbt.data.inputs = [{ sighashType: 0x02, nonWitnessUtxo: Buffer.from('aa', 'hex') }] as any;
+    mockPsbt.txInputs = [{ hash: Buffer.alloc(32), index: 0 }] as any;
     makeRequest({ psbt: 'base64-psbt-data', signInputs: { Psender: [0] } });
 
     const store = useWalletStore();
@@ -250,7 +266,8 @@ describe('SignPsbtApproval', () => {
 
   it('rejects broadcast when any signed input has non-default sighash', async () => {
     mockPsbt.inputCount = 1;
-    mockPsbt.data.inputs = [{ sighashType: 0x83 }] as any;
+    mockPsbt.data.inputs = [{ sighashType: 0x83, nonWitnessUtxo: Buffer.from('aa', 'hex') }] as any;
+    mockPsbt.txInputs = [{ hash: Buffer.alloc(32), index: 0 }] as any;
     makeRequest({
       psbt: 'base64-psbt-data',
       signInputs: { Psender: [0] },
@@ -376,6 +393,29 @@ describe('SignPsbtApproval', () => {
 
     expect(wrapper.text()).toContain('You will transfer');
     expect(wrapper.text()).not.toContain('You will receive');
+  });
+
+  it('rejects when prevout decodes to a non-mine address', async () => {
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.address.fromOutputScript as any).mockReturnValue('Pforeign');
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: 'Psender', path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'isMnemonicLoaded', 'get').mockReturnValue(true);
+    vi.spyOn(store, 'withMnemonic').mockImplementation((fn: any) =>
+      fn('suffer dish east miss seat great brother hello motion mountain celery plunge')
+    );
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    await wrapper.find('#approve-transaction-button').trigger('click');
+    await flushPromises();
+
+    expect(mockSignInput).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('does not belong to the active account');
   });
 
   it('sends rejection on cancel', async () => {

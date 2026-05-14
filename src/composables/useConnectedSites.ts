@@ -12,9 +12,9 @@ export function useConnectedSites() {
     try {
       const permissions = await loadPermissions();
       connectedSites.value = Object.keys(permissions);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to load connected sites', err);
-      error.value = err.message || 'Failed to load connected sites';
+      error.value = err instanceof Error ? err.message : 'Failed to load connected sites';
     } finally {
       isLoading.value = false;
     }
@@ -28,9 +28,9 @@ export function useConnectedSites() {
         await savePermissions(revokeOrigin(permissions, origin));
         connectedSites.value = connectedSites.value.filter((site) => site !== origin);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to revoke access', err);
-      error.value = err.message || 'Failed to revoke access';
+      error.value = err instanceof Error ? err.message : 'Failed to revoke access';
     }
   }
 

@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue';
 import { useWalletStore } from '@/stores/wallet';
 
-interface ApprovalRequest<TParams = any> {
+interface ApprovalRequest<TParams = unknown> {
   requestId: string;
   method: string;
   params: TParams;
@@ -9,14 +9,14 @@ interface ApprovalRequest<TParams = any> {
 }
 
 interface UseApprovalRequestOptions<TParams> {
-  /**
-   * Optional validator. Return a non-empty string to mark the request as invalid
-   * (renders the invalid-request screen instead of the approval form).
-   */
+  // Return a non-empty string to render the invalid-request screen instead
+  // of the approval form.
   validate?: (request: ApprovalRequest<TParams>) => string | null;
 }
 
-export function useApprovalRequest<TParams = any>(opts: UseApprovalRequestOptions<TParams> = {}) {
+export function useApprovalRequest<TParams = unknown>(
+  opts: UseApprovalRequestOptions<TParams> = {}
+) {
   const walletStore = useWalletStore();
 
   const requestId = ref('');
@@ -48,11 +48,7 @@ export function useApprovalRequest<TParams = any>(opts: UseApprovalRequestOption
     await walletStore.checkSession();
   });
 
-  /**
-   * Runs the action with the decrypted mnemonic. The router guard already
-   * ensures the wallet is unlocked before any /approve/* route mounts, so no
-   * password prompting is needed here.
-   */
+  // The router guard already unlocks the wallet before any /approve/* route mounts.
   async function runWithMnemonic(action: (mnemonic: string) => Promise<void>) {
     if (!requestId.value || !requestData.value) return;
     error.value = '';
@@ -60,16 +56,13 @@ export function useApprovalRequest<TParams = any>(opts: UseApprovalRequestOption
 
     try {
       await walletStore.withMnemonic(action);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Approval action failed', err);
-      error.value = err.message || 'Action failed';
+      error.value = err instanceof Error ? err.message : 'Action failed';
       isProcessing.value = false;
     }
   }
 
-  /**
-   * Sends a successful response to the background, cleans up storage and closes the window.
-   */
   async function approve(result: unknown) {
     chrome.runtime.sendMessage({
       target: 'peppool-background-response',
@@ -80,9 +73,6 @@ export function useApprovalRequest<TParams = any>(opts: UseApprovalRequestOption
     window.close();
   }
 
-  /**
-   * Sends a rejection to the background, cleans up storage and closes the window.
-   */
   async function reject(errorMessage: string) {
     if (!requestId.value) return;
 

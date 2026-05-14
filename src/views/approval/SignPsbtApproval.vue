@@ -122,7 +122,7 @@ function decodePsbtSummary(
   try {
     const psbt = bitcoin.Psbt.fromBase64(base64, { network: PEPECOIN });
 
-    const inputs: PsbtIO[] = psbt.txInputs.map((txIn: any, i: number) => {
+    const inputs: PsbtIO[] = psbt.txInputs.map((txIn, i) => {
       const data = psbt.data.inputs[i];
       let address: string | null = null;
       let value: number | null = null;
@@ -149,7 +149,7 @@ function decodePsbtSummary(
       };
     });
 
-    const outputs: PsbtIO[] = psbt.txOutputs.map((o: any) => {
+    const outputs: PsbtIO[] = psbt.txOutputs.map((o) => {
       let address: string | null = null;
       try {
         address = bitcoin.address.fromOutputScript(o.script, PEPECOIN);

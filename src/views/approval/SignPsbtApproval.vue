@@ -341,13 +341,13 @@ function handleReject() {
 
         <PepInputsOutputsDetail
           v-if="psbtDetails.inputs.length"
-          :title="`${psbtDetails.inputs.length} ${psbtDetails.inputs.length === 1 ? 'input' : 'inputs'}`"
+          mode="in"
           :rows="psbtDetails.inputs"
         />
 
         <PepInputsOutputsDetail
           v-if="psbtDetails.outputs.length"
-          :title="`${psbtDetails.outputs.length} ${psbtDetails.outputs.length === 1 ? 'output' : 'outputs'}`"
+          mode="out"
           :rows="psbtDetails.outputs"
         />
 

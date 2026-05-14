@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { formatPep } from '@/utils/price';
 import PepInlineAddress from '@/components/ui/PepInlineAddress.vue';
 import type { Inscription } from '@/models/Inscription';
@@ -9,10 +10,15 @@ export interface InputOutputRow {
   inscription?: Inscription | null;
 }
 
-defineProps<{
-  title: string;
+const props = defineProps<{
+  mode: 'in' | 'out';
   rows: InputOutputRow[];
 }>();
+
+const title = computed(() => {
+  const noun = props.mode === 'in' ? 'input' : 'output';
+  return `${props.rows.length} ${props.rows.length === 1 ? noun : `${noun}s`}`;
+});
 </script>
 
 <template>

@@ -133,13 +133,13 @@ describe('SendView', () => {
   it('should toggle between PEP and fiat mode when swap button is clicked', async () => {
     const wrapper = mount(SendView, { global });
     // Ensure we are at step 1
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.step = 1;
 
     await flushPromises();
 
     const amountInput = wrapper.findComponent(PepAmountInput);
-    // @ts-ignore
+    // @ts-expect-error
     expect(amountInput.vm.isFiatMode).toBe(false);
 
     // Find and click swap button
@@ -147,11 +147,11 @@ describe('SendView', () => {
     expect(swapBtn.exists()).toBe(true);
 
     await swapBtn.trigger('click');
-    // @ts-ignore
+    // @ts-expect-error
     expect(amountInput.vm.isFiatMode).toBe(true);
 
     await swapBtn.trigger('click');
-    // @ts-ignore
+    // @ts-expect-error
     expect(amountInput.vm.isFiatMode).toBe(false);
   });
 
@@ -159,9 +159,9 @@ describe('SendView', () => {
     const wrapper = mount(SendView, { global });
 
     // Manually move to Step 3 and set a TXID in the persisted form
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.step = 3;
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.txid = 'f1e24cd438c630792bdeacf8509eaad1e7248ba4314633189e17da069b5f9ef3';
 
     await wrapper.vm.$nextTick();
@@ -177,7 +177,7 @@ describe('SendView', () => {
     mockAccount.spendableBalanceRibbits = 500_000_000;
 
     const wrapper = mount(SendView, { global });
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.step = 1;
 
     await flushPromises();
@@ -189,7 +189,7 @@ describe('SendView', () => {
   it('should have a MAX button of type="button" that does not trigger form submit', async () => {
     const wrapper = mount(SendView, { global });
     // Ensure we are at step 1
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.step = 1;
 
     await flushPromises();
@@ -223,7 +223,7 @@ describe('SendView', () => {
     const wrapper = mount(SendView, { global });
     await flushPromises();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.errors.recipient).toBe('Invalid address format');
   });
 
@@ -231,9 +231,9 @@ describe('SendView', () => {
     const wrapper = mount(SendView, { global });
 
     // 1. Move to step 3
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.step = 3;
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.recipient = 'some-address';
     await wrapper.vm.$nextTick();
 
@@ -242,9 +242,9 @@ describe('SendView', () => {
     await backBtn.trigger('click');
 
     // 3. Verify form was reset (step back to 1, recipient empty)
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.step).toBe(1);
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.recipient).toBe('');
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
   });
@@ -253,10 +253,10 @@ describe('SendView', () => {
     const wrapper = mount(SendView, { global });
     mockSendTransaction.validateStep1.mockResolvedValue(true);
 
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.handleReview();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.step).toBe(2);
   });
 
@@ -264,41 +264,41 @@ describe('SendView', () => {
     const wrapper = mount(SendView, { global });
     mockSendTransaction.send.mockResolvedValue('txid');
 
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.handleSend();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.step).toBe(3);
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.txid = 'txid'; // Manually sync for test
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.txid).toBe('txid');
   });
 
   it('handleSend should handle error on failure', async () => {
     const wrapper = mount(SendView, { global });
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.txid = '';
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.step = 2;
     mockSendTransaction.send.mockRejectedValue(new Error('Send failed'));
 
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.handleSend();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.errors.general).toBe('Send failed');
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.step).toBe(2);
   });
   it('handleReview should handle error on failure', async () => {
     const wrapper = mount(SendView, { global });
     mockSendTransaction.validateStep1.mockRejectedValue(new Error('Invalid step 1'));
 
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.handleReview();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.errors.general).toBe('Invalid step 1');
   });
 
@@ -306,10 +306,10 @@ describe('SendView', () => {
     mockSendTransaction.maxRibbits.value = 5000;
     const wrapper = mount(SendView, { global });
 
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.setMax();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.amountRibbits).toBe(5000);
   });
 
@@ -319,10 +319,10 @@ describe('SendView', () => {
     const wrapper = mount(SendView, { global });
     const setErrorSpy = vi.spyOn(wrapper.vm.form, 'setError');
 
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.recipient = 'not-valid';
 
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.handleAddressBlur();
 
     expect(setErrorSpy).toHaveBeenCalledWith('recipient', 'Invalid address format');
@@ -332,13 +332,13 @@ describe('SendView', () => {
   });
   it('handleClose should reset and navigate', () => {
     const wrapper = mount(SendView, { global });
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.recipient = 'some-data';
 
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.handleClose();
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(wrapper.vm.form.recipient).toBe('');
     expect(pushMock).toHaveBeenCalledWith('/dashboard');
   });
@@ -346,10 +346,10 @@ describe('SendView', () => {
   it('openExplorer should open explorer link', () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     const wrapper = mount(SendView, { global });
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.form.txid = 'test-txid';
 
-    // @ts-ignore
+    // @ts-expect-error
     wrapper.vm.openExplorer();
 
     expect(openSpy).toHaveBeenCalledWith('https://peppool.space/tx/test-txid', '_blank');

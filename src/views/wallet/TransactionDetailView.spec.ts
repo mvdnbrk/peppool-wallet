@@ -99,7 +99,7 @@ describe('TransactionDetailView', () => {
     mockAccount.fetchTransaction.mockResolvedValue(
       new Transaction(incomingRaw, 'PmuXQDfN5KZQqPYombmSVscCQXbh7rFZSU')
     );
-    // @ts-ignore
+    // @ts-expect-error
     await wrapper.vm.loadDetails();
     await flushPromises();
 

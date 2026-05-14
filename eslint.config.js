@@ -45,7 +45,11 @@ export default tseslint.config(
   {
     files: ['**/*.spec.ts', '**/*.test.ts'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off'
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        { 'ts-expect-error': false, 'ts-ignore': true, 'ts-nocheck': true, 'ts-check': false }
+      ]
     }
   },
   prettier

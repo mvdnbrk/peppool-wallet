@@ -520,6 +520,70 @@ describe('SignPsbtApproval', () => {
     expect(outputsPanel.text()).toContain('Inscription 7');
   });
 
+  it('does not predict an output inscription on a listing PSBT (ANYONECANPAY splices invalidate sat tracking)', async () => {
+    const inscriptionTxid = 'c'.repeat(64);
+    const inscriptionVout = 0;
+    const myAddress = 'Pseller';
+    const myAddressKey = `${inscriptionTxid}:${inscriptionVout}`;
+
+    mockPsbt.inputCount = 1;
+    mockPsbt.txInputs = [
+      { hash: Buffer.from(inscriptionTxid, 'hex').reverse(), index: inscriptionVout }
+    ] as any;
+    mockPsbt.data.inputs = [
+      { sighashType: 0x83, nonWitnessUtxo: Buffer.from('deadbeef', 'hex') }
+    ] as any;
+    mockPsbt.txOutputs = [{ script: Buffer.from('seller', 'utf8'), value: 10_000_100_000 }] as any;
+
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.Transaction.fromBuffer as any).mockReturnValue({
+      outs: [{ script: Buffer.from('mine', 'utf8'), value: 100_000 }]
+    });
+    (bitcoin.address.fromOutputScript as any).mockReturnValue(myAddress);
+
+    const { LOCAL_STORAGE_KEYS } = await import('@/constants/storage');
+    localStorage.setItem(
+      LOCAL_STORAGE_KEYS.INSCRIPTIONS,
+      JSON.stringify({
+        [myAddress]: {
+          inscriptions: {
+            ins99: {
+              id: 'ins99',
+              number: 99,
+              contentType: 'image/png',
+              contentLength: 100,
+              height: 1,
+              value: 100_000,
+              parents: [],
+              properties: null,
+              satpoint: `${myAddressKey}:0`,
+              timestamp: 0
+            }
+          },
+          outputs: [myAddressKey],
+          lastSyncedHeight: 1
+        }
+      })
+    );
+    const { useInscriptionStore } = await import('@/stores/inscriptions');
+    useInscriptionStore().load(myAddress);
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: myAddress, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'refreshBalance').mockResolvedValue(undefined as any);
+
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { [myAddress]: [0] } });
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    const panels = wrapper.findAll('details');
+    expect(panels[0]!.text()).toContain('Inscription 99');
+    expect(panels[1]!.text()).not.toContain('Inscription 99');
+  });
+
   it('sends rejection on cancel', async () => {
     const store = useWalletStore();
     store.isUnlocked = true;

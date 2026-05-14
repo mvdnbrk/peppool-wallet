@@ -118,6 +118,11 @@ function buildHero(inputs: PsbtIO[], outputs: PsbtIO[]): { transfer: HeroSide; r
 function predictOutputInscriptions(inputs: PsbtIO[], outputs: PsbtIO[]): (Inscription | null)[] {
   const predicted: (Inscription | null)[] = outputs.map(() => null);
   if (!inputs.every((i) => i.amountRibbits !== null)) return predicted;
+  // ANYONECANPAY (0x80 bit) lets a counterparty splice in inputs at any position
+  // in the final tx, so cumulative sat offsets computed from the current PSBT
+  // are meaningless. Bail out rather than mislabel a price output as carrying
+  // an inscription.
+  if (inputs.some((i) => ((i.sighashType ?? 0) & 0x80) !== 0)) return predicted;
 
   let cumIn = 0;
   const positions: Array<{ pos: number; inscription: Inscription }> = [];

@@ -47,7 +47,7 @@ const title = computed(() => {
       >
         <div
           v-if="row.inscription"
-          class="text-pepe-green text-[10px] font-bold tracking-widest uppercase"
+          class="text-[10px] font-bold tracking-widest uppercase"
         >
           Inscription {{ row.inscription.number }}
         </div>

@@ -8,8 +8,8 @@ import { formatPep } from '@/utils/price';
 import { useApprovalRequest } from '@/composables/useApprovalRequest';
 import PepMainLayout from '@/components/ui/PepMainLayout.vue';
 import PepButton from '@/components/ui/PepButton.vue';
-import PepInlineAddress from '@/components/ui/PepInlineAddress.vue';
 import PepInscription from '@/components/ui/PepInscription.vue';
+import PepInputsOutputsDetail from '@/components/ui/PepInputsOutputsDetail.vue';
 import type { Inscription } from '@/models/Inscription';
 import * as bitcoin from 'bitcoinjs-lib';
 import { PEPECOIN } from '@/utils/networks';
@@ -115,10 +115,46 @@ function buildHero(inputs: PsbtIO[], outputs: PsbtIO[]): { transfer: HeroSide; r
   return { transfer, receive };
 }
 
+function predictOutputInscriptions(inputs: PsbtIO[], outputs: PsbtIO[]): (Inscription | null)[] {
+  const predicted: (Inscription | null)[] = outputs.map(() => null);
+  if (!inputs.every((i) => i.amountRibbits !== null)) return predicted;
+
+  let cumIn = 0;
+  const positions: Array<{ pos: number; inscription: Inscription }> = [];
+  for (const i of inputs) {
+    if (i.inscription) {
+      const parts = i.inscription.satpoint.split(':');
+      const offset = Number.parseInt(parts[2] ?? '0', 10) || 0;
+      positions.push({ pos: cumIn + offset, inscription: i.inscription });
+    }
+    cumIn += i.amountRibbits ?? 0;
+  }
+  if (!positions.length) return predicted;
+
+  let cumOut = 0;
+  for (let k = 0; k < outputs.length; k++) {
+    const start = cumOut;
+    const end = cumOut + (outputs[k]!.amountRibbits ?? 0);
+    for (const p of positions) {
+      if (p.pos >= start && p.pos < end) {
+        predicted[k] = p.inscription;
+        break;
+      }
+    }
+    cumOut = end;
+  }
+  return predicted;
+}
+
 function decodePsbtSummary(
   base64: string,
   myAddress: string | null
-): { inputs: PsbtIO[]; outputs: PsbtIO[]; netChangeRibbits: number | null; decodeError: boolean } {
+): {
+  inputs: PsbtIO[];
+  outputs: PsbtIO[];
+  netChangeRibbits: number | null;
+  decodeError: boolean;
+} {
   try {
     const psbt = bitcoin.Psbt.fromBase64(base64, { network: PEPECOIN });
 
@@ -149,7 +185,7 @@ function decodePsbtSummary(
       };
     });
 
-    const outputs: PsbtIO[] = psbt.txOutputs.map((o) => {
+    const rawOutputs: PsbtIO[] = psbt.txOutputs.map((o) => {
       let address: string | null = null;
       try {
         address = bitcoin.address.fromOutputScript(o.script, PEPECOIN);
@@ -162,6 +198,11 @@ function decodePsbtSummary(
         mine: !!myAddress && address === myAddress
       };
     });
+    const predicted = predictOutputInscriptions(inputs, rawOutputs);
+    const outputs: PsbtIO[] = rawOutputs.map((o, k) => ({
+      ...o,
+      inscription: predicted[k] ?? null
+    }));
 
     const allInputAmountsKnown = inputs.every((i) => i.amountRibbits !== null);
     let netChangeRibbits: number | null = null;
@@ -298,38 +339,30 @@ function handleReject() {
           </p>
         </div>
 
-        <div
+        <PepInputsOutputsDetail
           v-if="psbtDetails.inputs.length"
-          class="space-y-2 rounded-xl border border-slate-800 bg-slate-900 p-4"
-        >
-          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">From</span>
-          <div
-            v-for="(io, i) in psbtDetails.inputs"
-            :key="`in-${i}`"
-            class="flex items-center justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
-          >
-            <PepInlineAddress :address="io.address" />
-            <span class="shrink-0 text-xs font-bold text-slate-200">{{
-              io.amountRibbits === null ? '—' : formatPep(io.amountRibbits)
-            }}</span>
-          </div>
-        </div>
+          :title="`${psbtDetails.inputs.length} ${psbtDetails.inputs.length === 1 ? 'input' : 'inputs'}`"
+          :rows="psbtDetails.inputs"
+        />
+
+        <PepInputsOutputsDetail
+          v-if="psbtDetails.outputs.length"
+          :title="`${psbtDetails.outputs.length} ${psbtDetails.outputs.length === 1 ? 'output' : 'outputs'}`"
+          :rows="psbtDetails.outputs"
+        />
 
         <div
-          v-if="psbtDetails.outputs.length"
-          class="space-y-2 rounded-xl border border-slate-800 bg-slate-900 p-4"
+          v-if="psbtDetails.netChangeRibbits !== null && !psbtDetails.decodeError"
+          class="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900 px-4 py-3"
         >
-          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">To</span>
-          <div
-            v-for="(io, i) in psbtDetails.outputs"
-            :key="`out-${i}`"
-            class="flex items-center justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">Net change</span>
+          <span
+            class="text-sm font-bold"
+            :class="psbtDetails.netChangeRibbits < 0 ? 'text-red-400' : 'text-pepe-green'"
           >
-            <PepInlineAddress :address="io.address" />
-            <span class="shrink-0 text-xs font-bold text-slate-200">{{
-              io.amountRibbits === null ? '—' : formatPep(io.amountRibbits)
-            }}</span>
-          </div>
+            {{ psbtDetails.netChangeRibbits > 0 ? '+' : ''
+            }}{{ formatPep(psbtDetails.netChangeRibbits) }}
+          </span>
         </div>
 
         <div

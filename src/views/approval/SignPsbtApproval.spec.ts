@@ -416,6 +416,110 @@ describe('SignPsbtApproval', () => {
     expect(wrapper.text()).toContain('does not belong to the active account');
   });
 
+  it('renders collapsible raw inputs/outputs panels with an inscription badge and net change footer', async () => {
+    // A simple-PEP send: 1 mine input of 100_000_000 ribbits funds a 50_000_000 recipient
+    // output and a 49_000_000 change output (1_000_000 fee). Net change = -51_000_000.
+    const myAddress = 'Psender';
+
+    mockPsbt.inputCount = 1;
+    mockPsbt.txInputs = [{ hash: Buffer.alloc(32), index: 0 }] as any;
+    mockPsbt.data.inputs = [{ nonWitnessUtxo: Buffer.from('deadbeef', 'hex') }] as any;
+    mockPsbt.txOutputs = [
+      { script: Buffer.from('to-recipient', 'utf8'), value: 50_000_000 },
+      { script: Buffer.from('change', 'utf8'), value: 49_000_000 }
+    ] as any;
+
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.Transaction.fromBuffer as any).mockReturnValue({
+      outs: [{ script: Buffer.from('mine', 'utf8'), value: 100_000_000 }]
+    });
+    (bitcoin.address.fromOutputScript as any)
+      .mockReturnValueOnce(myAddress)
+      .mockReturnValueOnce('Precipient')
+      .mockReturnValueOnce(myAddress);
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: myAddress, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { [myAddress]: [0] } });
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    // Two collapsible panels — one for inputs, one for outputs.
+    const detailsBlocks = wrapper.findAll('details');
+    expect(detailsBlocks.length).toBe(2);
+    expect(detailsBlocks[0]!.text()).toContain('1 input');
+    expect(detailsBlocks[1]!.text()).toContain('2 outputs');
+
+    // Net change footer shows the spent total (negative).
+    expect(wrapper.text()).toContain('Net change');
+  });
+
+  it('renders an inscription badge in the outputs panel when an inscription is predicted to land on a mine output', async () => {
+    // Self-send / cancel: 1 mine input carrying an inscription → 1 mine output of the same value.
+    const inscriptionTxid = 'b'.repeat(64);
+    const inscriptionVout = 0;
+    const myAddress = 'Pself';
+    const myAddressKey = `${inscriptionTxid}:${inscriptionVout}`;
+
+    mockPsbt.inputCount = 1;
+    mockPsbt.txInputs = [
+      { hash: Buffer.from(inscriptionTxid, 'hex').reverse(), index: inscriptionVout }
+    ] as any;
+    mockPsbt.data.inputs = [{ nonWitnessUtxo: Buffer.from('deadbeef', 'hex') }] as any;
+    mockPsbt.txOutputs = [{ script: Buffer.from('self', 'utf8'), value: 100_000 }] as any;
+
+    const bitcoin = await import('bitcoinjs-lib');
+    (bitcoin.Transaction.fromBuffer as any).mockReturnValue({
+      outs: [{ script: Buffer.from('mine', 'utf8'), value: 100_000 }]
+    });
+    (bitcoin.address.fromOutputScript as any).mockReturnValue(myAddress);
+
+    const { LOCAL_STORAGE_KEYS } = await import('@/constants/storage');
+    localStorage.setItem(
+      LOCAL_STORAGE_KEYS.INSCRIPTIONS,
+      JSON.stringify({
+        [myAddress]: {
+          inscriptions: {
+            ins7: {
+              id: 'ins7',
+              number: 7,
+              contentType: 'image/png',
+              contentLength: 100,
+              height: 1,
+              value: 100_000,
+              parents: [],
+              properties: null,
+              satpoint: `${myAddressKey}:0`,
+              timestamp: 0
+            }
+          },
+          outputs: [myAddressKey],
+          lastSyncedHeight: 1
+        }
+      })
+    );
+    const { useInscriptionStore } = await import('@/stores/inscriptions');
+    useInscriptionStore().load(myAddress);
+
+    const store = useWalletStore();
+    store.isUnlocked = true;
+    store.activeAccountIndex = 0;
+    store.accounts = [{ address: myAddress, path: "m/44'/3434'/0'/0/0", label: 'Account 1' }];
+    vi.spyOn(store, 'refreshBalance').mockResolvedValue(undefined as any);
+
+    makeRequest({ psbt: 'base64-psbt-data', signInputs: { [myAddress]: [0] } });
+
+    const wrapper = mount(SignPsbtApproval, { global: globalConfig });
+    await flushPromises();
+
+    const outputsPanel = wrapper.findAll('details')[1]!;
+    expect(outputsPanel.text()).toContain('#7');
+  });
+
   it('sends rejection on cancel', async () => {
     const store = useWalletStore();
     store.isUnlocked = true;

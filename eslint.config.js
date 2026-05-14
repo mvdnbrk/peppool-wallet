@@ -36,6 +36,7 @@ export default tseslint.config(
     rules: {
       'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
       'vue/no-mutating-props': ['error', { shallowOnly: true }],
+      'vue/require-default-prop': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }

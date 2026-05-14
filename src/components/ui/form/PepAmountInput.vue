@@ -10,7 +10,7 @@ import PepIcon from '@/components/ui/PepIcon.vue';
 interface Props {
   ribbits: number;
   price: number; // Price of 1 PEP in current fiat
-  isFiatMode: boolean;
+  isFiatMode?: boolean;
   disabled?: boolean;
   label?: string;
   id?: string;

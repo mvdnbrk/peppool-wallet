@@ -1,0 +1,60 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { formatPep } from '@/utils/price';
+import PepInlineAddress from '@/components/ui/PepInlineAddress.vue';
+import type { Inscription } from '@/models/Inscription';
+
+export interface InputOutputRow {
+  address: string | null;
+  amountRibbits: number | null;
+  inscription?: Inscription | null;
+}
+
+const props = defineProps<{
+  mode: 'in' | 'out';
+  rows: InputOutputRow[];
+}>();
+
+const title = computed(() => {
+  const noun = props.mode === 'in' ? 'input' : 'output';
+  return `${props.rows.length} ${props.rows.length === 1 ? noun : `${noun}s`}`;
+});
+</script>
+
+<template>
+  <details class="group rounded-xl border border-slate-800 bg-slate-900">
+    <summary
+      class="flex cursor-pointer list-none items-center justify-between p-4 [&::-webkit-details-marker]:hidden"
+    >
+      <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">
+        {{ title }}
+      </span>
+      <svg
+        class="h-4 w-4 text-slate-500 transition-transform group-open:rotate-180"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
+    </summary>
+    <div class="space-y-2 px-4 pb-4">
+      <div
+        v-for="(row, i) in rows"
+        :key="i"
+        class="space-y-1 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+      >
+        <div v-if="row.inscription" class="text-[10px] font-bold tracking-widest uppercase">
+          Inscription {{ row.inscription.number }}
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <PepInlineAddress :address="row.address" />
+          <span class="shrink-0 text-xs font-bold text-slate-200">
+            {{ row.amountRibbits === null ? '—' : formatPep(row.amountRibbits) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </details>
+</template>

@@ -4,7 +4,7 @@ import {
   SIGHASH,
   getInputSighash,
   sighashLabel,
-  validateSignPsbtParams
+  validatePsbtParams
 } from './psbt';
 
 const VALID_ADDR = 'PJGSjPmY3PzGyE54M3VGiRaEQFBhxuokV1';
@@ -47,16 +47,14 @@ describe('getInputSighash', () => {
   });
 });
 
-describe('validateSignPsbtParams', () => {
+describe('validatePsbtParams', () => {
   it('accepts a minimal valid request', () => {
-    expect(
-      validateSignPsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [0] } })
-    ).toBeNull();
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [0] } })).toBeNull();
   });
 
   it('accepts multiple addresses with multiple indices', () => {
     expect(
-      validateSignPsbtParams({
+      validatePsbtParams({
         psbt: 'base64',
         signInputs: { [VALID_ADDR]: [0], [VALID_ADDR_2]: [1, 2] },
         broadcast: true
@@ -65,47 +63,47 @@ describe('validateSignPsbtParams', () => {
   });
 
   it('rejects missing psbt', () => {
-    expect(validateSignPsbtParams({ signInputs: { [VALID_ADDR]: [0] } })).toContain('psbt');
+    expect(validatePsbtParams({ signInputs: { [VALID_ADDR]: [0] } })).toContain('psbt');
   });
 
   it('rejects missing signInputs', () => {
-    expect(validateSignPsbtParams({ psbt: 'base64' })).toContain('signInputs is required');
+    expect(validatePsbtParams({ psbt: 'base64' })).toContain('signInputs is required');
   });
 
   it('rejects empty signInputs', () => {
-    expect(validateSignPsbtParams({ psbt: 'base64', signInputs: {} })).toContain('at least one');
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: {} })).toContain('at least one');
   });
 
   it('rejects invalid address keys', () => {
-    expect(validateSignPsbtParams({ psbt: 'base64', signInputs: { bc1qxyz: [0] } })).toContain(
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: { bc1qxyz: [0] } })).toContain(
       'Invalid address'
     );
   });
 
   it('rejects empty index arrays', () => {
-    expect(validateSignPsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [] } })).toContain(
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [] } })).toContain(
       'non-empty array'
     );
   });
 
   it('rejects negative or non-integer indices', () => {
-    expect(
-      validateSignPsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [-1] } })
-    ).toContain('invalid index');
-    expect(
-      validateSignPsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [1.5] } })
-    ).toContain('invalid index');
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [-1] } })).toContain(
+      'invalid index'
+    );
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [1.5] } })).toContain(
+      'invalid index'
+    );
   });
 
   it('rejects duplicate indices for the same address', () => {
-    expect(
-      validateSignPsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [0, 0] } })
-    ).toContain('duplicate');
+    expect(validatePsbtParams({ psbt: 'base64', signInputs: { [VALID_ADDR]: [0, 0] } })).toContain(
+      'duplicate'
+    );
   });
 
   it('rejects non-boolean broadcast', () => {
     expect(
-      validateSignPsbtParams({
+      validatePsbtParams({
         psbt: 'base64',
         signInputs: { [VALID_ADDR]: [0] },
         broadcast: 'yes'

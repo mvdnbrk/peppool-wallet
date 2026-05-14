@@ -1,4 +1,5 @@
 import * as bitcoin from 'bitcoinjs-lib';
+import { PEPECOIN } from '@/utils/networks';
 
 export const SIGHASH = {
   ALL: 0x01,
@@ -48,7 +49,7 @@ const PEP_ADDRESS_RE = /^P[1-9A-HJ-NP-Za-km-z]{25,33}$/;
  * popup. Deeper checks (PSBT decoding, index range, sighash allowlist) happen
  * in the approval view which already parses the PSBT.
  */
-export function validateSignPsbtParams(params: any): string | null {
+export function validatePsbtParams(params: any): string | null {
   if (!params || typeof params !== 'object') return 'Missing PSBT parameters.';
 
   if (typeof params.psbt !== 'string' || params.psbt.length === 0) {
@@ -83,6 +84,48 @@ export function validateSignPsbtParams(params: any): string | null {
 
   if (params.broadcast != null && typeof params.broadcast !== 'boolean') {
     return 'broadcast must be a boolean.';
+  }
+
+  return null;
+}
+
+export function verifyPsbtOwnership(
+  params: { psbt: string; signInputs: Record<string, number[]> },
+  activeAddress: string
+): string | null {
+  const indices = params.signInputs[activeAddress];
+  if (!indices || indices.length === 0) {
+    return 'This PSBT is not for the active account.';
+  }
+
+  let psbt: bitcoin.Psbt;
+  try {
+    psbt = bitcoin.Psbt.fromBase64(params.psbt, { network: PEPECOIN });
+  } catch {
+    return 'Unable to decode PSBT.';
+  }
+
+  for (const i of indices) {
+    if (i < 0 || i >= psbt.inputCount) {
+      return `signInputs index ${i} is out of range.`;
+    }
+    const data = psbt.data.inputs[i];
+    if (!data?.nonWitnessUtxo) {
+      return `Input ${i} is missing nonWitnessUtxo; cannot verify ownership.`;
+    }
+    const txIn = psbt.txInputs[i]!;
+    let prevAddress: string | null = null;
+    try {
+      const prevTx = bitcoin.Transaction.fromBuffer(data.nonWitnessUtxo);
+      const out = prevTx.outs[txIn.index];
+      if (!out) return `Input ${i} prevout vout is out of range.`;
+      prevAddress = bitcoin.address.fromOutputScript(out.script, PEPECOIN);
+    } catch {
+      return `Input ${i} prevout could not be decoded.`;
+    }
+    if (prevAddress !== activeAddress) {
+      return `Input ${i} does not belong to the active account.`;
+    }
   }
 
   return null;

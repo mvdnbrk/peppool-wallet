@@ -10,7 +10,7 @@
  */
 
 import { loadPermissions, savePermissions, hasPermission, revokeOrigin } from '@/utils/permissions';
-import { validateSignPsbtParams } from '@/utils/psbt';
+import { validatePsbtParams, verifyPsbtOwnership } from '@/utils/psbt';
 import { CHROME_STORAGE_KEYS } from '@/constants/storage';
 
 const ALARM_NAME_AUTOLOCK = 'peppool-inactivity-lock';
@@ -172,9 +172,21 @@ async function handleDappRequest(
       }
 
       if (method === 'signPsbt') {
-        const validationError = validateSignPsbtParams(request.params);
+        const validationError = validatePsbtParams(request.params);
         if (validationError) {
           sendResponse({ error: validationError });
+          requestQueue.delete(requestId);
+          return;
+        }
+        const activeAddress = await getActiveAddress();
+        if (!activeAddress) {
+          sendResponse({ error: 'No active account.' });
+          requestQueue.delete(requestId);
+          return;
+        }
+        const ownershipError = verifyPsbtOwnership(request.params, activeAddress);
+        if (ownershipError) {
+          sendResponse({ error: ownershipError });
           requestQueue.delete(requestId);
           return;
         }

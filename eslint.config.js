@@ -29,11 +29,13 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.webextensions
+        ...globals.webextensions,
+        Buffer: 'readonly'
       }
     },
     rules: {
       'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
+      'vue/no-mutating-props': ['error', { shallowOnly: true }],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }

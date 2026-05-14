@@ -5,13 +5,7 @@
  * dApp discovery and handles the relay to the content script.
  */
 
-interface PepProvider {
-  id: string;
-  name: string;
-  icon: string;
-  methods: string[];
-  request: (method: string, params?: any) => Promise<any>;
-}
+import type { PepProvider } from '@/types/window';
 
 const REQUEST_TIMEOUT_MS = 300_000; // 5 minutes
 
@@ -32,7 +26,7 @@ const PeppoolProvider: PepProvider = {
     'signPsbt'
   ],
 
-  request: async (method: string, params?: any): Promise<any> => {
+  request: async (method: string, params?: unknown): Promise<unknown> => {
     return new Promise((resolve, reject) => {
       const requestId = crypto.randomUUID();
       let settled = false;
@@ -78,16 +72,16 @@ const PeppoolProvider: PepProvider = {
 
 function injectProvider() {
   try {
-    const pep_providers = (window as any).pep_providers || [];
+    const pep_providers = window.pep_providers ?? [];
 
     // Avoid duplicate injection
-    if (pep_providers.some((p: any) => p.id === 'peppool')) return;
+    if (pep_providers.some((p) => p.id === 'peppool')) return;
 
     pep_providers.push(PeppoolProvider);
-    (window as any).pep_providers = pep_providers;
+    window.pep_providers = pep_providers;
 
     // Direct access shortcut
-    (window as any).PepecoinProvider = PeppoolProvider;
+    window.PepecoinProvider = PeppoolProvider;
 
     // Discovery: dApps that load after injection can dispatch
     // `pep_providers:request` to receive a `pep_providers:announce` event
@@ -97,9 +91,9 @@ function injectProvider() {
         new CustomEvent('pep_providers:announce', { detail: { provider: PeppoolProvider } })
       );
     };
-    if (!(window as any).__peppoolRequestListener) {
+    if (!window.__peppoolRequestListener) {
       window.addEventListener('pep_providers:request', announce);
-      (window as any).__peppoolRequestListener = true;
+      window.__peppoolRequestListener = true;
     }
 
     // Initial announce for dApps already listening at document_start.

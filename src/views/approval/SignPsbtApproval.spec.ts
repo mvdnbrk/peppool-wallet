@@ -517,7 +517,7 @@ describe('SignPsbtApproval', () => {
     await flushPromises();
 
     const outputsPanel = wrapper.findAll('details')[1]!;
-    expect(outputsPanel.text()).toContain('#7');
+    expect(outputsPanel.text()).toContain('Inscription 7');
   });
 
   it('sends rejection on cancel', async () => {

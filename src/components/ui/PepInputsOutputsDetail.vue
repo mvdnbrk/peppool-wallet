@@ -43,20 +43,20 @@ const title = computed(() => {
       <div
         v-for="(row, i) in rows"
         :key="i"
-        class="flex items-center justify-between gap-3 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
+        class="space-y-1 border-t border-slate-800 pt-2 first:border-t-0 first:pt-0"
       >
-        <div class="flex min-w-0 flex-1 items-center gap-2">
+        <div
+          v-if="row.inscription"
+          class="text-pepe-green text-[10px] font-bold tracking-widest uppercase"
+        >
+          Inscription {{ row.inscription.number }}
+        </div>
+        <div class="flex items-center justify-between gap-3">
           <PepInlineAddress :address="row.address" />
-          <span
-            v-if="row.inscription"
-            class="bg-pepe-green/10 text-pepe-green shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-widest uppercase"
-          >
-            #{{ row.inscription.number }}
+          <span class="shrink-0 text-xs font-bold text-slate-200">
+            {{ row.amountRibbits === null ? '—' : formatPep(row.amountRibbits) }}
           </span>
         </div>
-        <span class="shrink-0 text-xs font-bold text-slate-200">
-          {{ row.amountRibbits === null ? '—' : formatPep(row.amountRibbits) }}
-        </span>
       </div>
     </div>
   </details>

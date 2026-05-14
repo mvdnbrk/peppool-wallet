@@ -268,7 +268,7 @@ function handleReject() {
               }}
             </span>
           </div>
-          <p v-else class="text-pepe-green mt-1 text-lg font-bold">
+          <p v-else class="mt-1 text-lg font-bold">
             {{ formatPep(hero.transfer.amountRibbits) }}
           </p>
         </div>
@@ -293,7 +293,7 @@ function handleReject() {
               }}
             </span>
           </div>
-          <p v-else class="text-pepe-green mt-1 text-lg font-bold">
+          <p v-else class="mt-1 text-lg font-bold">
             {{ formatPep(hero.receive.amountRibbits) }}
           </p>
         </div>

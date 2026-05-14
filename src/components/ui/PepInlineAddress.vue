@@ -15,7 +15,7 @@ const isMyAddress = computed(() => !!props.address && props.address === walletSt
 
 <template>
   <span class="flex min-w-0 flex-col gap-0.5">
-    <span v-if="isMyAddress" class="text-pepe-green text-[10px] font-bold tracking-wider uppercase">
+    <span v-if="isMyAddress" class="text-[10px] font-bold tracking-wider uppercase">
       My Address
     </span>
     <span

@@ -169,7 +169,7 @@ function handleReject() {
         >
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">Amount</span>
-            <span class="text-pepe-green font-bold">{{ r.amountPep }} PEP</span>
+            <span class="font-bold">{{ r.amountPep }} PEP</span>
           </div>
           <div class="space-y-1">
             <span class="text-xs font-bold tracking-widest text-slate-500 uppercase">To</span>
